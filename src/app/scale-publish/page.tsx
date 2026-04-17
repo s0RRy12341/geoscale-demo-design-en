@@ -1125,6 +1125,34 @@ function PlannerTab({
         </div>
       </div>
 
+      {/* Brand Images / Assets */}
+      <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #DDDDDD", padding: "16px 20px", marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#000" }}>Brand images & assets</div>
+            <div style={{ fontSize: 11, color: "#727272", marginTop: 2 }}>Attach product shots, logos, or brand assets — auto-embedded into generated content</div>
+          </div>
+          <span style={{ fontSize: 11, color: "#A2A9B0" }}>3 items</span>
+        </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {[
+            { bg: "linear-gradient(135deg,#FEF3C7,#FCD34D)", label: "logo" },
+            { bg: "linear-gradient(135deg,#DBEAFE,#93C5FD)", label: "horse-1.jpg" },
+            { bg: "linear-gradient(135deg,#D1FAE5,#6EE7B7)", label: "ranch.png" },
+          ].map((img, i) => (
+            <div key={i} style={{ position: "relative", width: 84, height: 84, borderRadius: 8, background: img.bg, border: "1px solid #DDDDDD", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
+              <div style={{ width: "100%", padding: "4px 6px", background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 10, fontWeight: 500, textAlign: "center" }}>{img.label}</div>
+              <button aria-label="Remove" style={{ position: "absolute", top: 4, right: 4, width: 18, height: 18, borderRadius: 9, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+            </div>
+          ))}
+          <label style={{ width: 84, height: 84, borderRadius: 8, border: "1.5px dashed #A2A9B0", background: "#F9F9F9", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", gap: 4, color: "#727272", transition: "all 0.15s" }}>
+            <span style={{ fontSize: 22, lineHeight: 1, fontWeight: 300 }}>+</span>
+            <span style={{ fontSize: 10, fontWeight: 500 }}>Add image</span>
+            <input type="file" accept="image/*" multiple style={{ display: "none" }} />
+          </label>
+        </div>
+      </div>
+
       {/* Plan Type Cards — SEO / GEO / Combined with discount */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
         {/* SEO Only */}

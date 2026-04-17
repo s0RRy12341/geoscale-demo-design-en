@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 
 // ============================================================
-// GEOSCALE DASHBOARD — Exact brand design
-// Header: logo LEFT, nav center, actions RIGHT
-// Footer matching geoscale.ai
-// Metrics like example10.png (big numbers)
-// Clean minimal cards, proper RTL
+// GEOSCALE DASHBOARD — English version synced with Hebrew
+// Header: logo RIGHT, nav center, actions LEFT
+// Table-based brands, 5 metrics, tooltips, sort dropdown
+// Top 5 trending up / needs attention sections
+// Engine Coverage with custom logos
 // ============================================================
 
 // ── Geoscale Logo (rendered as img from actual site) ──
@@ -57,8 +57,8 @@ function IconCheck({ size = 12 }: { size?: number }) {
 function IconChevronDown({ size = 14 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>;
 }
-function IconChevronLeft({ size = 14 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>;
+function IconChevronRight({ size = 14 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>;
 }
 function IconSearch({ size = 14 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>;
@@ -69,109 +69,46 @@ function IconChart({ size = 14 }: { size?: number }) {
 function IconArrowUp() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>;
 }
-function IconScan({ size = 14 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>;
-}
 
-// ── Brand Card ──
-function BrandCard({ brand, onSelect }: { brand: typeof MOCK_BRANDS[0]; onSelect: () => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const [h, setH] = useState(0);
-  useEffect(() => { if (ref.current) setH(ref.current.scrollHeight); }, [expanded]);
-
+// ── Ahrefs-style Tooltip ──
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const handleEnter = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top - 10, left: r.left + r.width / 2 });
+    }
+    setShow(true);
+  };
   return (
-    <div
-      className="bg-white overflow-hidden transition-all duration-200 cursor-pointer"
-      style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}
-      onClick={() => setExpanded(!expanded)}
+    <span ref={ref}
+      style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={() => setShow(false)}
     >
-      <div className="p-5">
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Score - bigger, bolder */}
-            <div className="flex items-center justify-center shrink-0" style={{ width: 48, height: 48, borderRadius: 10, background: brand.score >= 70 ? "#10A37F12" : "#F9F9F9" }}>
-              <span className="text-lg font-bold" style={{ color: brand.score >= 70 ? "#10A37F" : "#000" }}>{brand.score}%</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-semibold truncate" style={{ color: "#000" }}>{brand.name}</h3>
-              <p className="text-xs" style={{ color: "#727272", direction: "ltr", textAlign: "left" }}>{brand.domain}</p>
-            </div>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); onSelect(); }}
-            className="text-xs font-semibold px-4 py-2 shrink-0 transition-all hover:opacity-80"
-            style={{ background: "#000", color: "#fff", borderRadius: 9 }}
-          >
-            View scan
-          </button>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0B7BF" strokeWidth="2" style={{ display: "block", transition: "stroke 150ms" }} onMouseEnter={(e) => { (e.currentTarget as SVGElement).style.stroke = "#666"; }} onMouseLeave={(e) => { (e.currentTarget as SVGElement).style.stroke = "#B0B7BF"; }}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </svg>
+      {show && (
+        <div style={{
+          position: "fixed", top: pos.top, left: pos.left,
+          transform: "translate(-50%, -100%)",
+          background: "#1B1F23", color: "#FFFFFF", fontSize: 12, lineHeight: 1.55,
+          padding: "8px 12px", borderRadius: 6, whiteSpace: "normal", maxWidth: 280,
+          zIndex: 99999, pointerEvents: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+        }}>
+          {text}
+          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "#1B1F23" }} />
         </div>
-
-        {/* Info row */}
-        <div className="flex items-center gap-4 text-xs mb-4" style={{ color: "#727272" }}>
-          <span className="flex items-center gap-1"><IconCalendar /> {brand.lastScan}</span>
-          <span>{brand.scans} scans</span>
-          <span>{brand.queries} queries</span>
-        </div>
-
-        {/* Quick metrics - 3 boxes */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="text-center py-3" style={{ background: "#F9F9F9", borderRadius: 8 }}>
-            <div className="text-lg font-bold" style={{ color: "#000" }}>{brand.articles}</div>
-            <div className="text-[11px]" style={{ color: "#727272" }}>Articles</div>
-          </div>
-          <div className="text-center py-3" style={{ background: brand.pendingArticles > 0 ? "#FFF8F0" : "#F9F9F9", borderRadius: 8 }}>
-            <div className="text-lg font-bold" style={{ color: brand.pendingArticles > 0 ? "#E07800" : "#000" }}>{brand.pendingArticles}</div>
-            <div className="text-[11px]" style={{ color: "#727272" }}>Pending</div>
-          </div>
-          <div className="text-center py-3" style={{ background: "#F9F9F9", borderRadius: 8 }}>
-            <div className="text-lg font-bold" style={{ color: "#10A37F" }}>{brand.score}%</div>
-            <div className="text-[11px]" style={{ color: "#727272" }}>Visibility score</div>
-          </div>
-        </div>
-
-        {/* Expandable section with smooth transition */}
-        <div className="overflow-hidden transition-all duration-400 ease-in-out" style={{ maxHeight: expanded ? `${h}px` : 0, opacity: expanded ? 1 : 0 }}>
-          <div ref={ref}>
-            <div className="mt-4 pt-4" style={{ borderTop: "1px solid #DDDDDD" }}>
-              <p className="text-sm font-semibold mb-3" style={{ color: "#000" }}>Required actions</p>
-              <div className="space-y-2 mb-4">
-                {brand.actions.map((a, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    {a.done ? (
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: "#10A37F15" }}>
-                        <IconCheck size={12} />
-                      </div>
-                    ) : (
-                      <div className="w-5 h-5 rounded-full shrink-0" style={{ border: "1.5px solid #BFBFBF" }} />
-                    )}
-                    <span style={{ color: a.done ? "#A2A9B0" : "#333", textDecoration: a.done ? "line-through" : "none" }}>{a.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Top query - full width, not cut off */}
-              <div className="p-4" style={{ background: "#F9F9F9", borderRadius: 10, border: "1px solid #DDDDDD" }}>
-                <p className="text-xs font-semibold mb-1" style={{ color: "#10A37F" }}>Top query</p>
-                <p className="text-sm leading-relaxed" style={{ color: "#333" }}>"{brand.topQuery}"</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Expand indicator */}
-        <div className="flex justify-center mt-3">
-          <div className="transition-transform duration-300" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-            <IconChevronDown />
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </span>
   );
 }
 
-// ── Footer (matching example11 / geoscale.ai) ──
+// ── Footer (matching geoscale.ai) ──
 function Footer() {
   return (
     <footer style={{ borderTop: "1px solid #BFBFBF" }}>
@@ -200,7 +137,7 @@ function Footer() {
           ))}
         </div>
 
-        {/* Left: Copyright */}
+        {/* Right: Copyright */}
         <span className="text-xs" style={{ color: "#A2A9B0" }}>GeoScale 2026 &copy;</span>
       </div>
     </footer>
@@ -338,7 +275,7 @@ export default function Dashboard() {
     if (!searchQuery) { setIsSearching(false); setDisplayedBrands(MOCK_BRANDS); return; }
     setIsSearching(true);
     searchTimeout.current = setTimeout(() => {
-      setDisplayedBrands(MOCK_BRANDS.filter(b => b.name.includes(searchQuery) || b.domain.includes(searchQuery.toLowerCase())));
+      setDisplayedBrands(MOCK_BRANDS.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.domain.includes(searchQuery.toLowerCase())));
       setIsSearching(false);
     }, 700);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
@@ -354,7 +291,7 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col" style={{ background: "#FFFFFF" }} dir="ltr">
       {/* ═══ HEADER — 3-column grid: actions | nav | logo ═══ */}
       <header className="sticky top-0 z-50" style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           {/* LEFT in LTR (grid col 1) = Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
             <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New Scan</a>
@@ -368,6 +305,9 @@ export default function Dashboard() {
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <a href="/" style={{ fontSize: 14, fontWeight: 600, color: "#000", textDecoration: "none" }}>Dashboard</a>
             <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
+            <a href="/editor" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Content Editor</a>
+            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
           </nav>
 
           {/* RIGHT in LTR (grid col 3) = Logo */}
@@ -379,129 +319,142 @@ export default function Dashboard() {
 
       {/* ═══ MAIN CONTENT ═══ */}
       <main className="flex-1">
-        <div className="max-w-[1300px] mx-auto px-6 py-8">
+        <div className="max-w-[1300px] mx-auto px-6 py-4">
           {/* Page title */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-semibold mb-1" style={{ color: "#000", letterSpacing: "-1px" }}>Brand Monitoring</h1>
-            <p className="text-base" style={{ color: "#727272" }}>Track brand presence across AI engines</p>
+          <div className="mb-4">
+            <h1 className="text-xl font-semibold mb-0 flex items-center gap-2" style={{ color: "#000", letterSpacing: "-0.5px" }}>Brand Monitoring <Tooltip text="Central dashboard for monitoring brand presence across AI engines" /></h1>
+            <p className="text-xs" style={{ color: "#727272" }}>Track brand presence across AI engines</p>
           </div>
 
-          {/* ── Top Metrics (big numbers like example10) ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {/* ── Top Metrics — compact GA style with 5 columns ── */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-5">
             {[
-              { label: "Brands", value: totalBrands, change: "+2" },
-              { label: "Scans", value: totalScans },
-              { label: "Queries", value: totalQueries },
-              { label: "Avg. score", value: `${avgScore}%`, change: "+3.2%" },
+              { label: "Brands", value: totalBrands, change: "+2", tooltip: "Number of active brands in the system" },
+              { label: "Scans", value: totalScans, tooltip: "Total scans performed" },
+              { label: "Queries", value: totalQueries, tooltip: "Number of queries checked against AI engines" },
+              { label: "Avg. Score", value: `${avgScore}%`, change: "+3.2%", tooltip: "Average visibility score across all brands" },
+              { label: "Pending", value: totalPending, color: totalPending > 0 ? "#E07800" : undefined, tooltip: "Articles created and waiting to be published" },
             ].map((m, i) => (
-              <div key={i} className="p-5 text-center" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-                <div className="text-4xl font-bold mb-1" style={{ color: "#000" }}>{m.value}</div>
-                <div className="text-sm" style={{ color: "#727272" }}>{m.label}</div>
-                {m.change && (
-                  <div className="flex items-center justify-center gap-1 mt-1 text-xs font-medium" style={{ color: "#10A37F" }}>
-                    <IconArrowUp /> {m.change}
-                  </div>
-                )}
+              <div key={i} className="p-3" style={{ border: "1px solid #E5E5E5", borderRadius: 8 }}>
+                <div className="text-xs mb-1 flex items-center gap-1" style={{ color: "#727272" }}>{m.label} {(m as any).tooltip && <Tooltip text={(m as any).tooltip} />}</div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold" style={{ color: (m as any).color || "#000", letterSpacing: "-0.5px" }}>{m.value}</span>
+                  {m.change && <span className="text-xs font-semibold" style={{ color: "#10A37F" }}><IconArrowUp /> {m.change}</span>}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* ── AI Traffic & Bot Activity Row (Alexei reference cards) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-            {/* AI vs SEO Traffic */}
-            <div className="p-6" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-semibold" style={{ color: "#000" }}>AI vs Traditional SEO</h3>
+          {/* ── Top 5 Trending Up / Needs Attention ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-5">
+            <div className="p-5" style={{ border: "1px solid #E5E5E5", borderRadius: 10 }}>
+              <div className="flex items-center gap-2 mb-4">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+                <h3 className="text-sm font-semibold flex items-center gap-1" style={{ color: "#000" }}>Top 5 Trending Up <Tooltip text="Brands with the largest improvement in visibility score" /></h3>
               </div>
-              <p className="text-xs mb-4" style={{ color: "#727272" }}>Traffic split - AI citations vs. organic results</p>
+              {[
+                { name: "Calcalist", domain: "calcalist.co.il", score: 88, change: "+6.2%" },
+                { name: "Techom Pest Control", domain: "techom-pest.co.il", score: 82, change: "+4.8%" },
+                { name: "All4Horses", domain: "all4horses.co.il", score: 76, change: "+4.2%" },
+                { name: "Artisan Bread", domain: "artisan-bread.co.il", score: 71, change: "+2.1%" },
+                { name: "Orin Schaefer College", domain: "orin-college.co.il", score: 64, change: "+1.5%" },
+              ].map((b, i) => (
+                <a key={i} href="/scan" className="flex items-center gap-3 py-2.5 px-2 transition-colors hover:bg-[#F9F9F9]" style={{ borderRadius: 6, textDecoration: "none", borderBottom: i < 4 ? "1px solid #F0F0F0" : "none" }}>
+                  <span className="text-xs font-medium w-5 text-center" style={{ color: "#A2A9B0" }}>{i + 1}</span>
+                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: "1px solid #F0F0F0" }} />
+                  <span className="text-sm font-medium flex-1 truncate" style={{ color: "#000" }}>{b.name}</span>
+                  <span className="text-sm font-bold" style={{ color: "#10A37F" }}>{b.score}%</span>
+                  <span className="text-xs font-semibold" style={{ color: "#10A37F" }}>{b.change}</span>
+                </a>
+              ))}
+            </div>
+            <div className="p-5" style={{ border: "1px solid #E5E5E5", borderRadius: 10, background: "#FFFBFA" }}>
+              <div className="flex items-center gap-2 mb-4">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
+                <h3 className="text-sm font-semibold flex items-center gap-1" style={{ color: "#DC2626" }}>Top 5 Needs Attention <Tooltip text="Brands with declining scores - require content intervention" /></h3>
+              </div>
+              {[
+                { name: "Just In Time", domain: "justintime.co.il", score: 52, change: "-5.1%" },
+                { name: "Orin Schaefer College", domain: "orin-college.co.il", score: 64, change: "-3.2%" },
+                { name: "Artisan Bread", domain: "artisan-bread.co.il", score: 71, change: "-1.8%" },
+              ].map((b, i) => (
+                <a key={i} href="/scan" className="flex items-center gap-3 py-2.5 px-2 transition-colors hover:bg-[#FEF2F2]" style={{ borderRadius: 6, textDecoration: "none", borderBottom: i < 2 ? "1px solid #FEE2E2" : "none" }}>
+                  <span className="text-xs font-medium w-5 text-center" style={{ color: "#A2A9B0" }}>{i + 1}</span>
+                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: "1px solid #F0F0F0" }} />
+                  <span className="text-sm font-medium flex-1 truncate" style={{ color: "#000" }}>{b.name}</span>
+                  <span className="text-sm font-bold" style={{ color: "#DC2626" }}>{b.score}%</span>
+                  <span className="text-xs font-semibold" style={{ color: "#DC2626" }}>{b.change}</span>
+                </a>
+              ))}
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={`empty-${i}`} className="flex items-center gap-3 py-2.5 px-2" style={{ borderBottom: i < 1 ? "1px solid #FEE2E2" : "none" }}>
+                  <span className="text-xs" style={{ color: "#D1D5DB" }}>&mdash;</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── AI Traffic & Bot Activity Row ── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-5">
+            <div className="p-5" style={{ border: "1px solid #E5E5E5", borderRadius: 10 }}>
+              <h3 className="text-xs font-semibold mb-1" style={{ color: "#000" }}>AI vs Traditional SEO</h3>
+              <p className="text-[11px] mb-3" style={{ color: "#727272" }}>Traffic split</p>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-3xl font-bold" style={{ color: "#10A37F" }}>13.3%</span>
+                <span className="text-2xl font-bold" style={{ color: "#10A37F" }}>13.3%</span>
                 <span className="text-xs font-semibold" style={{ color: "#10A37F" }}>+28.4%</span>
               </div>
-              <div className="text-xs mb-3" style={{ color: "#727272" }}>23,847 visits from AI Engines</div>
-              {/* Stacked bar */}
-              <div className="flex h-2.5 overflow-hidden mb-3" style={{ borderRadius: 20 }}>
+              <div className="flex h-2 overflow-hidden mb-2" style={{ borderRadius: 20 }}>
                 <div style={{ width: "13.3%", background: "#10A37F" }} />
                 <div style={{ width: "86.7%", background: "#E5E5E5" }} />
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5" style={{ color: "#333" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                  AI Engines · 23,847
-                </span>
-                <span className="flex items-center gap-1.5" style={{ color: "#333" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#BFBFBF", display: "inline-block" }} />
-                  Traditional SEO · 156,234
-                </span>
+              <div className="flex items-center justify-between text-[11px]" style={{ color: "#727272" }}>
+                <span>AI · 23,847</span>
+                <span>SEO · 156,234</span>
               </div>
             </div>
-
-            {/* AI Bot Crawl Activity */}
-            <div className="p-6" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
+            <div className="p-5" style={{ border: "1px solid #E5E5E5", borderRadius: 10 }}>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-semibold" style={{ color: "#000" }}>AI Bot Crawl Activity</h3>
+                <h3 className="text-xs font-semibold" style={{ color: "#000" }}>Bot Crawl Activity</h3>
                 <span className="text-[10px] font-semibold px-2 py-0.5" style={{ background: "#10A37F15", color: "#10A37F", borderRadius: 20 }}>live</span>
               </div>
-              <p className="text-xs mb-4" style={{ color: "#727272" }}>AI bots crawling your site</p>
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2 mt-3">
                 {[
-                  { bot: "GPTBot", domain: "openai.com", pages: "1,247", ago: "2 hours ago", active: true },
-                  { bot: "PerplexityBot", domain: "perplexity.ai", pages: "892", ago: "15 minutes ago", active: true },
-                  { bot: "Claude-Web", domain: "anthropic.com", pages: "456", ago: "4 hours ago", active: true },
-                  { bot: "BingBot", domain: "bing.com", pages: "2,134", ago: "1 hour ago", active: true },
+                  { bot: "GPTBot", domain: "openai.com", pages: "1,247", ago: "2h" },
+                  { bot: "PerplexityBot", domain: "perplexity.ai", pages: "892", ago: "15m" },
+                  { bot: "Claude-Web", domain: "anthropic.com", pages: "456", ago: "4h" },
+                  { bot: "BingBot", domain: "bing.com", pages: "2,134", ago: "1h" },
                 ].map((b, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`}
-                      alt=""
-                      width={20}
-                      height={20}
-                      style={{ borderRadius: 4, flexShrink: 0, border: "1px solid #F0F0F0" }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold" style={{ color: "#000" }}>{b.bot}</span>
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5" style={{ background: "#10A37F15", color: "#10A37F", borderRadius: 20 }}>active</span>
-                      </div>
-                      <div className="text-[11px]" style={{ color: "#727272" }}>{b.pages} pages · {b.ago}</div>
-                    </div>
+                  <div key={i} className="flex items-center gap-2">
+                    <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0 }} />
+                    <span className="text-xs font-medium flex-1" style={{ color: "#333" }}>{b.bot}</span>
+                    <span className="text-[11px]" style={{ color: "#727272" }}>{b.pages}</span>
+                    <span className="text-[10px]" style={{ color: "#A2A9B0" }}>{b.ago}</span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Engine Coverage Summary */}
-            <div className="p-6" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-semibold" style={{ color: "#000" }}>Engine Coverage Summary</h3>
-              </div>
-              <p className="text-xs mb-4" style={{ color: "#727272" }}>Coverage rate across each AI engine</p>
-              <div className="flex flex-col gap-3">
+            <div className="p-5" style={{ border: "1px solid #E5E5E5", borderRadius: 10 }}>
+              <h3 className="text-xs font-semibold mb-3" style={{ color: "#000" }}>Engine Coverage</h3>
+              <div className="flex flex-col gap-2.5">
                 {[
-                  { engine: "Google AIO", domain: "google.com", score: 78 },
-                  { engine: "Bing Copilot", domain: "bing.com", score: 82 },
-                  { engine: "ChatGPT Search", domain: "openai.com", score: 71 },
-                  { engine: "Gemini", domain: "gemini.google.com", score: 69 },
-                  { engine: "Perplexity", domain: "perplexity.ai", score: 85 },
+                  { engine: "Google AIO", score: 78, icon: <img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="" width={12} height={12} style={{ borderRadius: 2, flexShrink: 0 }} /> },
+                  { engine: "Bing Copilot", score: 82, icon: <img src="https://www.google.com/s2/favicons?domain=bing.com&sz=64" alt="" width={12} height={12} style={{ borderRadius: 2, flexShrink: 0 }} /> },
+                  { engine: "ChatGPT", score: 71, icon: <img src="/logos/chatgpt.svg" width={12} height={12} alt="ChatGPT" style={{ display: "inline-block" }} /> },
+                  { engine: "Gemini", score: 69, icon: <img src="/logos/gemini.svg" width={12} height={12} alt="Gemini" style={{ display: "inline-block" }} /> },
+                  { engine: "Perplexity", score: 85, icon: <img src="/logos/perplexity.svg" width={12} height={12} alt="Perplexity" style={{ display: "inline-block" }} /> },
                 ].map((e, i) => {
                   const color = e.score >= 80 ? "#10A37F" : e.score >= 70 ? "#E07800" : "#DC2626";
                   return (
                     <div key={i}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <img
-                            src={`https://www.google.com/s2/favicons?domain=${e.domain}&sz=64`}
-                            alt=""
-                            width={14}
-                            height={14}
-                            style={{ borderRadius: 3, flexShrink: 0 }}
-                          />
-                          <span className="text-xs font-medium" style={{ color: "#333" }}>{e.engine}</span>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="flex items-center gap-1.5">
+                          {e.icon}
+                          <span className="text-[11px] font-medium" style={{ color: "#333" }}>{e.engine}</span>
                         </div>
-                        <span className="text-xs font-bold" style={{ color }}>{e.score}%</span>
+                        <span className="text-[11px] font-bold" style={{ color }}>{e.score}%</span>
                       </div>
-                      <div style={{ height: 5, borderRadius: 3, background: "#F0F0F0", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${e.score}%`, background: color, borderRadius: 3 }} />
+                      <div style={{ height: 4, borderRadius: 2, background: "#F0F0F0", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${e.score}%`, background: color, borderRadius: 2 }} />
                       </div>
                     </div>
                   );
@@ -510,94 +463,77 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Brands Section ── */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-semibold" style={{ color: "#000" }}>Your brands</h2>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search brand..."
-                  className="w-56 px-4 py-2.5 pr-10 text-sm focus:outline-none"
-                  style={{ border: "1px solid #BFBFBF", borderRadius: 9 }}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2"><IconSearch /></div>
+          {/* ── Brands Table (rows, not cards) ── */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold" style={{ color: "#000" }}>Your Brands</h2>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="w-48 px-3 py-2 pl-9 text-xs focus:outline-none" style={{ border: "1px solid #E5E5E5", borderRadius: 8 }} />
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2"><IconSearch /></div>
+                </div>
+                <select className="text-xs px-3 py-2" style={{ border: "1px solid #E5E5E5", borderRadius: 8, color: "#333", background: "#fff" }}>
+                  <option>Sort: By urgency</option>
+                  <option>Sort: Score high to low</option>
+                  <option>Sort: Score low to high</option>
+                  <option>Sort: Name A-Z</option>
+                </select>
               </div>
             </div>
 
             {isSearching ? <SearchLoader /> : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {displayedBrands.map((brand) => (
-                  <BrandCard key={brand.domain} brand={brand} onSelect={() => window.location.href = "/scan"} />
-                ))}
-              </div>
-            )}
-
-            {!isSearching && displayedBrands.length === 0 && (
-              <div className="text-center py-12" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-                <p className="text-sm" style={{ color: "#727272" }}>No brands found for &quot;{searchQuery}&quot;</p>
+              <div style={{ border: "1px solid #E5E5E5", borderRadius: 10, overflow: "hidden" }}>
+                <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#FAFAFA", borderBottom: "1px solid #E5E5E5" }}>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>Brand</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>GEO Score</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>Scans</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>Queries</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>Pending</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 11 }}>Top Query</th>
+                      <th style={{ width: 40 }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedBrands.sort((a, b) => a.score - b.score).map((brand) => {
+                      const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#E07800" : "#DC2626";
+                      return (
+                        <tr key={brand.domain} onClick={() => window.location.href = "/scan"} className="cursor-pointer transition-colors hover:bg-[#FAFAFA]" style={{ borderBottom: "1px solid #F0F0F0" }}>
+                          <td style={{ padding: "10px 14px" }}>
+                            <div className="flex items-center gap-3">
+                              <img src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`} alt="" width={22} height={22} style={{ borderRadius: 5, flexShrink: 0, border: "1px solid #F0F0F0" }} />
+                              <div>
+                                <div className="text-sm font-medium" style={{ color: "#000" }}>{brand.name}</div>
+                                <div className="text-[11px]" style={{ color: "#A2A9B0" }}>{brand.domain}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: "10px 14px" }}>
+                            <span className="text-sm font-bold" style={{ color: scoreColor }}>{brand.score}%</span>
+                          </td>
+                          <td style={{ padding: "10px 14px" }}>
+                            <span className="text-sm" style={{ color: "#333" }}>{brand.scans}</span>
+                          </td>
+                          <td style={{ padding: "10px 14px" }}>
+                            <span className="text-sm" style={{ color: "#333" }}>{brand.queries}</span>
+                          </td>
+                          <td style={{ padding: "10px 14px" }}>
+                            <span className="text-sm font-medium" style={{ color: brand.pendingArticles > 0 ? "#E07800" : "#333" }}>{brand.pendingArticles}</span>
+                          </td>
+                          <td style={{ padding: "10px 14px", maxWidth: 220 }}>
+                            <span className="text-xs truncate block" style={{ color: "#727272" }}>{brand.topQuery}</span>
+                          </td>
+                          <td style={{ padding: "10px 14px", textAlign: "center" }}><IconChevronRight /></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
 
-          {/* ── Bottom: Pending Actions + Recent Activity ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-            {/* Pending Actions */}
-            <div className="p-6" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-base font-semibold" style={{ color: "#000" }}>Pending actions</h3>
-                <span className="text-sm font-semibold px-3 py-1" style={{ background: "#F9F9F9", borderRadius: 8, color: "#000" }}>
-                  {totalPending} pending
-                </span>
-              </div>
-              <div className="space-y-1">
-                {MOCK_BRANDS.filter(b => b.actions.some(a => !a.done)).slice(0, 5).map((brand) => {
-                  const pending = brand.actions.filter(a => !a.done).length;
-                  return (
-                    <a
-                      key={brand.domain}
-                      href="/scan"
-                      className="flex items-center gap-4 p-3 transition-colors hover:bg-[#F9F9F9]"
-                      style={{ borderRadius: 8, textDecoration: "none" }}
-                    >
-                      <div className="flex items-center justify-center shrink-0" style={{ width: 40, height: 40, borderRadius: 10, background: "#F9F9F9" }}>
-                        <span className="text-sm font-bold" style={{ color: brand.score >= 70 ? "#10A37F" : "#000" }}>{brand.score}%</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: "#000" }}>{brand.name}</p>
-                        <p className="text-xs" style={{ color: "#727272" }}>{pending} actions · {brand.pendingArticles} articles pending</p>
-                      </div>
-                      <IconChevronLeft />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="p-6" style={{ border: "1px solid #BFBFBF", borderRadius: 10 }}>
-              <h3 className="text-base font-semibold mb-5" style={{ color: "#000" }}>Recent activity</h3>
-              <div className="space-y-1">
-                {RECENT_ACTIVITY.map((a, i) => (
-                  <div key={i} className="flex items-center gap-4 p-3 transition-colors hover:bg-[#F9F9F9]" style={{ borderRadius: 8 }}>
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#F9F9F9" }}>
-                      <IconChart size={16} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: "#000" }}>{a.brand}</p>
-                      <p className="text-xs" style={{ color: "#727272" }}>Scan complete</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-sm font-bold" style={{ color: "#10A37F" }}>{a.score}%</span>
-                      <p className="text-[11px]" style={{ color: "#A2A9B0", direction: "ltr" }}>{a.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </main>
 
