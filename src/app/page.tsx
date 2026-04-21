@@ -143,7 +143,7 @@ function Tooltip({ text }: { text: string }) {
         <div style={{
           position: "fixed", top: pos.top, left: pos.left,
           transform: "translate(-50%, -100%)",
-          background: "#1B1F23", color: "#FFFFFF", fontSize: 12, lineHeight: 1.55,
+          background: "#1B1F23", color: "#FFFFFF", fontSize: 14, lineHeight: 1.55,
           padding: "8px 12px", borderRadius: 6, whiteSpace: "normal", maxWidth: 280,
           zIndex: 99999, pointerEvents: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
         }}>
@@ -359,8 +359,8 @@ export default function Dashboard() {
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           {/* LEFT in LTR (grid col 1) = Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none" }}>New Scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none" }}>New Scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -369,11 +369,11 @@ export default function Dashboard() {
 
           {/* CENTER (grid col 2) = Nav */}
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/editor" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
 
           {/* RIGHT in LTR (grid col 3) = Logo */}
@@ -389,7 +389,7 @@ export default function Dashboard() {
           {/* Page title */}
           <div className="mb-4">
             <h1 className="text-xl font-semibold mb-0 flex items-center gap-2" style={{ color: theme.text, letterSpacing: "-0.5px" }}>Brand Monitoring <Tooltip text="Central dashboard for monitoring brand presence across AI engines" /></h1>
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Track brand presence across AI engines</p>
+            <p className="text-sm" style={{ color: theme.textSecondary, fontSize: 14, fontWeight: 500 }}>Track brand presence across AI engines</p>
           </div>
 
           {/* ── Top Metrics — compact GA style with 5 columns ── */}
@@ -399,12 +399,12 @@ export default function Dashboard() {
               { label: "Scans", value: totalScans, tooltip: "Total scans performed" },
               { label: "Queries", value: totalQueries, tooltip: "Number of queries checked against AI engines" },
               { label: "Avg. Score", value: `${avgScore}%`, change: "+3.2%", tooltip: "Average visibility score across all brands" },
-              { label: "Pending", value: totalPending, color: totalPending > 0 ? "#E07800" : undefined, tooltip: "Articles created and waiting to be published" },
+              { label: "Pending", value: totalPending, color: totalPending > 0 ? "#10A37F" : undefined, tooltip: "Articles created and waiting to be published" },
             ].map((m, i) => (
               <div key={i} style={{ padding: "10px 12px", border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.cardBg }}>
-                <div className="text-xs mb-1 flex items-center gap-1" style={{ color: theme.textSecondary, fontSize: 11, fontWeight: 500 }}>{m.label} {(m as any).tooltip && <Tooltip text={(m as any).tooltip} />}</div>
+                <div className="text-xs mb-1 flex items-center gap-1" style={{ color: theme.textSecondary, fontSize: 13, fontWeight: 500 }}>{m.label} {(m as any).tooltip && <Tooltip text={(m as any).tooltip} />}</div>
                 <div className="flex items-baseline gap-2">
-                  <span style={{ fontSize: 22, fontWeight: 700, color: (m as any).color || theme.text, letterSpacing: "-0.5px" }}>{m.value}</span>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: (m as any).color || theme.text, letterSpacing: "-0.5px" }}>{m.value}</span>
                   {m.change && <span className="text-xs" style={{ color: "#10A37F", fontWeight: 600 }}><IconArrowUp /> {m.change}</span>}
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function Dashboard() {
             <div style={{ padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div className="flex items-center gap-2 mb-3">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Trending Up <Tooltip text="Brands with the largest improvement in visibility score" /></h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Trending Up <Tooltip text="Brands with the largest improvement in visibility score" /></h3>
               </div>
               {[
                 { name: "Calcalist", domain: "calcalist.co.il", score: 88, change: "+6.2%" },
@@ -437,7 +437,7 @@ export default function Dashboard() {
             <div style={{ padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div className="flex items-center gap-2 mb-3">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: "#DC2626", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining scores - require content intervention" /></h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining scores - require content intervention" /></h3>
               </div>
               {[
                 { name: "Just In Time", domain: "justintime.co.il", score: 52, change: "-5.1%" },
@@ -463,25 +463,25 @@ export default function Dashboard() {
           {/* ── AI Traffic & Bot Activity Row ── */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
             <div style={{ padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
-              <h3 style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 2 }}>AI vs Traditional SEO</h3>
-              <p style={{ fontSize: 11, marginBottom: 10, color: theme.textSecondary }}>Traffic split</p>
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, marginBottom: 2 }}>AI vs Traditional SEO</h3>
+              <p style={{ fontSize: 13, marginBottom: 10, color: theme.textSecondary }}>Traffic split</p>
               <div className="flex items-baseline gap-2 mb-2">
-                <span style={{ fontSize: 22, fontWeight: 700, color: "#10A37F" }}>13.3%</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#10A37F" }}>+28.4%</span>
+                <span style={{ fontSize: 28, fontWeight: 700, color: "#10A37F" }}>13.3%</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#10A37F" }}>+28.4%</span>
               </div>
               <div className="flex h-2 overflow-hidden mb-2" style={{ borderRadius: 20 }}>
                 <div style={{ width: "13.3%", background: "#10A37F" }} />
                 <div style={{ width: "86.7%", background: theme.barTrack }} />
               </div>
-              <div className="flex items-center justify-between" style={{ fontSize: 11, color: theme.textSecondary }}>
+              <div className="flex items-center justify-between" style={{ fontSize: 13, color: theme.textSecondary }}>
                 <span>AI - 23,847</span>
                 <span>SEO - 156,234</span>
               </div>
             </div>
             <div style={{ padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div className="flex items-center justify-between mb-1">
-                <h3 style={{ fontSize: 12, fontWeight: 600, color: theme.text }}>Bot Crawl Activity</h3>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 8px", background: "#10A37F15", color: "#10A37F", borderRadius: 20 }}>live</span>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text }}>Bot Crawl Activity</h3>
+                <span style={{ fontSize: 13, fontWeight: 600, padding: "1px 8px", background: "#10A37F15", color: "#10A37F", borderRadius: 20 }}>live</span>
               </div>
               <div className="flex flex-col gap-2 mt-3">
                 {[
@@ -492,15 +492,15 @@ export default function Dashboard() {
                 ].map((b, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
-                    <span style={{ fontSize: 12, fontWeight: 500, flex: 1, color: theme.text }}>{b.bot}</span>
-                    <span style={{ fontSize: 11, color: theme.textSecondary }}>{b.pages}</span>
-                    <span style={{ fontSize: 10, color: theme.textMuted }}>{b.ago}</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, flex: 1, color: theme.text }}>{b.bot}</span>
+                    <span style={{ fontSize: 13, color: theme.textSecondary }}>{b.pages}</span>
+                    <span style={{ fontSize: 13, color: theme.textMuted }}>{b.ago}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div style={{ padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
-              <h3 style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, color: theme.text }}>Engine Coverage</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 10, color: theme.text }}>Engine Coverage</h3>
               <div className="flex flex-col gap-2.5">
                 {[
                   { engine: "Google AIO", score: 78, icon: <img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="" width={12} height={12} style={{ borderRadius: 2, flexShrink: 0 }} /> },
@@ -509,15 +509,15 @@ export default function Dashboard() {
                   { engine: "Gemini", score: 69, icon: <img src="/logos/gemini.svg" width={12} height={12} alt="Gemini" style={{ display: "inline-block" }} /> },
                   { engine: "Perplexity", score: 85, icon: <img src="/logos/perplexity.svg" width={12} height={12} alt="Perplexity" style={{ display: "inline-block" }} /> },
                 ].map((e, i) => {
-                  const color = e.score >= 80 ? "#10A37F" : e.score >= 70 ? "#E07800" : "#DC2626";
+                  const color = e.score >= 80 ? "#10A37F" : e.score >= 70 ? "#727272" : "#DC2626";
                   return (
                     <div key={i}>
                       <div className="flex items-center justify-between mb-0.5">
                         <div className="flex items-center gap-1.5">
                           {e.icon}
-                          <span style={{ fontSize: 11, fontWeight: 500, color: theme.text }}>{e.engine}</span>
+                          <span style={{ fontSize: 14, fontWeight: 500, color: theme.text }}>{e.engine}</span>
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color }}>{e.score}%</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color }}>{e.score}%</span>
                       </div>
                       <div style={{ height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden" }}>
                         <div style={{ height: "100%", width: `${e.score}%`, background: color, borderRadius: 2 }} />
@@ -532,7 +532,7 @@ export default function Dashboard() {
           {/* ── Brands Table (rows, not cards) ── */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-3">
-              <h2 style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>Your Brands</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 600, color: theme.text }}>Your Brands</h2>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search..." className="w-48 px-3 py-2 pl-9 text-xs focus:outline-none" style={{ border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.inputBg, color: theme.text }} />
@@ -549,46 +549,46 @@ export default function Dashboard() {
 
             {isSearching ? <SearchLoader theme={theme} /> : (
               <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden" }}>
-                <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Brand</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>GEO Score</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Scans</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Queries</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Pending</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Top Query</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>Brand</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>GEO Score</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>Scans</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>Queries</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>Pending</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13 }}>Top Query</th>
                       <th style={{ width: 40 }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayedBrands.sort((a, b) => a.score - b.score).map((brand) => {
-                      const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#E07800" : "#DC2626";
+                      const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#727272" : "#DC2626";
                       return (
                         <tr key={brand.domain} onClick={() => window.location.href = "/scan"} className="cursor-pointer transition-colors" style={{ borderBottom: `1px solid ${theme.border}`, background: theme.tableBg }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.tableBg; }}>
                           <td style={{ padding: "10px 14px" }}>
                             <div className="flex items-center gap-3">
                               <img src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`} alt="" width={22} height={22} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                               <div>
-                                <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{brand.name}</div>
-                                <div style={{ fontSize: 11, color: theme.textMuted }}>{brand.domain}</div>
+                                <div style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{brand.name}</div>
+                                <div style={{ fontSize: 13, color: theme.textMuted }}>{brand.domain}</div>
                               </div>
                             </div>
                           </td>
                           <td style={{ padding: "10px 14px" }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor }}>{brand.score}%</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor }}>{brand.score}%</span>
                           </td>
                           <td style={{ padding: "10px 14px" }}>
-                            <span style={{ fontSize: 13, color: theme.text }}>{brand.scans}</span>
+                            <span style={{ fontSize: 15, color: theme.text }}>{brand.scans}</span>
                           </td>
                           <td style={{ padding: "10px 14px" }}>
-                            <span style={{ fontSize: 13, color: theme.text }}>{brand.queries}</span>
+                            <span style={{ fontSize: 15, color: theme.text }}>{brand.queries}</span>
                           </td>
                           <td style={{ padding: "10px 14px" }}>
-                            <span style={{ fontSize: 13, fontWeight: 500, color: brand.pendingArticles > 0 ? "#E07800" : theme.text }}>{brand.pendingArticles}</span>
+                            <span style={{ fontSize: 15, fontWeight: 500, color: brand.pendingArticles > 0 ? "#10A37F" : theme.text }}>{brand.pendingArticles}</span>
                           </td>
                           <td style={{ padding: "10px 14px", maxWidth: 220 }}>
-                            <span className="text-xs truncate block" style={{ color: theme.textSecondary }}>{brand.topQuery}</span>
+                            <span className="text-sm truncate block" style={{ color: theme.textSecondary, fontSize: 14 }}>{brand.topQuery}</span>
                           </td>
                           <td style={{ padding: "10px 14px", textAlign: "center" }}><IconChevronRight color={theme.textMuted} /></td>
                         </tr>

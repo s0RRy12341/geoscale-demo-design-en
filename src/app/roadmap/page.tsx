@@ -179,7 +179,7 @@ const phases: Phase[] = [
   {
     id: 1,
     title: "Critical - Must Now",
-    color: "#DC2626",
+    color: "#10A37F",
     features: [
       { name: "Multi-Query Content Engine", description: "Every article the system generates must include multiple sub-queries under one primary query. Each H2/H3 answers an independent query, FAQ captures additional long-tail", ref: "See full prompt below | Live example: adsgpt.io/blog/social-media-marketing-strategy", priority: "P0", status: "not_started" },
       { name: "Primary Time-Series Chart", description: "Large time-series chart at the top of the scan page: GPT+Gemini mention rate over time, with 7/30/90 day filter buttons", ref: "Demo: /scan -> 'Mention Trend' block | Production: completely missing from scan page", priority: "P0", status: "not_started" },
@@ -199,7 +199,7 @@ const phases: Phase[] = [
   {
     id: 2,
     title: "Important - Impacts Experience & Sales",
-    color: "#E07800",
+    color: "#10A37F",
     features: [
       { name: "Competitor Analysis - Horizontal Bar Chart", description: "Horizontal bar chart of 4-5 competitors with mention percentage, name and domain next to each", ref: "Demo: /scan -> 'Competitor Analysis' block with colored bars | Production: no competitor comparison at all", priority: "P0", status: "not_started" },
       { name: "Donut Chart - Sentiment", description: "Donut chart showing sentiment distribution: positive (green), neutral (gray), negative (red)", ref: "Demo: /scan -> donut in 'Sentiment' block | Production: simple bar only", priority: "P1", status: "not_started" },
@@ -260,7 +260,7 @@ const phases: Phase[] = [
   {
     id: 4,
     title: "Infrastructure - Required for Next Stages",
-    color: "#4285F4",
+    color: "#10A37F",
     features: [
       { name: "DB Schema - Publishers Table", description: "DB schema: domain, DR, metrics, category, pricing, status, created_at, updated_at", ref: "New - prerequisite for ScalePublish | Supabase/Postgres", priority: "P0", status: "not_started" },
       { name: "DB Schema - Work Plans Table", description: "DB schema: brand_id, duration, speed, articles_count, budget, status", ref: "Production: /scan -> 'Work Plan' tab -> has UI but needs DB schema", priority: "P0", status: "not_started" },
@@ -292,14 +292,14 @@ const phases: Phase[] = [
 ];
 
 const priorityConfig: Record<Priority, { label: string; color: string; bg: string }> = {
-  P0: { label: "P0 - Critical", color: "#DC2626", bg: "#DC262612" },
-  P1: { label: "P1 - Important", color: "#E07800", bg: "#E0780012" },
-  P2: { label: "P2 - Normal", color: "#727272", bg: "#72727212" },
+  P0: { label: "P0 - Critical", color: "#FFFFFF", bg: "rgba(16,163,127,1.0)" },
+  P1: { label: "P1 - Important", color: "#FFFFFF", bg: "rgba(16,163,127,0.75)" },
+  P2: { label: "P2 - Normal", color: "#FFFFFF", bg: "rgba(16,163,127,0.5)" },
 };
 
 const statusConfig: Record<Status, { label: string; color: string }> = {
-  not_started: { label: "Not started", color: "#DC2626" },
-  in_progress: { label: "In progress", color: "#E07800" },
+  not_started: { label: "Not started", color: "#727272" },
+  in_progress: { label: "In progress", color: "#10A37F" },
   done: { label: "Done", color: "#10A37F" },
 };
 
@@ -310,7 +310,7 @@ function StatusDot({ status }: { status: Status }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
       <span style={{ width: 8, height: 8, borderRadius: 4, background: cfg.color, display: "inline-block", flexShrink: 0 }} />
-      <span style={{ fontSize: 12, color: cfg.color, fontWeight: 500 }}>{cfg.label}</span>
+      <span style={{ fontSize: 14, color: cfg.color, fontWeight: 500 }}>{cfg.label}</span>
     </div>
   );
 }
@@ -318,7 +318,7 @@ function StatusDot({ status }: { status: Status }) {
 function PriorityBadge({ priority }: { priority: Priority }) {
   const cfg = priorityConfig[priority];
   return (
-    <span style={{ fontSize: 11, fontWeight: 600, color: cfg.color, background: cfg.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
+    <span style={{ fontSize: 13, fontWeight: 600, color: cfg.color, background: cfg.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
       {cfg.label}
     </span>
   );
@@ -356,19 +356,19 @@ function PhaseCard({ phase, theme }: { phase: Phase; theme: Theme }) {
         {/* Title block */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.title}</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.title}</span>
           </div>
           {/* Progress bar */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 2 }}>
             <div style={{ width: 120, height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden" }}>
               <div style={{ width: `${progressPct}%`, height: "100%", borderRadius: 2, background: phase.color, transition: "width 300ms" }} />
             </div>
-            <span style={{ fontSize: 11, color: theme.textSecondary }}>{progressPct}%</span>
+            <span style={{ fontSize: 13, color: theme.textSecondary }}>{progressPct}%</span>
           </div>
         </div>
 
         {/* Feature count */}
-        <span style={{ fontSize: 13, color: theme.textSecondary }}>{featureCount} features</span>
+        <span style={{ fontSize: 14, color: theme.textSecondary }}>{featureCount} features</span>
 
         {/* Chevron */}
         <div style={{ color: theme.textMuted }}>
@@ -390,11 +390,11 @@ function PhaseCard({ phase, theme }: { phase: Phase; theme: Theme }) {
               direction: "ltr",
             }}
           >
-            <span style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Feature</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Description</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Where / What to Implement</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Priority</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Status</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Feature</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Description</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Where / What to Implement</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Priority</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Status</span>
           </div>
 
           {/* Feature rows */}
@@ -413,9 +413,9 @@ function PhaseCard({ phase, theme }: { phase: Phase; theme: Theme }) {
               onMouseEnter={e => (e.currentTarget.style.background = theme.hoverBg)}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{feature.name}</span>
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>{feature.description}</span>
-              <span style={{ fontSize: 11, color: "#4285F4", lineHeight: 1.5, fontFamily: "monospace", background: "#4285F408", padding: "2px 6px", borderRadius: 4 }}>{feature.ref}</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{feature.name}</span>
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.5 }}>{feature.description}</span>
+              <span style={{ fontSize: 13, color: "#10A37F", lineHeight: 1.5, fontFamily: "monospace", background: "#10A37F08", padding: "2px 6px", borderRadius: 4 }}>{feature.ref}</span>
               <PriorityBadge priority={feature.priority} />
               <StatusDot status={feature.status} />
             </div>
@@ -423,7 +423,7 @@ function PhaseCard({ phase, theme }: { phase: Phase; theme: Theme }) {
 
           {/* Phase total */}
           <div style={{ display: "flex", justifyContent: "flex-start", padding: "12px 24px", background: theme.tableHeaderBg, borderTop: `1px solid ${theme.border}`, direction: "ltr" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.features.length} features</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.features.length} features</span>
           </div>
         </div>
       )}
@@ -452,19 +452,19 @@ export default function RoadmapPage() {
       <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: darkMode ? "1px solid #E6EDF3" : "1px solid #000", textDecoration: "none" }}>New Scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: darkMode ? "1px solid #E6EDF3" : "1px solid #000", textDecoration: "none" }}>New Scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/editor" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/editor" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ justifySelf: "end" }}>
             <GeoscaleLogo theme={theme} />
@@ -479,7 +479,7 @@ export default function RoadmapPage() {
           <h1 style={{ fontSize: 28, fontWeight: 800, color: theme.text, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>
             Roadmap <span style={{ fontWeight: 400, color: theme.textSecondary }}>-</span> Geoscale Feature Plan
           </h1>
-          <p style={{ fontSize: 14, color: theme.textSecondary }}>
+          <p style={{ fontSize: 15, color: theme.textSecondary }}>
             Features sorted by criticality level - what&apos;s missing in production vs. the demo and what clients need
           </p>
         </div>
@@ -502,7 +502,7 @@ export default function RoadmapPage() {
                 gap: 6,
               }}
             >
-              <span style={{ fontSize: 12, color: theme.textSecondary, fontWeight: 500 }}>{stat.label}</span>
+              <span style={{ fontSize: 14, color: theme.textSecondary, fontWeight: 500 }}>{stat.label}</span>
               <span style={{ fontSize: 24, fontWeight: 700, color: stat.accent ? "#10A37F" : theme.text }}>{stat.value}</span>
             </div>
           ))}
@@ -516,51 +516,51 @@ export default function RoadmapPage() {
         </div>
 
         {/* Multi-Query SEO Prompt - Copy Section */}
-        <div style={{ border: "2px solid #E07800", borderRadius: 10, background: darkMode ? "#1C1810" : "#FFFBF0", padding: 24, direction: "ltr", marginBottom: 16 }}>
+        <div style={{ border: "2px solid #10A37F", borderRadius: 10, background: darkMode ? "#101C18" : "#F0FFF8", padding: 24, direction: "ltr", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 20 }}>&#x1F4CB;</span>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt - Copy to Production</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt - Copy to Production</h3>
           </div>
-          <p style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
             This is the prompt that needs to be added to Geoscale&apos;s content writing engine. The idea: every article the system generates doesn&apos;t target just one query - but one primary query + 5-10 sub-queries. Each H2 answers a separate query that people search for, and the FAQ captures additional long-tail. This way one URL captures traffic from 8-15 different queries.
           </p>
-          <p style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16, lineHeight: 1.6 }}>
-            <strong>Live example:</strong> See how adsgpt.io builds their articles - <span style={{ color: "#4285F4" }}>adsgpt.io/blog/social-media-marketing-strategy</span> - each section answers an independent query, and the full article ranks for dozens of related queries.
+          <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 16, lineHeight: 1.6 }}>
+            <strong>Live example:</strong> See how adsgpt.io builds their articles - <span style={{ color: "#10A37F" }}>adsgpt.io/blog/social-media-marketing-strategy</span> - each section answers an independent query, and the full article ranks for dozens of related queries.
           </p>
           <div style={{ background: "#1a1a2e", borderRadius: 8, padding: 20, overflow: "auto", maxHeight: 500 }}>
-            <pre style={{ fontSize: 11, color: "#e0e0e0", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", fontFamily: "'Courier New', monospace", direction: "ltr", textAlign: "left" }}>
+            <pre style={{ fontSize: 13, color: "#e0e0e0", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", fontFamily: "'Courier New', monospace", direction: "ltr", textAlign: "left" }}>
               {multiQueryPrompt}
             </pre>
           </div>
-          <p style={{ fontSize: 11, color: theme.textSecondary, marginTop: 12 }}>
+          <p style={{ fontSize: 13, color: theme.textSecondary, marginTop: 12 }}>
             * Copy this prompt and add it to the content writing engine&apos;s system prompt, after the basic settings (article length, writing style) and before the format instructions.
           </p>
         </div>
 
         {/* Bottom Summary */}
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, padding: 24, direction: "ltr" }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 16 }}>Dependencies & Risks</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, marginBottom: 16 }}>Dependencies & Risks</h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6 }}>Multi-Query prompt requires Alexei&apos;s approval before integration into production system</span>
+              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Multi-Query prompt requires Alexei&apos;s approval before integration into production system</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6 }}>All visual features (charts, tooltips, alerts) are ready in the demo - only need migration to production</span>
+              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>All visual features (charts, tooltips, alerts) are ready in the demo - only need migration to production</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#E07800", display: "inline-block", marginTop: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6 }}>Access to DataForSEO/Ahrefs API for publisher ranking system and SEO dashboard</span>
+              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Access to DataForSEO/Ahrefs API for publisher ranking system and SEO dashboard</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#E07800", display: "inline-block", marginTop: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6 }}>Publishers Portal requires separate UX spec + legal terms</span>
+              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Publishers Portal requires separate UX spec + legal terms</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#E07800", display: "inline-block", marginTop: 4, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6 }}>Expanding AI engines (Perplexity, Claude, Bing) depends on API access and pricing</span>
+              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
+              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Expanding AI engines (Perplexity, Claude, Bing) depends on API access and pricing</span>
             </div>
           </div>
         </div>
@@ -576,8 +576,8 @@ export default function RoadmapPage() {
           <div className="flex items-center gap-3">
             {[
               { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
-              { label: "Report a bug", color: "#E07800", bg: "#E0780015" },
-              { label: "Improvement ideas", color: "#4285F4", bg: "#4285F415" },
+              { label: "Report a bug", color: "#10A37F", bg: "#10A37F15" },
+              { label: "Improvement ideas", color: "#10A37F", bg: "#10A37F15" },
               { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
             ].map((link, i) => (
               <span key={i} className="text-xs font-medium px-3 py-1.5 cursor-pointer transition-opacity hover:opacity-70" style={{ color: link.color, background: link.bg, borderRadius: 20 }}>

@@ -112,7 +112,7 @@ function StepIndicator({ current, steps, theme }: { current: number; steps: stri
               {i < current ? <StepCheck /> : i + 1}
             </div>
             <span
-              className="text-xs mt-1 font-medium"
+              className="text-sm mt-1 font-medium"
               style={{ color: i <= current ? BRAND.teal : theme.textMuted }}
             >
               {label}
@@ -178,14 +178,14 @@ function GeoFooter({ theme }: { theme: Theme }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {[
             { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
-            { label: "Report a bug", color: "#E07800", bg: "#E0780015" },
-            { label: "Improvement ideas", color: "#4285F4", bg: "#4285F415" },
+            { label: "Report a bug", color: "#727272", bg: "#72727215" },
+            { label: "Improvement ideas", color: "#10A37F", bg: "#10A37F15" },
             { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
           ].map((link, i) => (
-            <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: link.color, background: link.bg, cursor: "pointer" }}>{link.label}</span>
+            <span key={i} style={{ fontSize: 14, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: link.color, background: link.bg, cursor: "pointer" }}>{link.label}</span>
           ))}
         </div>
-        <span style={{ fontSize: 12, color: theme.textMuted }}>&copy; GeoScale 2026</span>
+        <span style={{ fontSize: 14, color: theme.textMuted }}>&copy; GeoScale 2026</span>
       </div>
     </footer>
   );
@@ -211,15 +211,15 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
             </svg>
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -266,12 +266,12 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
               <line x1="7" y1="7" x2="7.01" y2="7" />
             </svg>
-            <span className="font-semibold text-lg" style={{ color: theme.text }}>Brand details</span>
+            <span className="font-semibold text-xl" style={{ color: theme.text }}>Brand details</span>
           </div>
 
           {/* Domain Field */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+            <label className="block text-[15px] font-medium mb-2" style={{ color: theme.text }}>
               Website URL
             </label>
             <div className="relative">
@@ -290,14 +290,14 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
                 </svg>
               </div>
             </div>
-            <p className="text-xs mt-1.5" style={{ color: theme.textMuted }}>
+            <p className="text-sm mt-1.5" style={{ color: theme.textMuted }}>
               Enter the domain without https://
             </p>
           </div>
 
           {/* Brand Name Field */}
           <div className="mb-8">
-            <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+            <label className="block text-[15px] font-medium mb-2" style={{ color: theme.text }}>
               Brand name
             </label>
             <div className="relative">
@@ -333,10 +333,10 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
 
         {/* What's New Box */}
         <div className="mt-6 rounded-[10px] p-6" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
-          <h3 className="font-semibold mb-3" style={{ color: BRAND.teal }}>
+          <h3 className="font-semibold text-xl mb-3" style={{ color: BRAND.teal }}>
             What&apos;s new?
           </h3>
-          <ul className="space-y-2 text-sm" style={{ color: theme.textSecondary }}>
+          <ul className="space-y-2 text-[15px]" style={{ color: theme.textSecondary }}>
             <li>The system generates <strong>relevant audiences</strong> for your brand</li>
             <li>You choose which audiences to test</li>
             <li>The scan is tailored <strong>to each audience separately</strong></li>
@@ -406,7 +406,7 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }
             <path d="M23 21v-2a4 4 0 00-3-3.87" />
             <path d="M16 3.13a4 4 0 010 7.75" />
           </svg>
-          <span className="font-semibold" style={{ color: theme.text }}>Audience selection</span>
+          <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
         </div>
         <div className="flex items-center gap-3">
           <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
@@ -528,10 +528,10 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }
             />
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs" style={{ color: theme.textMuted }}>
+            <span className="text-sm" style={{ color: theme.textMuted }}>
               {Math.round(progress)}%
             </span>
-            <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
+            <span className="text-sm font-medium" style={{ color: theme.textSecondary }}>
               {statusText}
             </span>
           </div>
@@ -556,7 +556,7 @@ const MOCK_PERSONAS = [
     location: "Central region",
     tags: ["#horses", "#teen"],
     match: 90,
-    iconColor: "#0D9488",
+    iconColor: "rgba(16,163,127,1.0)",
   },
   {
     name: "Maya",
@@ -566,7 +566,7 @@ const MOCK_PERSONAS = [
     location: "Denver",
     tags: ["#parents", "#special education"],
     match: 95,
-    iconColor: "#8B5CF6",
+    iconColor: "rgba(16,163,127,0.8)",
   },
   {
     name: "David",
@@ -576,7 +576,7 @@ const MOCK_PERSONAS = [
     location: "Boston",
     tags: ["#parent", "#spectrum"],
     match: 88,
-    iconColor: "#EC4899",
+    iconColor: "rgba(16,163,127,0.6)",
   },
   {
     name: "Ori",
@@ -586,7 +586,7 @@ const MOCK_PERSONAS = [
     location: "Austin",
     tags: ["#therapist", "#professional"],
     match: 88,
-    iconColor: "#F97316",
+    iconColor: "rgba(16,163,127,0.4)",
   },
   {
     name: "Ronit",
@@ -596,7 +596,7 @@ const MOCK_PERSONAS = [
     location: "Chicago",
     tags: ["#education", "#institutional"],
     match: 82,
-    iconColor: "#06B6D4",
+    iconColor: "rgba(16,163,127,0.3)",
   },
 ];
 
@@ -607,7 +607,7 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
       style={{ animationDelay: `${index * 0.1}s`, animation: "fade-in-up 0.5s ease-out forwards", opacity: 0, background: theme.cardBg, border: `1px solid ${theme.border}` }}
     >
       <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
+        <span className="text-sm font-medium px-2 py-0.5 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
           Persona
         </span>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${persona.iconColor}15` }}>
@@ -621,7 +621,7 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
       <h3 className="text-xl font-bold mb-1" style={{ color: theme.text }}>
         {persona.name} — {persona.title}
       </h3>
-      <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>
+      <p className="text-[15px] mb-4" style={{ color: theme.textSecondary }}>
         {persona.desc}
       </p>
 
@@ -637,8 +637,8 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
           />
         </div>
         <span
-          className="text-sm font-bold"
-          style={{ color: persona.match >= 90 ? BRAND.teal : theme.textSecondary }}
+          className="text-base font-bold"
+          style={{ color: persona.match >= 90 ? BRAND.teal : theme.textSecondary, fontSize: 24 }}
         >
           {persona.match}%
         </span>
@@ -646,15 +646,15 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
 
       {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-3">
-        <span className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: BRAND.tealDark }}>
+        <span className="text-sm px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: BRAND.tealDark }}>
           {persona.age}
         </span>
-        <span className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
+        <span className="text-sm px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
           <svg width="10" height="10" viewBox="0 0 24 24" fill={theme.textSecondary} stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
           {persona.location}
         </span>
         {persona.tags.map((tag) => (
-          <span key={tag} className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
+          <span key={tag} className="text-sm px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
             {tag}
           </span>
         ))}
@@ -677,15 +677,15 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
             </svg>
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -703,7 +703,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
           <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.text }}>
             AI Presence Check
           </h1>
-          <p className="text-sm" style={{ color: theme.textSecondary }}>
+          <p className="text-base" style={{ color: theme.textSecondary }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -724,7 +724,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
               <path d="M23 21v-2a4 4 0 00-3-3.87" />
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
-            <span className="font-semibold" style={{ color: theme.text }}>Audience selection</span>
+            <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
           </div>
           <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
             <ArrowLeft size={14} color={theme.textSecondary} />
@@ -734,17 +734,17 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
 
         {/* Info box */}
         <div className="rounded-xl p-4 mb-4" style={{ background: theme.hoverBg, border: `1px solid ${theme.border}` }}>
-          <h4 className="font-semibold text-sm mb-1" style={{ color: BRAND.teal }}>
+          <h4 className="font-semibold text-[20px] mb-1" style={{ color: BRAND.teal }}>
             Why it matters
           </h4>
-          <p className="text-xs" style={{ color: theme.textSecondary }}>
+          <p className="text-[15px]" style={{ color: theme.textSecondary }}>
             Every audience searches differently. The scan checks how AI engines present your brand to different user types. Pick the ones relevant to you.
           </p>
         </div>
 
         {/* Counter */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xs" style={{ color: theme.textMuted }}>
+          <span className="text-sm" style={{ color: theme.textMuted }}>
             ~ 35 queries will be tested
           </span>
           <span
@@ -875,7 +875,7 @@ function NeuralBackground({ active }: { active: boolean }) {
 }
 
 // Live query display with typing effect
-function QueryStream({ queries, currentIndex }: { queries: string[]; currentIndex: number }) {
+function QueryStream({ queries, currentIndex, theme }: { queries: string[]; currentIndex: number; theme?: Theme }) {
   const [displayText, setDisplayText] = useState("");
   const [charIndex, setCharIndex] = useState(0);
 
@@ -903,10 +903,10 @@ function QueryStream({ queries, currentIndex }: { queries: string[]; currentInde
       {queries.slice(Math.max(0, currentIndex - 3), currentIndex).map((q, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg transition-all"
+          className="flex items-center gap-2 text-[15px] py-1.5 px-3 rounded-lg transition-all"
           style={{
-            background: BRAND.gray50,
-            color: BRAND.gray400,
+            background: theme?.badgeBg ?? BRAND.gray50,
+            color: theme?.textMuted ?? BRAND.gray400,
             opacity: 0.5 + (i * 0.15),
           }}
         >
@@ -920,11 +920,11 @@ function QueryStream({ queries, currentIndex }: { queries: string[]; currentInde
       {/* Current typing query */}
       {currentIndex < queries.length && (
         <div
-          className="flex items-center gap-2 text-sm py-2 px-3 rounded-lg border"
+          className="flex items-center gap-2 text-[15px] py-2 px-3 rounded-lg border"
           style={{
-            background: "white",
+            background: theme?.cardBg ?? "white",
             borderColor: BRAND.teal,
-            color: BRAND.black,
+            color: theme?.text ?? BRAND.black,
           }}
         >
           <div
@@ -949,6 +949,7 @@ function AIEngineCard({
   active,
   progress,
   currentQuery,
+  theme,
 }: {
   name: string;
   icon: React.ReactNode;
@@ -956,13 +957,14 @@ function AIEngineCard({
   active: boolean;
   progress: number;
   currentQuery?: string;
+  theme?: Theme;
 }) {
   return (
     <div
       className="relative rounded-[10px] border-2 p-5 transition-all duration-500 overflow-hidden"
       style={{
-        borderColor: active ? color : BRAND.gray200,
-        background: active ? `${color}08` : "white",
+        borderColor: active ? color : (theme?.border ?? BRAND.gray200),
+        background: active ? `${color}08` : (theme?.cardBg ?? "white"),
         boxShadow: active ? `0 0 30px ${color}20` : "none",
         animation: active ? "glow-pulse 2s ease-in-out infinite" : "none",
       }}
@@ -976,17 +978,17 @@ function AIEngineCard({
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
               style={{
-                background: active ? color : BRAND.gray200,
-                color: active ? "white" : BRAND.gray500,
+                background: active ? color : (theme?.barTrack ?? BRAND.gray200),
+                color: active ? "white" : (theme?.textSecondary ?? BRAND.gray500),
                 transition: "all 0.5s",
               }}
             >
               {icon}
             </div>
             <div>
-              <h3 className="font-bold text-base">{name}</h3>
-              <p className="text-xs" style={{ color: active ? color : BRAND.gray400 }}>
-                {active ? "Scanning..." : progress >= 100 ? <span className="flex items-center gap-1">Done <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg></span> : "Waiting"}
+              <h3 className="font-bold text-lg" style={{ color: theme?.text }}>{name}</h3>
+              <p className="text-[15px]" style={{ color: active ? color : (theme?.textMuted ?? BRAND.gray400) }}>
+                {active ? "Scanning..." : progress >= 100 ? <span className="flex items-center gap-1">Done <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg></span> : "Waiting"}
               </p>
             </div>
           </div>
@@ -1035,7 +1037,7 @@ function AIEngineCard({
 
         {/* Current query being tested */}
         {active && currentQuery && (
-          <div className="mt-3 text-xs py-2 px-3 rounded-lg" style={{ background: `${color}10`, color: BRAND.gray600 }} dir="ltr">
+          <div className="mt-3 text-[15px] py-2 px-3 rounded-lg" style={{ background: `${color}10`, color: theme?.textSecondary ?? BRAND.gray600 }} dir="ltr">
             <span style={{ color }}>Current query: </span>
             {currentQuery}
           </div>
@@ -1133,26 +1135,27 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
   }, [phase]);
 
   return (
-    <div className="screen-enter min-h-screen flex flex-col bg-white" dir="ltr">
+    <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
       {/* Main Header */}
-      <header style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
+      <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <div style={{ justifySelf: "start", direction: "ltr" }}>
             <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill="#141414"><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
             </svg>
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -1163,14 +1166,14 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
       <div
         className="py-6 px-4"
         style={{
-          background: "#F9F9F9",
+          background: theme.badgeBg,
         }}
       >
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-1" style={{ color: BRAND.black }}>
+          <h1 className="text-3xl font-bold mb-1" style={{ color: theme.text }}>
             AI Presence Check
           </h1>
-          <p className="text-sm" style={{ color: BRAND.gray500 }}>
+          <p className="text-base" style={{ color: theme.textSecondary }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -1184,7 +1187,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
       {/* Main Scan Area */}
       <div className="max-w-3xl mx-auto w-full px-4 flex-1 pb-12">
         {/* Scan Status Card */}
-        <div className="bg-white rounded-[10px] border border-gray-200 p-8 relative overflow-hidden">
+        <div className="rounded-[10px] p-8 relative overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
           {/* Animated corner accent */}
           {phase !== "complete" && (
             <div
@@ -1228,9 +1231,9 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                 /* Complete state — checkmark */
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center animate-fade-in-up"
-                  style={{ background: "#000" }}
+                  style={{ background: darkMode ? "#E6EDF3" : "#000" }}
                 >
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={darkMode ? "#0D1117" : "white"} strokeWidth="3">
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </div>
@@ -1238,16 +1241,16 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
             </div>
 
             {/* Status Text */}
-            <h2 className="text-xl font-bold mb-1" style={{ color: BRAND.black }}>
+            <h2 className="text-2xl font-bold mb-1" style={{ color: theme.text }}>
               {statusMessage}
             </h2>
-            <p className="text-sm" style={{ color: BRAND.gray500 }}>
+            <p className="text-base font-medium" style={{ color: theme.textSecondary }}>
               {Math.round(overallProgress)}% complete
             </p>
 
             {/* Main Progress Bar */}
             <div className="w-full max-w-sm mt-4">
-              <div className="h-3 rounded-full overflow-hidden" style={{ background: BRAND.gray100 }}>
+              <div className="h-3 rounded-full overflow-hidden" style={{ background: theme.barTrack }}>
                 <div
                   className="h-full rounded-full progress-shimmer transition-all duration-300"
                   style={{
@@ -1259,7 +1262,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
             </div>
 
             {/* Scanning for X audiences */}
-            <p className="text-xs mt-3" style={{ color: BRAND.gray400 }}>
+            <p className="text-sm mt-3" style={{ color: theme.textMuted }}>
               Scanning for 5 audiences
             </p>
           </div>
@@ -1284,9 +1287,9 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                   key={tab.id}
                   className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300"
                   style={{
-                    background: isActive ? BRAND.teal : isPast ? BRAND.gray100 : "transparent",
-                    color: isActive ? "white" : isPast ? BRAND.teal : BRAND.gray400,
-                    border: `1.5px solid ${isActive ? BRAND.teal : isPast ? BRAND.gray200 : BRAND.gray200}`,
+                    background: isActive ? BRAND.teal : isPast ? theme.badgeBg : "transparent",
+                    color: isActive ? "white" : isPast ? BRAND.teal : theme.textMuted,
+                    border: `1.5px solid ${isActive ? BRAND.teal : theme.border}`,
                   }}
                 >
                   <span className="flex items-center gap-1">{isPast && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>}{tab.label}</span>
@@ -1301,8 +1304,8 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                 className="px-4 py-2 rounded-full text-sm font-medium"
                 style={{
                   background: "transparent",
-                  color: BRAND.gray300,
-                  border: `1.5px solid ${BRAND.gray200}`,
+                  color: theme.textMuted,
+                  border: `1.5px solid ${theme.border}`,
                 }}
               >
                 {label}
@@ -1315,10 +1318,10 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
             {/* QUERIES PHASE */}
             {phase === "queries" && (
               <div className="animate-fade-in-up">
-                <h3 className="text-sm font-semibold mb-3" style={{ color: BRAND.gray600 }}>
+                <h3 className="text-[20px] font-semibold mb-3" style={{ color: theme.textSecondary }}>
                   Generating queries ({queryIndex + 1}/{MOCK_QUERIES.length})
                 </h3>
-                <QueryStream queries={MOCK_QUERIES} currentIndex={queryIndex} />
+                <QueryStream queries={MOCK_QUERIES} currentIndex={queryIndex} theme={theme} />
               </div>
             )}
 
@@ -1336,6 +1339,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                   active={true}
                   progress={gptProgress}
                   currentQuery={currentQueryForEngine}
+                  theme={theme}
                 />
               </div>
             )}
@@ -1354,15 +1358,17 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                   active={false}
                   progress={100}
                   currentQuery={undefined}
+                  theme={theme}
                 />
                 <div className="mt-4">
                   <AIEngineCard
                     name="Gemini"
                     icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 0L14.59 8.41L23 12L14.59 15.59L12 24L9.41 15.59L1 12L9.41 8.41Z"/></svg>}
-                    color="#4285F4"
+                    color="#10A37F"
                     active={true}
                     progress={geminiProgress}
                     currentQuery={currentQueryForEngine}
+                    theme={theme}
                   />
                 </div>
               </div>
@@ -1383,14 +1389,16 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                     active={false}
                     progress={100}
                     currentQuery={undefined}
+                    theme={theme}
                   />
                   <AIEngineCard
                     name="Gemini"
                     icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 0L14.59 8.41L23 12L14.59 15.59L12 24L9.41 15.59L1 12L9.41 8.41Z"/></svg>}
-                    color="#4285F4"
+                    color="#10A37F"
                     active={false}
                     progress={100}
                     currentQuery={undefined}
+                    theme={theme}
                   />
                 </div>
 
@@ -1413,8 +1421,8 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm">Analyzing results</h4>
-                      <p className="text-xs" style={{ color: BRAND.gray500 }}>
+                      <h4 className="font-bold text-[20px]" style={{ color: theme.text }}>Analyzing results</h4>
+                      <p className="text-[15px]" style={{ color: theme.textSecondary }}>
                         Comparing models and computing presence scores
                       </p>
                     </div>
@@ -1431,7 +1439,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                     ].map((item, i) => (
                       <div
                         key={item.label}
-                        className="flex items-center gap-2 text-sm"
+                        className="flex items-center gap-2 text-[15px]"
                         style={{
                           opacity: analysisProgress > i * 20 ? 1 : 0.3,
                           transition: "opacity 0.5s",
@@ -1451,7 +1459,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                             }}
                           />
                         )}
-                        <span style={{ color: item.done ? BRAND.gray700 : BRAND.gray400 }}>
+                        <span style={{ color: item.done ? theme.text : theme.textMuted }}>
                           {item.label}
                         </span>
                       </div>
@@ -1472,17 +1480,17 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: BRAND.black }}>
+                <h3 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>
                   Scan complete!
                 </h3>
-                <p className="mb-6" style={{ color: BRAND.gray500 }}>
+                <p className="text-base mb-6" style={{ color: theme.textSecondary }}>
                   Scanned 10 queries across 5 audiences in ChatGPT and Gemini
                 </p>
                 <button
-                  className="px-8 py-3 rounded-xl text-white font-semibold transition-all hover:scale-[1.02]"
-                  style={{ background: "#000" }}
+                  className="px-8 py-3 rounded-xl font-semibold transition-all hover:scale-[1.02]"
+                  style={{ background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff" }}
                 >
-                  <span className="flex items-center justify-center gap-2">View results <ArrowRight size={16} color="white" /></span>
+                  <span className="flex items-center justify-center gap-2">View results <ArrowRight size={16} color={darkMode ? "#0D1117" : "white"} /></span>
                 </button>
               </div>
             )}
@@ -1533,9 +1541,9 @@ export default function Home() {
             onClick={() => setScreen(s as 1 | 2 | 3 | 4)}
             className="w-10 h-10 rounded-full text-sm font-bold transition-all hover:scale-110"
             style={{
-              background: screen === s ? BRAND.teal : "white",
-              color: screen === s ? "white" : BRAND.gray600,
-              border: `2px solid ${screen === s ? BRAND.teal : BRAND.gray300}`,
+              background: screen === s ? BRAND.teal : theme.cardBg,
+              color: screen === s ? "white" : theme.textSecondary,
+              border: `2px solid ${screen === s ? BRAND.teal : theme.border}`,
             }}
           >
             {s}
@@ -1546,7 +1554,7 @@ export default function Home() {
       {screen === 1 && <Screen1 onSubmit={handleScreen1Submit} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
       {screen === 2 && <Screen2 domain={domain} brandName={brandName} onComplete={handleScreen2Complete} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
       {screen === 3 && <Screen3 onStartScan={handleStartScan} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
-      {screen === 4 && <Screen4 brandName={brandName} theme={theme} />}
+      {screen === 4 && <Screen4 brandName={brandName} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
     </main>
   );
 }
