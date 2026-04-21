@@ -321,8 +321,17 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [displayedBrands, setDisplayedBrands] = useState(MOCK_BRANDS);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('geoscale-dark-mode') === 'true';
+    }
+    return false;
+  });
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('geoscale-dark-mode', darkMode.toString());
+  }, [darkMode]);
 
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
@@ -418,7 +427,7 @@ export default function Dashboard() {
               ].map((b, i) => (
                 <a key={i} href="/scan" className="flex items-center gap-3 py-2 px-2 transition-colors" style={{ borderRadius: 6, textDecoration: "none", borderBottom: i < 4 ? `1px solid ${theme.border}` : "none" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                   <span className="text-xs w-5 text-center" style={{ color: theme.textMuted, fontWeight: 500 }}>{i + 1}</span>
-                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${theme.border}` }} />
+                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                   <span className="text-sm flex-1 truncate" style={{ color: theme.text, fontWeight: 500 }}>{b.name}</span>
                   <span className="text-sm" style={{ color: "#10A37F", fontWeight: 700 }}>{b.score}%</span>
                   <span className="text-xs" style={{ color: "#10A37F", fontWeight: 600 }}>{b.change}</span>
@@ -437,7 +446,7 @@ export default function Dashboard() {
               ].map((b, i) => (
                 <a key={i} href="/scan" className="flex items-center gap-3 py-2 px-2 transition-colors" style={{ borderRadius: 6, textDecoration: "none", borderBottom: i < 2 ? `1px solid ${theme.border}` : "none" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                   <span className="text-xs w-5 text-center" style={{ color: theme.textMuted, fontWeight: 500 }}>{i + 1}</span>
-                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${theme.border}` }} />
+                  <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                   <span className="text-sm flex-1 truncate" style={{ color: theme.text, fontWeight: 500 }}>{b.name}</span>
                   <span className="text-sm" style={{ color: "#DC2626", fontWeight: 700 }}>{b.score}%</span>
                   <span className="text-xs" style={{ color: "#DC2626", fontWeight: 600 }}>{b.change}</span>
@@ -482,7 +491,7 @@ export default function Dashboard() {
                   { bot: "BingBot", domain: "bing.com", pages: "2,134", ago: "1h" },
                 ].map((b, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0 }} />
+                    <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                     <span style={{ fontSize: 12, fontWeight: 500, flex: 1, color: theme.text }}>{b.bot}</span>
                     <span style={{ fontSize: 11, color: theme.textSecondary }}>{b.pages}</span>
                     <span style={{ fontSize: 10, color: theme.textMuted }}>{b.ago}</span>
@@ -559,7 +568,7 @@ export default function Dashboard() {
                         <tr key={brand.domain} onClick={() => window.location.href = "/scan"} className="cursor-pointer transition-colors" style={{ borderBottom: `1px solid ${theme.border}`, background: theme.tableBg }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.tableBg; }}>
                           <td style={{ padding: "10px 14px" }}>
                             <div className="flex items-center gap-3">
-                              <img src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`} alt="" width={22} height={22} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}` }} />
+                              <img src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`} alt="" width={22} height={22} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                               <div>
                                 <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{brand.name}</div>
                                 <div style={{ fontSize: 11, color: theme.textMuted }}>{brand.domain}</div>

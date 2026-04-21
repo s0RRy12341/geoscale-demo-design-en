@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 // ============================================================
 // GEOSCALE SCAN ANALYSIS — Full Brand Scan Results Page
@@ -42,7 +42,7 @@ const LIGHT_THEME: Theme = {
   tableHeaderBg: "#FAFAFA",
   badgeBg: "#F9F9F9",
   inputBg: "#FFFFFF",
-  barTrack: "#F0F0F0",
+  barTrack: "#E5E5E5",
   logoFill: "#141414",
   logoStroke: "#ABABAB",
 };
@@ -171,15 +171,6 @@ const COMPETITORS = [
   { name: "Therapeutic Riding Israel", domain: "riding-therapy.co.il", score: 54 },
   { name: "Horses & Heart", domain: "susim-valev.co.il", score: 42 },
   { name: "Galilee Ranch", domain: "galil-horses.co.il", score: 37 },
-];
-
-// ── SEO-GEO CONNECTION DATA ──
-const SEO_GEO_DATA = [
-  { keyword: "Therapeutic riding", volume: 1900, difficulty: 42, relatedQueries: ["Therapeutic horseback riding for children with ADHD", "Therapeutic riding research and outcomes"] },
-  { keyword: "Horse ranches", volume: 3200, difficulty: 55, relatedQueries: ["Horse ranches in the central region", "Horse ranches in northern Israel"] },
-  { keyword: "ADHD horses", volume: 480, difficulty: 18, relatedQueries: ["Therapeutic horseback riding for children with ADHD", "How horseback riding helps with focus"] },
-  { keyword: "Animal-assisted therapy", volume: 1100, difficulty: 38, relatedQueries: ["Equine-assisted therapy - who is it for?", "Horses and emotional therapy for adults"] },
-  { keyword: "Children's riding", volume: 720, difficulty: 31, relatedQueries: ["Horseback riding for children age 5", "Weekly riding class for children"] },
 ];
 
 // ── TOP 5 KEYWORDS (SEO) ──
@@ -644,7 +635,16 @@ export default function ScanPage() {
   const [chartPeriod, setChartPeriod] = useState<"7" | "30" | "90">("30");
   const [productFilter, setProductFilter] = useState<"all" | "service" | "product">("all");
   const [contentQueue, setContentQueue] = useState<number[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('geoscale-dark-mode') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('geoscale-dark-mode', darkMode.toString());
+  }, [darkMode]);
 
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
@@ -720,20 +720,23 @@ export default function ScanPage() {
         </div>
       </header>
 
-      {/* -- Brand Header (centered) -- */}
+      {/* -- Brand Header (centered, logo above) -- */}
       <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 24px" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <img src="https://www.google.com/s2/favicons?domain=all4horses.co.il&sz=64" alt="" width={36} height={36} style={{ borderRadius: 8, border: `1px solid ${theme.border}` }} />
-              <div style={{ textAlign: "center" }}>
-                <h1 style={{ fontSize: 22, fontWeight: 600, color: theme.text, margin: 0 }}>All4Horses</h1>
-                <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0", direction: "ltr" }}>all4horses.co.il</p>
-              </div>
-              <ProgressRing percent={76} size={48} strokeWidth={4} theme={theme} />
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 24px 20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 12, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", background: darkMode ? "#1C2128" : "#FFFFFF", overflow: "hidden" }}>
+              <img src="https://www.google.com/s2/favicons?domain=all4horses.co.il&sz=64" alt="" width={36} height={36} style={{ borderRadius: 4 }} />
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <h1 style={{ fontSize: 22, fontWeight: 600, color: theme.text, margin: 0 }}>All4Horses</h1>
+              <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0", direction: "ltr" }}>all4horses.co.il</p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ProgressRing percent={76} size={40} strokeWidth={3.5} theme={theme} />
+              <span style={{ fontSize: 13, fontWeight: 500, color: theme.textSecondary }}>GEO Score</span>
             </div>
             <p style={{ fontSize: 12, color: theme.textMuted, margin: 0, textAlign: "center" }}>The leading company for therapeutic riding and horse activities in Israel</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 2 }}>
               <HoverButton href="/" theme={theme} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", ...btnOutline, fontSize: 12, fontWeight: 500, borderRadius: 8, cursor: "pointer" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
                 Dashboard
@@ -785,11 +788,11 @@ export default function ScanPage() {
       </div>
 
       {/* -- Main Content -- */}
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 24px", flex: 1 }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 24px", flex: 1 }}>
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
             {/* BIG TIME-SERIES CHART */}
             <div style={{ ...card, padding: 16 }}>
@@ -900,16 +903,19 @@ export default function ScanPage() {
                   <h3 style={{ ...sectionTitle }}>Identified persona</h3>
                   <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses" />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {[
-                    { label: "Target audience:", value: "Parents of children with special needs, therapists, special-education teachers, and youth" },
-                    { label: "Industry:", value: "Therapeutic riding, horse ranches, complementary therapy" },
-                    { label: "Location:", value: "Israel" },
-                    { label: "Value proposition:", value: "Professional therapeutic riding combined with a personal, research-driven approach" },
+                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg>, label: "Target audience", value: "Parents of children with special needs, therapists, special-education teachers, and youth" },
+                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: "Industry", value: "Therapeutic riding, horse ranches, complementary therapy" },
+                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, label: "Location", value: "Israel" },
+                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>, label: "Value proposition", value: "Professional therapeutic riding combined with a personal, research-driven approach" },
                   ].map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 500, flexShrink: 0, color: theme.textSecondary }}>{item.label}</span>
-                      <span style={{ ...bodyText }}>{item.value}</span>
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderBottom: i < 3 ? `1px solid ${theme.border}` : "none" }}>
+                      <div style={{ flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center" }}>{item.icon}</div>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>{item.label}</div>
+                        <div style={{ ...bodyText, lineHeight: 1.5 }}>{item.value}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -923,7 +929,7 @@ export default function ScanPage() {
                   {COMPETITORS.map((comp, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: theme.text, flexShrink: 0 }}>{i + 1}</div>
-                      <img src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`} alt="" width={24} height={24} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: theme.cardBg }} />
+                      <img src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`} alt="" width={24} height={24} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : theme.cardBg, padding: darkMode ? 2 : 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{comp.name}</div>
                         <div style={{ fontSize: 11, color: theme.textMuted }}>{comp.domain}</div>
@@ -1291,62 +1297,6 @@ export default function ScanPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-
-            {/* SEO + GEO */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>SEO &amp; GEO connection</h3>
-                  <Tooltip text="The relationship between organic SEO performance and AI engine presence (GEO)" />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: theme.text }}>SEO</span>
-                    <button onClick={() => setSeoToggle(!seoToggle)} style={{ position: "relative", width: 36, height: 20, borderRadius: 10, border: `1px solid ${theme.border}`, background: seoToggle ? "#10A37F" : theme.badgeBg, cursor: "pointer", transition: "background 0.3s ease" }}>
-                      <div style={{ position: "absolute", width: 16, height: 16, borderRadius: 8, background: "#FFFFFF", top: 1, left: seoToggle ? 17 : 1, transition: "left 0.3s ease", border: `1px solid ${theme.border}` }} />
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: theme.text }}>GEO</span>
-                    <button onClick={() => setGeoToggle(!geoToggle)} style={{ position: "relative", width: 36, height: 20, borderRadius: 10, border: `1px solid ${theme.border}`, background: geoToggle ? "#10A37F" : theme.badgeBg, cursor: "pointer", transition: "background 0.3s ease" }}>
-                      <div style={{ position: "absolute", width: 16, height: 16, borderRadius: 8, background: "#FFFFFF", top: 1, left: geoToggle ? 17 : 1, transition: "left 0.3s ease", border: `1px solid ${theme.border}` }} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      <th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Keyword</th>
-                      {seoToggle && <><th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Search volume</th><th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Difficulty</th></>}
-                      {geoToggle && <th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 11 }}>Related queries</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SEO_GEO_DATA.map((row, i) => (
-                      <tr key={i} style={{ borderBottom: thinBorder }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}>
-                        <td style={{ padding: "10px 12px" }}><span style={{ fontWeight: 500, color: theme.text }}>{row.keyword}</span></td>
-                        {seoToggle && <>
-                          <td style={{ padding: "10px 12px" }}><span style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{row.volume.toLocaleString()}</span></td>
-                          <td style={{ padding: "10px 12px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 40, height: 4, borderRadius: 2, overflow: "hidden", background: theme.barTrack }}><div style={{ width: `${row.difficulty}%`, height: "100%", borderRadius: 2, background: "#10A37F" }} /></div>
-                              <span style={{ fontSize: 12, color: theme.text }}>{row.difficulty}</span>
-                            </div>
-                          </td>
-                        </>}
-                        {geoToggle && <td style={{ padding: "10px 12px" }}>
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                            {row.relatedQueries.map((q, j) => (<span key={j} style={{ display: "inline-flex", fontSize: 12, padding: "3px 8px", borderRadius: 7, border: thinBorder, background: theme.badgeBg, color: theme.text }}>{q}</span>))}
-                          </div>
-                        </td>}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
 
             {/* Top 5 Queries */}

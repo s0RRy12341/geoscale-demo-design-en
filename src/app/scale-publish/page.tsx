@@ -8,14 +8,72 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 // add to cart, build work plans, publisher portal
 // ============================================================
 
+// ── Theme ──
+type Theme = {
+  bg: string; cardBg: string; border: string; text: string; textSecondary: string; textMuted: string;
+  headerBg: string; hoverBg: string; tableBg: string; tableHeaderBg: string; badgeBg: string;
+  inputBg: string; barTrack: string; logoFill: string; logoStroke: string;
+};
+const LIGHT_THEME: Theme = {
+  bg: "#FFFFFF", cardBg: "#FFFFFF", border: "#E5E5E5", text: "#000000", textSecondary: "#727272",
+  textMuted: "#A2A9B0", headerBg: "rgba(255,255,255,0.96)", hoverBg: "#FAFAFA",
+  tableBg: "#FFFFFF", tableHeaderBg: "#FAFAFA", badgeBg: "#F9F9F9", inputBg: "#FFFFFF",
+  barTrack: "#E5E5E5", logoFill: "#141414", logoStroke: "#ABABAB",
+};
+const DARK_THEME: Theme = {
+  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#8B949E",
+  textMuted: "#484F58", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
+  tableBg: "#161B22", tableHeaderBg: "#1C2128", badgeBg: "#1C2128", inputBg: "#0D1117",
+  barTrack: "#30363D", logoFill: "#E6EDF3", logoStroke: "#484F58",
+};
+
+// ── Dark Mode Toggle ──
+function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => setDarkMode(!darkMode)}
+      aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 6,
+        borderRadius: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transition: "opacity 0.2s",
+      }}
+    >
+      {darkMode ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E6EDF3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#727272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 // ── Logo Components ──
-function GeoscaleLogo({ width = 150 }: { width?: number }) {
+function GeoscaleLogo({ width = 150, theme }: { width?: number; theme: Theme }) {
   return (
     <div style={{ direction: "ltr", width }}>
       <svg width={width} height={width * 0.2} viewBox="0 0 510 102" fill="none">
-        <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
-        <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-        <g fill="#141414">
+        <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+        <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+        <g fill={theme.logoFill}>
           <text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text>
         </g>
       </svg>
@@ -23,18 +81,18 @@ function GeoscaleLogo({ width = 150 }: { width?: number }) {
   );
 }
 
-function GeoscaleLogoMark({ size = 32 }: { size?: number }) {
+function GeoscaleLogoMark({ size = 32, theme }: { size?: number; theme: Theme }) {
   return (
     <svg width={size} height={size} viewBox="0 0 102 102" fill="none">
-      <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="10" fill="none" />
-      <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+      <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
+      <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
     </svg>
   );
 }
 
 // ── SVG Icons ──
-function IconSearch({ size = 14 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>;
+function IconSearch({ size = 14, color = "#A2A9B0" }: { size?: number; color?: string }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>;
 }
 function IconCheck({ size = 12 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>;
@@ -233,6 +291,15 @@ const AGENCY_ACTIVITIES: AgencyActivity[] = [
 
 // ── Main Page Component ──
 export default function BestLinksPage() {
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('geoscale-dark-mode') === 'true';
+    return false;
+  });
+  useEffect(() => {
+    localStorage.setItem('geoscale-dark-mode', darkMode.toString());
+  }, [darkMode]);
+  const theme = darkMode ? DARK_THEME : LIGHT_THEME;
+
   const [activeTab, setActiveTab] = useState<TabKey>("marketplace");
   const [cart, setCart] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -307,25 +374,26 @@ export default function BestLinksPage() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'Inter', 'Heebo', sans-serif" }} dir="ltr">
+    <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-50" style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
+      <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           {/* LEFT in LTR = Logo */}
           <div style={{ justifySelf: "start" }}>
-            <GeoscaleLogo width={150} />
+            <GeoscaleLogo width={150} theme={theme} />
           </div>
           {/* CENTER = Nav */}
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 600, color: "#000", textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           {/* RIGHT in LTR = Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -334,7 +402,7 @@ export default function BestLinksPage() {
       </header>
 
       {/* ── Sub-tabs ── */}
-      <div style={{ borderBottom: "1px solid #DDDDDD", background: "#fff" }}>
+      <div style={{ borderBottom: `1px solid ${theme.border}`, background: theme.bg }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 0 }}>
           {TABS.map(tab => (
             <button
@@ -344,10 +412,10 @@ export default function BestLinksPage() {
                 padding: "14px 24px",
                 fontSize: 13,
                 fontWeight: activeTab === tab.key ? 600 : 400,
-                color: activeTab === tab.key ? "#000" : "#727272",
+                color: activeTab === tab.key ? theme.text : theme.textSecondary,
                 background: "none",
                 border: "none",
-                borderBottom: activeTab === tab.key ? "2px solid #000" : "2px solid transparent",
+                borderBottom: activeTab === tab.key ? `2px solid ${theme.text}` : "2px solid transparent",
                 cursor: "pointer",
                 transition: "all 0.2s",
               }}
@@ -377,6 +445,8 @@ export default function BestLinksPage() {
             approvedOnly={approvedOnly}
             setApprovedOnly={setApprovedOnly}
             onAddToCart={addToCart}
+            theme={theme}
+            darkMode={darkMode}
           />
         )}
         {activeTab === "planner" && (
@@ -393,10 +463,12 @@ export default function BestLinksPage() {
             cartQueries={cartQueries}
             cartTotal={cartTotal}
             goToMarketplace={() => setActiveTab("marketplace")}
+            theme={theme}
+            darkMode={darkMode}
           />
         )}
-        {activeTab === "publishers" && <PublishersTab />}
-        {activeTab === "rejected" && <RejectedTab publishers={rejectedPublishers} pendingCount={pendingPublishers.length} />}
+        {activeTab === "publishers" && <PublishersTab theme={theme} darkMode={darkMode} />}
+        {activeTab === "rejected" && <RejectedTab publishers={rejectedPublishers} pendingCount={pendingPublishers.length} theme={theme} darkMode={darkMode} />}
       </div>
 
       {/* ── Cart Sidebar ── */}
@@ -436,22 +508,23 @@ export default function BestLinksPage() {
               right: 0,
               width: 360,
               height: "100vh",
-              background: "#fff",
-              borderLeft: "1px solid #BFBFBF",
+              background: theme.cardBg,
+              borderLeft: `1px solid ${theme.border}`,
               zIndex: 200,
               transform: cartOpen ? "translateX(0)" : "translateX(100%)",
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               display: "flex",
               flexDirection: "column",
+              color: theme.text,
             }}
           >
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid #DDDDDD", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ padding: "20px 24px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <IconCart size={18} />
                 <span style={{ fontSize: 16, fontWeight: 600 }}>Plan cart</span>
-                <span style={{ fontSize: 12, color: "#727272" }}>({cart.length} sites)</span>
+                <span style={{ fontSize: 12, color: theme.textSecondary }}>({cart.length} sites)</span>
               </div>
-              <button onClick={() => setCartOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#727272", padding: 4 }}>
+              <button onClick={() => setCartOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textSecondary, padding: 4 }}>
                 <IconX size={18} />
               </button>
             </div>
@@ -460,20 +533,20 @@ export default function BestLinksPage() {
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px" }}>
               {cartPublishers.map(pub => (
-                <div key={pub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F0F0F0" }}>
+                <div key={pub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${theme.border}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                     <Favicon domain={pub.domain} size={28} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600 }}>{pub.name}</div>
-                      <div style={{ fontSize: 11, color: "#727272" }}>{pub.domain}</div>
+                      <div style={{ fontSize: 11, color: theme.textSecondary }}>{pub.domain}</div>
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ textAlign: "right" }}>
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtCurrency(pub.pricePerArticle)}</span>
-                      <div style={{ fontSize: 10, color: "#727272" }}>~{pub.queries || 8} queries</div>
+                      <div style={{ fontSize: 10, color: theme.textSecondary }}>~{pub.queries || 8} queries</div>
                     </div>
-                    <button onClick={() => removeFromCart(pub.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#A2A9B0", padding: 2 }}>
+                    <button onClick={() => removeFromCart(pub.id)} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted, padding: 2 }}>
                       <IconTrash size={14} />
                     </button>
                   </div>
@@ -482,8 +555,8 @@ export default function BestLinksPage() {
             </div>
 
             {/* Agency Margin Section */}
-            <div style={{ padding: "16px 24px", borderTop: "1px solid #DDDDDD", background: "#F9F9F9" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#333", marginBottom: 10 }}>Agency margin</div>
+            <div style={{ padding: "16px 24px", borderTop: `1px solid ${theme.border}`, background: theme.badgeBg }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Agency margin</div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <input
                   type="range"
@@ -506,28 +579,28 @@ export default function BestLinksPage() {
               </div>
             </div>
 
-            <div style={{ padding: "20px 24px", borderTop: "1px solid #DDDDDD" }}>
+            <div style={{ padding: "20px 24px", borderTop: `1px solid ${theme.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-                <span style={{ color: "#727272" }}>Total sites</span>
+                <span style={{ color: theme.textSecondary }}>Total sites</span>
                 <span style={{ fontWeight: 600 }}>{cart.length}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-                <span style={{ color: "#727272" }}>Total queries</span>
+                <span style={{ color: theme.textSecondary }}>Total queries</span>
                 <span style={{ fontWeight: 600 }}>{cartQueries}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-                <span style={{ color: "#727272" }}>Base price</span>
+                <span style={{ color: theme.textSecondary }}>Base price</span>
                 <span style={{ fontWeight: 600 }}>{fmtCurrency(cartTotal)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-                <span style={{ color: "#727272" }}>Agency margin ({agencyMargin}%)</span>
+                <span style={{ color: theme.textSecondary }}>Agency margin ({agencyMargin}%)</span>
                 <span style={{ fontWeight: 600, color: "#10A37F" }}>{fmtCurrency(marginAmount)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, fontSize: 14, paddingTop: 8, borderTop: "1px solid #F0F0F0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, fontSize: 14, paddingTop: 8, borderTop: `1px solid ${theme.border}` }}>
                 <span style={{ fontWeight: 600 }}>Client total</span>
                 <span style={{ fontWeight: 700, fontSize: 16 }}>{fmtCurrency(clientTotal)}</span>
               </div>
-              <button style={{ width: "100%", padding: "12px 0", background: "#000", color: "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", cursor: "pointer" }}>
+              <button style={{ width: "100%", padding: "12px 0", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", cursor: "pointer" }}>
                 Generate quote
               </button>
             </div>
@@ -537,11 +610,11 @@ export default function BestLinksPage() {
       )}
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop: "1px solid #BFBFBF" }}>
+      <footer style={{ borderTop: `1px solid ${theme.border}` }}>
         <div className="max-w-[1300px] mx-auto px-6 py-5 flex items-center justify-between" dir="ltr">
           <div className="flex items-center gap-3">
-            <GeoscaleLogoMark size={28} />
-            <span className="text-sm" style={{ color: "#727272" }}>Powered by advanced AI to analyze your search presence</span>
+            <GeoscaleLogoMark size={28} theme={theme} />
+            <span className="text-sm" style={{ color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
           </div>
           <div className="flex items-center gap-3">
             {[
@@ -555,7 +628,7 @@ export default function BestLinksPage() {
               </span>
             ))}
           </div>
-          <span className="text-xs" style={{ color: "#A2A9B0" }}>&copy; GeoScale 2026</span>
+          <span className="text-xs" style={{ color: theme.textMuted }}>&copy; GeoScale 2026</span>
         </div>
       </footer>
     </div>
@@ -567,7 +640,7 @@ export default function BestLinksPage() {
 // ============================================================
 function MarketplaceTab({
   publishers, cart, flashId, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory,
-  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart,
+  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart, theme, darkMode,
 }: {
   publishers: Publisher[];
   cart: number[];
@@ -581,25 +654,27 @@ function MarketplaceTab({
   approvedOnly: boolean;
   setApprovedOnly: (v: boolean) => void;
   onAddToCart: (id: number) => void;
+  theme: Theme;
+  darkMode: boolean;
 }) {
   return (
     <div>
       {/* Title */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#000", marginBottom: 6 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: theme.text, marginBottom: 6 }}>
           ScalePublish <span style={{ fontWeight: 400, fontSize: 20 }}>— Content platform for agencies</span>
         </h1>
-        <p style={{ fontSize: 14, color: "#727272", lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>
           Choose sites, build work plans, and generate quotes — SEO and GEO in one place
         </p>
       </div>
 
       {/* Filter bar */}
-      <div style={{ background: "#F9F9F9", borderRadius: 10, border: "1px solid #DDDDDD", padding: "16px 20px", marginBottom: 24, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "16px 20px", marginBottom: 24, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
         {/* Search */}
         <div style={{ position: "relative", minWidth: 220 }}>
           <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
-            <IconSearch size={15} />
+            <IconSearch size={15} color={theme.textMuted} />
           </span>
           <input
             type="text"
@@ -610,17 +685,17 @@ function MarketplaceTab({
               width: "100%",
               padding: "9px 14px 9px 38px",
               fontSize: 13,
-              border: "1px solid #DDDDDD",
+              border: `1px solid ${theme.border}`,
               borderRadius: 8,
-              background: "#fff",
+              background: theme.inputBg,
               outline: "none",
-              color: "#333",
+              color: theme.text,
             }}
           />
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: "#DDDDDD" }} />
+        <div style={{ width: 1, height: 28, background: theme.border }} />
 
         {/* Categories */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: 1 }}>
@@ -632,9 +707,9 @@ function MarketplaceTab({
                 padding: "6px 14px",
                 fontSize: 12,
                 fontWeight: selectedCategory === cat ? 600 : 400,
-                color: selectedCategory === cat ? "#fff" : "#333",
-                background: selectedCategory === cat ? "#000" : "#fff",
-                border: `1px solid ${selectedCategory === cat ? "#000" : "#DDDDDD"}`,
+                color: selectedCategory === cat ? (darkMode ? "#0D1117" : "#fff") : theme.text,
+                background: selectedCategory === cat ? (darkMode ? "#E6EDF3" : "#000") : theme.inputBg,
+                border: `1px solid ${selectedCategory === cat ? (darkMode ? "#E6EDF3" : "#000") : theme.border}`,
                 borderRadius: 20,
                 cursor: "pointer",
                 transition: "all 0.15s",
@@ -646,11 +721,11 @@ function MarketplaceTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: "#DDDDDD" }} />
+        <div style={{ width: 1, height: 28, background: theme.border }} />
 
         {/* Sort */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 12, color: "#727272" }}>Sort by:</span>
+          <span style={{ fontSize: 12, color: theme.textSecondary }}>Sort by:</span>
           <div style={{ position: "relative" }}>
             <select
               value={sortBy}
@@ -660,11 +735,11 @@ function MarketplaceTab({
                 padding: "7px 28px 7px 10px",
                 fontSize: 12,
                 fontWeight: 500,
-                border: "1px solid #DDDDDD",
+                border: `1px solid ${theme.border}`,
                 borderRadius: 8,
-                background: "#fff",
+                background: theme.inputBg,
                 cursor: "pointer",
-                color: "#333",
+                color: theme.text,
                 outline: "none",
               }}
             >
@@ -672,24 +747,24 @@ function MarketplaceTab({
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-            <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#A2A9B0" }}>
+            <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: theme.textMuted }}>
               <IconChevronDown size={12} />
             </span>
           </div>
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: "#DDDDDD" }} />
+        <div style={{ width: 1, height: 28, background: theme.border }} />
 
         {/* Approved only toggle */}
-        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, color: "#333", whiteSpace: "nowrap" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, color: theme.text, whiteSpace: "nowrap" }}>
           <div
             onClick={() => setApprovedOnly(!approvedOnly)}
             style={{
               width: 36,
               height: 20,
               borderRadius: 10,
-              background: approvedOnly ? "#10A37F" : "#DDDDDD",
+              background: approvedOnly ? "#10A37F" : theme.barTrack,
               position: "relative",
               cursor: "pointer",
               transition: "background 0.2s",
@@ -699,7 +774,7 @@ function MarketplaceTab({
               width: 16,
               height: 16,
               borderRadius: 8,
-              background: "#fff",
+              background: theme.cardBg,
               position: "absolute",
               top: 2,
               transition: "all 0.2s",
@@ -711,7 +786,7 @@ function MarketplaceTab({
       </div>
 
       {/* Results count */}
-      <div style={{ fontSize: 13, color: "#727272", marginBottom: 16 }}>
+      <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 16 }}>
         {publishers.length} sites found
       </div>
 
@@ -724,12 +799,14 @@ function MarketplaceTab({
             inCart={cart.includes(pub.id)}
             isFlashing={flashId === pub.id}
             onToggleCart={() => onAddToCart(pub.id)}
+            theme={theme}
+            darkMode={darkMode}
           />
         ))}
       </div>
 
       {publishers.length === 0 && (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "#727272" }}>
+        <div style={{ textAlign: "center", padding: "60px 0", color: theme.textSecondary }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>0</div>
           <div style={{ fontSize: 14 }}>No sites found matching your search</div>
         </div>
@@ -739,19 +816,21 @@ function MarketplaceTab({
 }
 
 // ── Publisher Card ──
-function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart }: {
+function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, theme, darkMode }: {
   publisher: Publisher;
   inCart: boolean;
   isFlashing: boolean;
   onToggleCart: () => void;
+  theme: Theme;
+  darkMode: boolean;
 }) {
   return (
     <div
       style={{
-        border: `1px solid ${inCart ? "#10A37F" : "#DDDDDD"}`,
+        border: `1px solid ${inCart ? "#10A37F" : theme.border}`,
         borderRadius: 10,
         padding: 20,
-        background: isFlashing ? "#10A37F08" : "#fff",
+        background: isFlashing ? "#10A37F08" : theme.cardBg,
         transition: "all 0.3s",
         position: "relative",
       }}
@@ -768,32 +847,33 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart }: {
         <Favicon domain={pub.domain} size={36} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#000" }}>{pub.name}</span>
-            <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: "#A2A9B0", display: "inline-flex" }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>{pub.name}</span>
+            <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.textMuted, display: "inline-flex" }}>
               <IconExternalLink size={11} />
             </a>
           </div>
-          <div style={{ fontSize: 12, color: "#727272" }}>{pub.domain}</div>
+          <div style={{ fontSize: 12, color: theme.textSecondary }}>{pub.domain}</div>
         </div>
       </div>
 
       {/* Category */}
-      <span style={{ display: "inline-block", fontSize: 11, fontWeight: 500, color: "#333", background: "#F9F9F9", border: "1px solid #DDDDDD", padding: "3px 12px", borderRadius: 20, marginBottom: 14 }}>
+      <span style={{ display: "inline-block", fontSize: 11, fontWeight: 500, color: theme.text, background: theme.badgeBg, border: `1px solid ${theme.border}`, padding: "3px 12px", borderRadius: 20, marginBottom: 14 }}>
         {pub.category}
       </span>
 
       {/* Metrics row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <MetricBox label="SEO Score" value={pub.seoScore} color={scoreColor(pub.seoScore)} />
-        <MetricBox label="GIO Score" value={pub.gioScore} color={scoreColor(pub.gioScore)} />
+        <MetricBox label="SEO Score" value={pub.seoScore} color={scoreColor(pub.seoScore)} theme={theme} />
+        <MetricBox label="GIO Score" value={pub.gioScore} color={scoreColor(pub.gioScore)} theme={theme} />
       </div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <StatItem label="DR" value={String(pub.dr)} />
-        <StatItem label="Monthly traffic" value={fmtNum(pub.traffic)} />
+        <StatItem label="DR" value={String(pub.dr)} theme={theme} />
+        <StatItem label="Monthly traffic" value={fmtNum(pub.traffic)} theme={theme} />
         <StatItem
           label="Google Index"
+          theme={theme}
           value={
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: pub.googleIndex ? "#10A37F" : "#E53E3E", display: "inline-block" }} />
@@ -810,10 +890,10 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart }: {
       </div>
 
       {/* Footer: Price + CTA */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: "1px solid #F0F0F0" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: `1px solid ${theme.border}` }}>
         <div>
-          <div style={{ fontSize: 11, color: "#727272" }}>Price per article</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#000" }}>{fmtCurrency(pub.pricePerArticle)}</div>
+          <div style={{ fontSize: 11, color: theme.textSecondary }}>Price per article</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>{fmtCurrency(pub.pricePerArticle)}</div>
         </div>
         <button
           onClick={onToggleCart}
@@ -830,7 +910,7 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart }: {
             gap: 6,
             ...(inCart
               ? { background: "#10A37F", color: "#fff" }
-              : { background: "#000", color: "#fff" }
+              : { background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff" }
             ),
           }}
         >
@@ -848,20 +928,20 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart }: {
   );
 }
 
-function MetricBox({ label, value, color }: { label: string; value: number; color: string }) {
+function MetricBox({ label, value, color, theme }: { label: string; value: number; color: string; theme: Theme }) {
   return (
-    <div style={{ background: "#F9F9F9", borderRadius: 8, padding: "10px 12px", border: "1px solid #F0F0F0" }}>
-      <div style={{ fontSize: 10, color: "#727272", marginBottom: 4 }}>{label}</div>
+    <div style={{ background: theme.badgeBg, borderRadius: 8, padding: "10px 12px", border: `1px solid ${theme.border}` }}>
+      <div style={{ fontSize: 10, color: theme.textSecondary, marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
     </div>
   );
 }
 
-function StatItem({ label, value }: { label: string; value: React.ReactNode }) {
+function StatItem({ label, value, theme }: { label: string; value: React.ReactNode; theme: Theme }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: "#A2A9B0", marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{value}</div>
+      <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{value}</div>
     </div>
   );
 }
@@ -887,13 +967,14 @@ function AiBadge({ engine, present }: { engine: string; present: boolean }) {
 
 // ── Projection Panel: shows forecasted query appearances + exposure growth ──
 function ProjectionPanel({
-  speed, duration, planType, cartSiteCount, cartQueries,
+  speed, duration, planType, cartSiteCount, cartQueries, theme,
 }: {
   speed: "fast" | "medium" | "slow";
   duration: 3 | 6;
   planType: PlanType;
   cartSiteCount: number;
   cartQueries: number;
+  theme: Theme;
 }) {
   const speedBase = { fast: 42, medium: 26, slow: 14 };
   const typeFactor: Record<PlanType, number> = { combined: 1, seo: 0.7, geo: 0.65 };
@@ -925,7 +1006,7 @@ function ProjectionPanel({
   const areaD = pathD + ` L ${pointCoords[pointCoords.length - 1].x},${H - PAD_B} L ${pointCoords[0].x},${H - PAD_B} Z`;
 
   return (
-    <div style={{ border: "1px solid #DDDDDD", borderRadius: 10, padding: 24, marginBottom: 28, background: "#fff" }}>
+    <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: 24, marginBottom: 28, background: theme.cardBg }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
@@ -933,16 +1014,16 @@ function ProjectionPanel({
             <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F" }} />
             Vision forecast
           </div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: "#000", margin: "0 0 4px" }}>What this plan will deliver</h3>
-          <p style={{ fontSize: 12, color: "#727272", margin: 0 }}>Projected appearances in AI queries and growth over {duration} months</p>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: "0 0 4px" }}>What this plan will deliver</h3>
+          <p style={{ fontSize: 12, color: theme.textSecondary, margin: 0 }}>Projected appearances in AI queries and growth over {duration} months</p>
         </div>
         {/* KPIs */}
         <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ padding: "12px 18px", borderRadius: 10, background: "#F9F9F9", border: "1px solid #F0F0F0", minWidth: 140 }}>
-            <div style={{ fontSize: 10, color: "#727272", marginBottom: 4, fontWeight: 500 }}>Query appearances - end of period</div>
+          <div style={{ padding: "12px 18px", borderRadius: 10, background: theme.badgeBg, border: `1px solid ${theme.border}`, minWidth: 140 }}>
+            <div style={{ fontSize: 10, color: theme.textSecondary, marginBottom: 4, fontWeight: 500 }}>Query appearances - end of period</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 26, fontWeight: 700, color: "#000" }}>~{endQ}</span>
-              <span style={{ fontSize: 12, color: "#727272" }}>queries/month</span>
+              <span style={{ fontSize: 26, fontWeight: 700, color: theme.text }}>~{endQ}</span>
+              <span style={{ fontSize: 12, color: theme.textSecondary }}>queries/month</span>
             </div>
             <div style={{ fontSize: 11, color: "#10A37F", fontWeight: 600, marginTop: 2 }}>from {startQ} → {endQ}</div>
           </div>
@@ -951,7 +1032,7 @@ function ProjectionPanel({
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontSize: 26, fontWeight: 700, color: "#10A37F" }}>+{totalGrowth}%</span>
             </div>
-            <div style={{ fontSize: 11, color: "#727272", marginTop: 2 }}>in AI engine presence</div>
+            <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>in AI engine presence</div>
           </div>
         </div>
       </div>
@@ -968,13 +1049,13 @@ function ProjectionPanel({
           {/* Gridlines */}
           {[0.25, 0.5, 0.75, 1].map((f, i) => {
             const y = H - PAD_B - (H - PAD_T - PAD_B) * f;
-            return <line key={i} x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke="#F0F0F0" strokeWidth="1" />;
+            return <line key={i} x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke={theme.border} strokeWidth="1" />;
           })}
           {/* Y axis labels */}
           {[0, 0.5, 1].map((f, i) => {
             const y = H - PAD_B - (H - PAD_T - PAD_B) * f;
             const val = Math.round(maxY * f);
-            return <text key={i} x={PAD_L - 8} y={y + 3} fontSize="10" fill="#A2A9B0" textAnchor="end">{val}</text>;
+            return <text key={i} x={PAD_L - 8} y={y + 3} fontSize="10" fill={theme.textMuted} textAnchor="end">{val}</text>;
           })}
           {/* Area + line */}
           <path d={areaD} fill="url(#projFill)" />
@@ -982,22 +1063,22 @@ function ProjectionPanel({
           {/* Points */}
           {pointCoords.map((p) => (
             <g key={p.i}>
-              <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#10A37F" strokeWidth="2" />
-              <text x={p.x} y={p.y - 10} fontSize="11" fill="#000" fontWeight="600" textAnchor="middle">{p.v}</text>
+              <circle cx={p.x} cy={p.y} r="4" fill={theme.cardBg} stroke="#10A37F" strokeWidth="2" />
+              <text x={p.x} y={p.y - 10} fontSize="11" fill={theme.text} fontWeight="600" textAnchor="middle">{p.v}</text>
             </g>
           ))}
           {/* X axis labels */}
           {pointCoords.map((p) => (
-            <text key={`x-${p.i}`} x={p.x} y={H - 10} fontSize="10" fill="#727272" textAnchor="middle">Month {p.i + 1}</text>
+            <text key={`x-${p.i}`} x={p.x} y={H - 10} fontSize="10" fill={theme.textSecondary} textAnchor="middle">Month {p.i + 1}</text>
           ))}
         </svg>
       </div>
 
       {/* Bottom: explanation + marketplace CTA */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginTop: 16, padding: "14px 16px", borderRadius: 10, background: "#F9F9F9", border: "1px dashed #DDDDDD", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginTop: 16, padding: "14px 16px", borderRadius: 10, background: theme.badgeBg, border: `1px dashed ${theme.border}`, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2" strokeLinecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-          <div style={{ fontSize: 13, color: "#333" }}>
+          <div style={{ fontSize: 13, color: theme.text }}>
             {cartSiteCount > 0 ? (
               <span><strong style={{ color: "#10A37F" }}>{cartSiteCount} sites in cart</strong> - adding ~{cartQueries} queries to the forecast. Chart updated.</span>
             ) : (
@@ -1005,7 +1086,7 @@ function ProjectionPanel({
             )}
           </div>
         </div>
-        <div style={{ fontSize: 11, color: "#A2A9B0" }}>Each additional site raises the ceiling by ~10-15%</div>
+        <div style={{ fontSize: 11, color: theme.textMuted }}>Each additional site raises the ceiling by ~10-15%</div>
       </div>
     </div>
   );
@@ -1016,7 +1097,7 @@ function ProjectionPanel({
 // ============================================================
 function PlannerTab({
   planSpeed, setPlanSpeed, planDuration, setPlanDuration, planData, planTotals, planType, setPlanType,
-  cartSiteCount, cartQueries, cartTotal, goToMarketplace,
+  cartSiteCount, cartQueries, cartTotal, goToMarketplace, theme, darkMode,
 }: {
   planSpeed: "fast" | "medium" | "slow";
   setPlanSpeed: (v: "fast" | "medium" | "slow") => void;
@@ -1030,6 +1111,8 @@ function PlannerTab({
   cartQueries: number;
   cartTotal: number;
   goToMarketplace: () => void;
+  theme: Theme;
+  darkMode: boolean;
 }) {
   const discount = getDiscountInfo(planSpeed, planDuration);
 
@@ -1037,40 +1120,41 @@ function PlannerTab({
     <div>
       {/* Title */}
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#000", marginBottom: 6 }}>Work Plan Builder</h1>
-        <p style={{ fontSize: 14, color: "#727272" }}>Define brand, duration, and pace - get a personalized work plan with a quote</p>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Work Plan Builder</h1>
+        <p style={{ fontSize: 14, color: theme.textSecondary }}>Define brand, duration, and pace - get a personalized work plan with a quote</p>
       </div>
 
       {/* Configuration row */}
-      <div style={{ background: "#F9F9F9", borderRadius: 10, border: "1px solid #DDDDDD", padding: "20px 24px", marginBottom: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
+      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "20px 24px", marginBottom: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
         {/* Brand selector */}
         <div>
-          <div style={{ fontSize: 11, color: "#727272", marginBottom: 6 }}>Brand</div>
+          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 6 }}>Brand</div>
           <div style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
             padding: "9px 16px",
-            border: "1px solid #DDDDDD",
+            border: `1px solid ${theme.border}`,
             borderRadius: 8,
-            background: "#fff",
+            background: theme.inputBg,
             fontSize: 13,
             fontWeight: 600,
             minWidth: 180,
+            color: theme.text,
           }}>
             <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
             All4Horses
-            <span style={{ marginLeft: "auto", color: "#A2A9B0" }}><IconChevronDown size={12} /></span>
+            <span style={{ marginLeft: "auto", color: theme.textMuted }}><IconChevronDown size={12} /></span>
           </div>
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 48, background: "#DDDDDD" }} />
+        <div style={{ width: 1, height: 48, background: theme.border }} />
 
         {/* Duration */}
         <div>
-          <div style={{ fontSize: 11, color: "#727272", marginBottom: 6 }}>Plan duration</div>
-          <div style={{ display: "flex", gap: 0, border: "1px solid #DDDDDD", borderRadius: 8, overflow: "hidden" }}>
+          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 6 }}>Plan duration</div>
+          <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([3, 6] as const).map(d => (
               <button
                 key={d}
@@ -1079,8 +1163,8 @@ function PlannerTab({
                   padding: "9px 20px",
                   fontSize: 13,
                   fontWeight: planDuration === d ? 600 : 400,
-                  background: planDuration === d ? "#000" : "#fff",
-                  color: planDuration === d ? "#fff" : "#333",
+                  background: planDuration === d ? (darkMode ? "#E6EDF3" : "#000") : theme.inputBg,
+                  color: planDuration === d ? (darkMode ? "#0D1117" : "#fff") : theme.text,
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.15s",
@@ -1093,12 +1177,12 @@ function PlannerTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 48, background: "#DDDDDD" }} />
+        <div style={{ width: 1, height: 48, background: theme.border }} />
 
         {/* Speed */}
         <div>
-          <div style={{ fontSize: 11, color: "#727272", marginBottom: 6 }}>Pace</div>
-          <div style={{ display: "flex", gap: 0, border: "1px solid #DDDDDD", borderRadius: 8, overflow: "hidden" }}>
+          <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 6 }}>Pace</div>
+          <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([
               { key: "fast" as const, label: "Aggressive" },
               { key: "medium" as const, label: "Medium" },
@@ -1111,8 +1195,8 @@ function PlannerTab({
                   padding: "9px 20px",
                   fontSize: 13,
                   fontWeight: planSpeed === s.key ? 600 : 400,
-                  background: planSpeed === s.key ? "#000" : "#fff",
-                  color: planSpeed === s.key ? "#fff" : "#333",
+                  background: planSpeed === s.key ? (darkMode ? "#E6EDF3" : "#000") : theme.inputBg,
+                  color: planSpeed === s.key ? (darkMode ? "#0D1117" : "#fff") : theme.text,
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.15s",
@@ -1126,13 +1210,13 @@ function PlannerTab({
       </div>
 
       {/* Brand Images / Assets */}
-      <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #DDDDDD", padding: "16px 20px", marginBottom: 20 }}>
+      <div style={{ background: theme.cardBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "16px 20px", marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#000" }}>Brand images & assets</div>
-            <div style={{ fontSize: 11, color: "#727272", marginTop: 2 }}>Attach product shots, logos, or brand assets — auto-embedded into generated content</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Brand images & assets</div>
+            <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>Attach product shots, logos, or brand assets — auto-embedded into generated content</div>
           </div>
-          <span style={{ fontSize: 11, color: "#A2A9B0" }}>3 items</span>
+          <span style={{ fontSize: 11, color: theme.textMuted }}>3 items</span>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
@@ -1140,12 +1224,12 @@ function PlannerTab({
             { bg: "linear-gradient(135deg,#DBEAFE,#93C5FD)", label: "horse-1.jpg" },
             { bg: "linear-gradient(135deg,#D1FAE5,#6EE7B7)", label: "ranch.png" },
           ].map((img, i) => (
-            <div key={i} style={{ position: "relative", width: 84, height: 84, borderRadius: 8, background: img.bg, border: "1px solid #DDDDDD", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
+            <div key={i} style={{ position: "relative", width: 84, height: 84, borderRadius: 8, background: img.bg, border: `1px solid ${theme.border}`, overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
               <div style={{ width: "100%", padding: "4px 6px", background: "rgba(0,0,0,0.55)", color: "#fff", fontSize: 10, fontWeight: 500, textAlign: "center" }}>{img.label}</div>
               <button aria-label="Remove" style={{ position: "absolute", top: 4, right: 4, width: 18, height: 18, borderRadius: 9, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
             </div>
           ))}
-          <label style={{ width: 84, height: 84, borderRadius: 8, border: "1.5px dashed #A2A9B0", background: "#F9F9F9", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", gap: 4, color: "#727272", transition: "all 0.15s" }}>
+          <label style={{ width: 84, height: 84, borderRadius: 8, border: `1.5px dashed ${theme.textMuted}`, background: theme.badgeBg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", gap: 4, color: theme.textSecondary, transition: "all 0.15s" }}>
             <span style={{ fontSize: 22, lineHeight: 1, fontWeight: 300 }}>+</span>
             <span style={{ fontSize: 10, fontWeight: 500 }}>Add image</span>
             <input type="file" accept="image/*" multiple style={{ display: "none" }} />
@@ -1168,17 +1252,18 @@ function PlannerTab({
                 style={{
                   padding: 20,
                   borderRadius: 10,
-                  border: planType === "seo" ? "2px solid #000" : "1px solid #DDDDDD",
-                  background: planType === "seo" ? "#F9F9F9" : "#fff",
+                  border: planType === "seo" ? `2px solid ${theme.text}` : `1px solid ${theme.border}`,
+                  background: planType === "seo" ? theme.badgeBg : theme.cardBg,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "all 0.2s",
+                  color: theme.text,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#000", marginBottom: 4 }}>SEO Only</div>
-                <div style={{ fontSize: 12, color: "#727272", marginBottom: 10 }}>Focused articles for organic ranking</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#000" }}>{fmtCurrency(seoPrice)}</div>
-                <div style={{ fontSize: 11, color: "#A2A9B0" }}>{fmtCurrency(seoPrice)} / month</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 4 }}>SEO Only</div>
+                <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>Focused articles for organic ranking</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>{fmtCurrency(seoPrice)}</div>
+                <div style={{ fontSize: 11, color: theme.textMuted }}>{fmtCurrency(seoPrice)} / month</div>
               </button>
 
               {/* GEO Only */}
@@ -1187,17 +1272,18 @@ function PlannerTab({
                 style={{
                   padding: 20,
                   borderRadius: 10,
-                  border: planType === "geo" ? "2px solid #000" : "1px solid #DDDDDD",
-                  background: planType === "geo" ? "#F9F9F9" : "#fff",
+                  border: planType === "geo" ? `2px solid ${theme.text}` : `1px solid ${theme.border}`,
+                  background: planType === "geo" ? theme.badgeBg : theme.cardBg,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "all 0.2s",
+                  color: theme.text,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#000", marginBottom: 4 }}>GEO Only</div>
-                <div style={{ fontSize: 12, color: "#727272", marginBottom: 10 }}>Content optimized for AI engines</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#000" }}>{fmtCurrency(geoPrice)}</div>
-                <div style={{ fontSize: 11, color: "#A2A9B0" }}>{fmtCurrency(geoPrice)} / month</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 4 }}>GEO Only</div>
+                <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>Content optimized for AI engines</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>{fmtCurrency(geoPrice)}</div>
+                <div style={{ fontSize: 11, color: theme.textMuted }}>{fmtCurrency(geoPrice)} / month</div>
               </button>
             </>
           );
@@ -1210,8 +1296,8 @@ function PlannerTab({
             position: "relative",
             padding: 20,
             borderRadius: 10,
-            border: planType === "combined" ? "2px solid #10A37F" : "1px solid #DDDDDD",
-            background: planType === "combined" ? "#10A37F08" : "#fff",
+            border: planType === "combined" ? "2px solid #10A37F" : `1px solid ${theme.border}`,
+            background: planType === "combined" ? "#10A37F08" : theme.cardBg,
             cursor: "pointer",
             textAlign: "left",
             transition: "all 0.2s",
@@ -1232,10 +1318,10 @@ function PlannerTab({
             Save {discount.savingsPercent}%
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>SEO + GEO</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>SEO + GEO</div>
             <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#10A37F15", color: "#10A37F", fontWeight: 600 }}>Recommended</span>
           </div>
-          <div style={{ fontSize: 12, color: "#727272", marginBottom: 10 }}>Combined bundle - organic ranking + AI presence</div>
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10 }}>Combined bundle - organic ranking + AI presence</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span style={{ fontSize: 20, fontWeight: 700, color: "#10A37F" }}>{fmtCurrency(discount.combinedMonthly)}</span>
             <span style={{ fontSize: 13, color: "#A2A9B0", textDecoration: "line-through" }}>{fmtCurrency(discount.separateMonthly)}</span>
@@ -1252,7 +1338,7 @@ function PlannerTab({
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>
           <div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "#10A37F" }}>Active discount: </span>
-            <span style={{ fontSize: 13, color: "#333" }}>Save {fmtCurrency(discount.savingsTotal)} across the entire plan ({planDuration} months) by choosing the combined bundle</span>
+            <span style={{ fontSize: 13, color: theme.text }}>Save {fmtCurrency(discount.savingsTotal)} across the entire plan ({planDuration} months) by choosing the combined bundle</span>
           </div>
         </div>
       )}
@@ -1264,41 +1350,42 @@ function PlannerTab({
         planType={planType}
         cartSiteCount={cartSiteCount}
         cartQueries={cartQueries}
+        theme={theme}
       />
 
       {/* Plan table */}
-      <div style={{ border: "1px solid #DDDDDD", borderRadius: 10, overflow: "hidden", marginBottom: 28 }}>
+      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
-            <tr style={{ background: "#F9F9F9" }}>
-              <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 600, color: "#333", borderBottom: "1px solid #DDDDDD" }}>Month</th>
-              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: "#333", borderBottom: "1px solid #DDDDDD" }}>SEO articles</th>
-              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: "#333", borderBottom: "1px solid #DDDDDD" }}>GEO articles</th>
-              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: "#333", borderBottom: "1px solid #DDDDDD" }}>Sites</th>
-              <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 600, color: "#333", borderBottom: "1px solid #DDDDDD" }}>Monthly budget</th>
+            <tr style={{ background: theme.tableHeaderBg }}>
+              <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>Month</th>
+              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>SEO articles</th>
+              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>GEO articles</th>
+              <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>Sites</th>
+              <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>Monthly budget</th>
             </tr>
           </thead>
           <tbody>
             {planData.map(row => (
-              <tr key={row.month} style={{ borderBottom: "1px solid #F0F0F0" }}>
+              <tr key={row.month} style={{ borderBottom: `1px solid ${theme.border}` }}>
                 <td style={{ padding: "14px 16px", fontWeight: 600 }}>Month {row.month}</td>
-                <td style={{ padding: "14px 16px", textAlign: "center", color: planType === "geo" ? "#A2A9B0" : undefined }}>{planType === "geo" ? "—" : row.seoArticles}</td>
-                <td style={{ padding: "14px 16px", textAlign: "center", color: planType === "seo" ? "#A2A9B0" : undefined }}>{planType === "seo" ? "—" : row.geoArticles}</td>
+                <td style={{ padding: "14px 16px", textAlign: "center", color: planType === "geo" ? theme.textMuted : undefined }}>{planType === "geo" ? "—" : row.seoArticles}</td>
+                <td style={{ padding: "14px 16px", textAlign: "center", color: planType === "seo" ? theme.textMuted : undefined }}>{planType === "seo" ? "—" : row.geoArticles}</td>
                 <td style={{ padding: "14px 16px", textAlign: "center" }}>{row.sites}</td>
                 <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 600 }}>{fmtCurrency(row.budget)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr style={{ background: "#F9F9F9", fontWeight: 700 }}>
-              <td style={{ padding: "14px 16px", borderTop: "1px solid #DDDDDD" }}>Total</td>
-              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: "1px solid #DDDDDD", color: planType === "geo" ? "#A2A9B0" : undefined }}>{planType === "geo" ? "—" : planData.reduce((s, r) => s + r.seoArticles, 0)}</td>
-              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: "1px solid #DDDDDD", color: planType === "seo" ? "#A2A9B0" : undefined }}>{planType === "seo" ? "—" : planData.reduce((s, r) => s + r.geoArticles, 0)}</td>
-              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: "1px solid #DDDDDD" }}>{planData.reduce((s, r) => s + r.sites, 0)}</td>
-              <td style={{ padding: "14px 16px", textAlign: "right", borderTop: "1px solid #DDDDDD" }}>
+            <tr style={{ background: theme.tableHeaderBg, fontWeight: 700 }}>
+              <td style={{ padding: "14px 16px", borderTop: `1px solid ${theme.border}` }}>Total</td>
+              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: `1px solid ${theme.border}`, color: planType === "geo" ? theme.textMuted : undefined }}>{planType === "geo" ? "—" : planData.reduce((s, r) => s + r.seoArticles, 0)}</td>
+              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: `1px solid ${theme.border}`, color: planType === "seo" ? theme.textMuted : undefined }}>{planType === "seo" ? "—" : planData.reduce((s, r) => s + r.geoArticles, 0)}</td>
+              <td style={{ padding: "14px 16px", textAlign: "center", borderTop: `1px solid ${theme.border}` }}>{planData.reduce((s, r) => s + r.sites, 0)}</td>
+              <td style={{ padding: "14px 16px", textAlign: "right", borderTop: `1px solid ${theme.border}` }}>
                 <span>{fmtCurrency(planTotals.budget)}</span>
                 {planType === "combined" && (
-                  <span style={{ fontSize: 11, color: "#A2A9B0", textDecoration: "line-through", marginLeft: 8 }}>{fmtCurrency(discount.separateTotal)}</span>
+                  <span style={{ fontSize: 11, color: theme.textMuted, textDecoration: "line-through", marginLeft: 8 }}>{fmtCurrency(discount.separateTotal)}</span>
                 )}
               </td>
             </tr>
@@ -1308,45 +1395,45 @@ function PlannerTab({
 
       {/* Summary cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
-        <SummaryCard label="Total articles" value={String(planTotals.articles)} accent={false} />
-        <SummaryCard label="Total budget" value={fmtCurrency(planTotals.budget)} accent={false} />
+        <SummaryCard label="Total articles" value={String(planTotals.articles)} accent={false} theme={theme} />
+        <SummaryCard label="Total budget" value={fmtCurrency(planTotals.budget)} accent={false} theme={theme} />
         {planType === "combined" ? (
           <div style={{ border: "1px solid #10A37F30", borderRadius: 10, padding: 20, background: "#10A37F08" }}>
             <div style={{ fontSize: 12, color: "#10A37F", marginBottom: 8, fontWeight: 500 }}>Total savings</div>
             <div style={{ fontSize: 24, fontWeight: 700, color: "#10A37F" }}>{fmtCurrency(discount.savingsTotal)}</div>
           </div>
         ) : (
-          <SummaryCard label="Projected traffic growth" value={planSpeed === "fast" ? "+180%" : planSpeed === "medium" ? "+120%" : "+65%"} accent={true} />
+          <SummaryCard label="Projected traffic growth" value={planSpeed === "fast" ? "+180%" : planSpeed === "medium" ? "+120%" : "+65%"} accent={true} theme={theme} />
         )}
-        <SummaryCard label="Publisher sites in cart" value={String(cartSiteCount)} accent={cartSiteCount > 0} />
+        <SummaryCard label="Publisher sites in cart" value={String(cartSiteCount)} accent={cartSiteCount > 0} theme={theme} />
       </div>
 
       {/* Proposal Builder — connects SEO plan + Marketplace cart */}
-      <div style={{ border: "1px solid #DDDDDD", borderRadius: 10, padding: 24, background: "#FFFFFF", marginBottom: 28 }}>
+      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: 24, background: theme.cardBg, marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 18, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#727272", fontWeight: 600, marginBottom: 4, letterSpacing: 0.3 }}>Full quote</div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#000", margin: 0 }}>What&apos;s included in the quote</h3>
-            <p style={{ fontSize: 12, color: "#727272", margin: "4px 0 0" }}>The plan splits the quote into two components that connect automatically</p>
+            <div style={{ fontSize: 11, color: theme.textSecondary, fontWeight: 600, marginBottom: 4, letterSpacing: 0.3 }}>Full quote</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>What&apos;s included in the quote</h3>
+            <p style={{ fontSize: 12, color: theme.textSecondary, margin: "4px 0 0" }}>The plan splits the quote into two components that connect automatically</p>
           </div>
         </div>
 
         {/* Two columns: SEO/GEO plan + External publisher cart */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
           {/* Left: content plan */}
-          <div style={{ padding: 18, borderRadius: 10, border: "1px solid #F0F0F0", background: "#F9F9F9" }}>
+          <div style={{ padding: 18, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.badgeBg }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ width: 28, height: 28, borderRadius: 6, background: "#000", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>1</span>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>
+              <span style={{ width: 28, height: 28, borderRadius: 6, background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>1</span>
+              <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>
                 {planType === "seo" ? "SEO" : planType === "geo" ? "GEO" : "SEO + GEO"} content plan
               </div>
             </div>
-            <div style={{ fontSize: 12, color: "#727272", marginBottom: 12, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
               {planTotals.articles} articles across {planDuration} months at {planSpeed === "fast" ? "aggressive" : planSpeed === "medium" ? "medium" : "conservative"} pace
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid #E5E5E5", fontSize: 13 }}>
-              <span style={{ color: "#333" }}>Total</span>
-              <span style={{ fontWeight: 700, color: "#000" }}>{fmtCurrency(planTotals.budget)}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10, borderTop: `1px solid ${theme.border}`, fontSize: 13 }}>
+              <span style={{ color: theme.text }}>Total</span>
+              <span style={{ fontWeight: 700, color: theme.text }}>{fmtCurrency(planTotals.budget)}</span>
             </div>
           </div>
 
@@ -1412,7 +1499,7 @@ function SummaryCard({ label, value, accent }: { label: string; value: string; a
 // ============================================================
 // TAB 3: Publishers Portal
 // ============================================================
-function PublishersTab() {
+function PublishersTab({ theme: _theme, darkMode: _darkMode }: { theme: Theme; darkMode: boolean }) {
   const [newDomain, setNewDomain] = useState("");
   const [newCategory, setNewCategory] = useState("Technology");
   const [newPrice, setNewPrice] = useState("");
@@ -1644,7 +1731,7 @@ function PublishersTab() {
 // ============================================================
 // TAB 4: Rejected Sites
 // ============================================================
-function RejectedTab({ publishers, pendingCount }: { publishers: Publisher[]; pendingCount: number }) {
+function RejectedTab({ publishers, pendingCount, theme: _theme, darkMode: _darkMode }: { publishers: Publisher[]; pendingCount: number; theme: Theme; darkMode: boolean }) {
   const totalPublishers = PUBLISHERS.length;
   const approvedCount = PUBLISHERS.filter(p => p.status === "approved").length;
   const rejectedCount = publishers.length;

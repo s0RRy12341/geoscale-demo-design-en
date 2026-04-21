@@ -28,12 +28,31 @@ const BRAND = {
   gray800: "#141414",
 };
 
+// ── Theme System ──
+type Theme = {
+  bg: string; cardBg: string; border: string; text: string; textSecondary: string; textMuted: string;
+  headerBg: string; hoverBg: string; tableBg: string; tableHeaderBg: string; badgeBg: string;
+  inputBg: string; barTrack: string; logoFill: string; logoStroke: string;
+};
+const LIGHT_THEME: Theme = {
+  bg: "#FFFFFF", cardBg: "#FFFFFF", border: "#E5E5E5", text: "#000000", textSecondary: "#727272",
+  textMuted: "#A2A9B0", headerBg: "rgba(255,255,255,0.96)", hoverBg: "#FAFAFA",
+  tableBg: "#FFFFFF", tableHeaderBg: "#FAFAFA", badgeBg: "#F9F9F9", inputBg: "#FFFFFF",
+  barTrack: "#E5E5E5", logoFill: "#141414", logoStroke: "#ABABAB",
+};
+const DARK_THEME: Theme = {
+  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#8B949E",
+  textMuted: "#484F58", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
+  tableBg: "#161B22", tableHeaderBg: "#1C2128", badgeBg: "#1C2128", inputBg: "#0D1117",
+  barTrack: "#30363D", logoFill: "#E6EDF3", logoStroke: "#484F58",
+};
+
 // ── Geoscale Logo SVG (actual brand) ──
-function GeoscaleLogo({ size = 40, className = "" }: { size?: number; className?: string }) {
+function GeoscaleLogo({ size = 40, className = "", theme }: { size?: number; className?: string; theme?: Theme }) {
   return (
     <svg width={size} height={size} viewBox="0 0 102 102" fill="none" className={className}>
-      <circle cx="51" cy="51" r="38" stroke="#ABABAB" strokeWidth="10" fill="none" />
-      <circle cx="51" cy="51" r="25" stroke="#141414" strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="120 40" />
+      <circle cx="51" cy="51" r="38" stroke={theme?.logoStroke ?? "#ABABAB"} strokeWidth="10" fill="none" />
+      <circle cx="51" cy="51" r="25" stroke={theme?.logoFill ?? "#141414"} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="120 40" />
     </svg>
   );
 }
@@ -65,11 +84,11 @@ function ArrowRight({ size = 16, color = "currentColor" }: { size?: number; colo
 }
 
 // ── Geoscale Wordmark ──
-function GeoscaleWordmark({ className = "" }: { className?: string }) {
+function GeoscaleWordmark({ className = "", theme }: { className?: string; theme?: Theme }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <GeoscaleLogo size={36} />
-      <span className="text-2xl font-semibold tracking-tight" style={{ color: BRAND.black }}>
+      <GeoscaleLogo size={36} theme={theme} />
+      <span className="text-2xl font-semibold tracking-tight" style={{ color: theme?.text ?? BRAND.black }}>
         Geoscale
       </span>
     </div>
@@ -77,7 +96,7 @@ function GeoscaleWordmark({ className = "" }: { className?: string }) {
 }
 
 // ── Step Indicator ──
-function StepIndicator({ current, steps }: { current: number; steps: string[] }) {
+function StepIndicator({ current, steps, theme }: { current: number; steps: string[]; theme: Theme }) {
   return (
     <div className="flex items-center justify-center gap-2 mb-8">
       {steps.map((label, i) => (
@@ -86,15 +105,15 @@ function StepIndicator({ current, steps }: { current: number; steps: string[] })
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-500"
               style={{
-                background: i <= current ? BRAND.teal : BRAND.gray200,
-                color: i <= current ? "#fff" : BRAND.gray500,
+                background: i <= current ? BRAND.teal : theme.barTrack,
+                color: i <= current ? "#fff" : theme.textSecondary,
               }}
             >
               {i < current ? <StepCheck /> : i + 1}
             </div>
             <span
               className="text-xs mt-1 font-medium"
-              style={{ color: i <= current ? BRAND.teal : BRAND.gray400 }}
+              style={{ color: i <= current ? BRAND.teal : theme.textMuted }}
             >
               {label}
             </span>
@@ -102,7 +121,7 @@ function StepIndicator({ current, steps }: { current: number; steps: string[] })
           {i < steps.length - 1 && (
             <div
               className="w-16 h-0.5 mb-5 transition-all duration-500"
-              style={{ background: i < current ? BRAND.teal : BRAND.gray200 }}
+              style={{ background: i < current ? BRAND.teal : theme.barTrack }}
             />
           )}
         </div>
@@ -111,17 +130,50 @@ function StepIndicator({ current, steps }: { current: number; steps: string[] })
   );
 }
 
-// ── Shared Footer (matching all Geoscale pages) ──
-function GeoFooter() {
+// ── Dark Mode Toggle Button ──
+function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: (v: boolean) => void }) {
   return (
-    <footer style={{ borderTop: "1px solid #BFBFBF", marginTop: "auto" }}>
+    <button
+      onClick={() => setDarkMode(!darkMode)}
+      className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+      style={{
+        background: darkMode ? "#30363D" : "#F3F4F6",
+        border: `1px solid ${darkMode ? "#484F58" : "#E5E5E5"}`,
+      }}
+      title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {darkMode ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E6EDF3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+// ── Shared Footer (matching all Geoscale pages) ──
+function GeoFooter({ theme }: { theme: Theme }) {
+  return (
+    <footer style={{ borderTop: `1px solid ${theme.border}`, marginTop: "auto", background: theme.bg }}>
       <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <svg width={28} height={28} viewBox="0 0 102 102" fill="none">
-            <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="10" fill="none" />
-            <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+            <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
+            <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
           </svg>
-          <span style={{ fontSize: 14, color: "#727272" }}>Powered by advanced AI to analyze your search presence</span>
+          <span style={{ fontSize: 14, color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {[
@@ -133,7 +185,7 @@ function GeoFooter() {
             <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: link.color, background: link.bg, cursor: "pointer" }}>{link.label}</span>
           ))}
         </div>
-        <span style={{ fontSize: 12, color: "#A2A9B0" }}>&copy; GeoScale 2026</span>
+        <span style={{ fontSize: 12, color: theme.textMuted }}>&copy; GeoScale 2026</span>
       </div>
     </footer>
   );
@@ -142,31 +194,32 @@ function GeoFooter() {
 // ════════════════════════════════════════════
 // SCREEN 1: Brand Input
 // ════════════════════════════════════════════
-function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => void }) {
+function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain: string, brand: string) => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
   const [domain, setDomain] = useState("");
   const [brandName, setBrandName] = useState("");
 
   return (
-    <div className="screen-enter min-h-screen flex flex-col" dir="ltr">
+    <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
       {/* Header */}
-      <header style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
+      <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <div style={{ justifySelf: "start", direction: "ltr" }}>
             <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill="#141414"><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
             </svg>
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -178,22 +231,22 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
       <div
         className="relative py-12 px-4"
         style={{
-          background: "#F9F9F9",
+          background: theme.badgeBg,
         }}
       >
         {/* Subtle dot pattern overlay */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: "radial-gradient(circle, #000 1px, transparent 1px)",
+            backgroundImage: `radial-gradient(circle, ${theme.text} 1px, transparent 1px)`,
             backgroundSize: "24px 24px",
           }}
         />
         <div className="relative max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: BRAND.black }}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: theme.text }}>
             AI Presence Check
           </h1>
-          <p className="text-lg" style={{ color: BRAND.gray600 }}>
+          <p className="text-lg" style={{ color: theme.textSecondary }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -201,24 +254,24 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
 
       {/* Step Indicator */}
       <div className="max-w-2xl mx-auto w-full px-4 mt-8">
-        <StepIndicator current={0} steps={["Details", "Audiences", "Scan"]} />
+        <StepIndicator current={0} steps={["Details", "Audiences", "Scan"]} theme={theme} />
       </div>
 
       {/* Form Card */}
       <div className="max-w-2xl mx-auto w-full px-4 flex-1 pb-16">
-        <div className="bg-white rounded-[10px] border border-gray-200 p-8">
+        <div className="rounded-[10px] p-8" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
           {/* Card Header */}
           <div className="flex items-center gap-2 mb-8">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={BRAND.teal} strokeWidth="2">
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
               <line x1="7" y1="7" x2="7.01" y2="7" />
             </svg>
-            <span className="font-semibold text-lg">Brand details</span>
+            <span className="font-semibold text-lg" style={{ color: theme.text }}>Brand details</span>
           </div>
 
           {/* Domain Field */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2" style={{ color: BRAND.gray700 }}>
+            <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
               Website URL
             </label>
             <div className="relative">
@@ -227,24 +280,24 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="example.com"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-[#10A37F] focus:ring-1 focus:ring-[#10A37F]/20 transition-all"
-                style={{ direction: "ltr", textAlign: "left" }}
+                className="w-full px-4 py-3 rounded-xl text-base focus:outline-none focus:border-[#10A37F] focus:ring-1 focus:ring-[#10A37F]/20 transition-all"
+                style={{ direction: "ltr", textAlign: "left", background: theme.inputBg, color: theme.text, border: `1px solid ${theme.border}` }}
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.gray400} strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
                 </svg>
               </div>
             </div>
-            <p className="text-xs mt-1.5" style={{ color: BRAND.gray400 }}>
+            <p className="text-xs mt-1.5" style={{ color: theme.textMuted }}>
               Enter the domain without https://
             </p>
           </div>
 
           {/* Brand Name Field */}
           <div className="mb-8">
-            <label className="block text-sm font-medium mb-2" style={{ color: BRAND.gray700 }}>
+            <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
               Brand name
             </label>
             <div className="relative">
@@ -253,10 +306,11 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 placeholder="Your brand name"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:border-[#10A37F] focus:ring-1 focus:ring-[#10A37F]/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl text-base focus:outline-none focus:border-[#10A37F] focus:ring-1 focus:ring-[#10A37F]/20 transition-all"
+                style={{ background: theme.inputBg, color: theme.text, border: `1px solid ${theme.border}` }}
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.gray400} strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="2">
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
                   <line x1="7" y1="7" x2="7.01" y2="7" />
                 </svg>
@@ -269,19 +323,20 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
             onClick={() => onSubmit(domain || "example.com", brandName || "My brand")}
             className="w-full py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
             style={{
-              background: "#000",
+              background: darkMode ? "#E6EDF3" : "#000",
+              color: darkMode ? "#0D1117" : "#fff",
             }}
           >
-            <span className="flex items-center justify-center gap-2">Continue to audience selection <ArrowRight size={18} color="white" /></span>
+            <span className="flex items-center justify-center gap-2">Continue to audience selection <ArrowRight size={18} color={darkMode ? "#0D1117" : "white"} /></span>
           </button>
         </div>
 
         {/* What's New Box */}
-        <div className="mt-6 bg-white rounded-[10px] border border-gray-200 p-6">
+        <div className="mt-6 rounded-[10px] p-6" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
           <h3 className="font-semibold mb-3" style={{ color: BRAND.teal }}>
             What&apos;s new?
           </h3>
-          <ul className="space-y-2 text-sm" style={{ color: BRAND.gray600 }}>
+          <ul className="space-y-2 text-sm" style={{ color: theme.textSecondary }}>
             <li>The system generates <strong>relevant audiences</strong> for your brand</li>
             <li>You choose which audiences to test</li>
             <li>The scan is tailored <strong>to each audience separately</strong></li>
@@ -289,7 +344,7 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
           </ul>
         </div>
       </div>
-      <GeoFooter />
+      <GeoFooter theme={theme} />
     </div>
   );
 }
@@ -297,7 +352,7 @@ function Screen1({ onSubmit }: { onSubmit: (domain: string, brand: string) => vo
 // ════════════════════════════════════════════
 // SCREEN 2: Analyzing Animation
 // ════════════════════════════════════════════
-function Screen2({ domain, brandName, onComplete }: { domain: string; brandName: string; onComplete: () => void }) {
+function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }: { domain: string; brandName: string; onComplete: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Connecting to site...");
   const [dots, setDots] = useState("");
@@ -340,23 +395,26 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
   }, [onComplete]);
 
   return (
-    <div className="screen-enter min-h-screen flex flex-col" dir="ltr">
+    <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
       {/* Header */}
-      <header style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
+      <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div className="flex items-center gap-3">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={BRAND.gray600} strokeWidth="2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 00-3-3.87" />
             <path d="M16 3.13a4 4 0 010 7.75" />
           </svg>
-          <span className="font-semibold">Audience selection</span>
+          <span className="font-semibold" style={{ color: theme.text }}>Audience selection</span>
         </div>
-        <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: BRAND.gray500 }}>
-          <ArrowLeft size={14} color={BRAND.gray500} />
-          Back
-        </span>
+        <div className="flex items-center gap-3">
+          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
+            <ArrowLeft size={14} color={theme.textSecondary} />
+            Back
+          </span>
+        </div>
         </div>
       </header>
 
@@ -418,7 +476,7 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
             <div
               className="w-full h-full flex items-center justify-center"
               style={{
-                background: "#F9F9F9",
+                background: theme.badgeBg,
                 animation: "morph-circle 8s ease-in-out infinite",
               }}
             >
@@ -428,7 +486,7 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
                   cx="50"
                   cy="50"
                   r="40"
-                  stroke={BRAND.gray600}
+                  stroke={theme.textSecondary}
                   strokeWidth="5"
                   fill="none"
                   strokeDasharray="8 4"
@@ -451,7 +509,7 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
         </div>
 
         {/* Status Text */}
-        <h2 className="text-2xl font-bold mb-2" style={{ color: BRAND.black }}>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>
           Analyzing the site{dots}
         </h2>
         <p className="text-base mb-8" style={{ color: BRAND.teal }}>
@@ -460,7 +518,7 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
 
         {/* Progress Bar */}
         <div className="w-full max-w-md">
-          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: BRAND.gray200 }}>
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: theme.barTrack }}>
             <div
               className="h-full rounded-full progress-shimmer transition-all duration-300 ease-out"
               style={{
@@ -470,17 +528,17 @@ function Screen2({ domain, brandName, onComplete }: { domain: string; brandName:
             />
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs" style={{ color: BRAND.gray400 }}>
+            <span className="text-xs" style={{ color: theme.textMuted }}>
               {Math.round(progress)}%
             </span>
-            <span className="text-xs font-medium" style={{ color: BRAND.gray500 }}>
+            <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
               {statusText}
             </span>
           </div>
         </div>
       </div>
 
-      <GeoFooter />
+      <GeoFooter theme={theme} />
     </div>
   );
 }
@@ -542,14 +600,14 @@ const MOCK_PERSONAS = [
   },
 ];
 
-function PersonaCard({ persona, index }: { persona: typeof MOCK_PERSONAS[0]; index: number }) {
+function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[0]; index: number; theme: Theme }) {
   return (
     <div
-      className="bg-white rounded-[10px] border border-gray-200 p-6 hover:border-[#A2A9B0] transition-all duration-300 cursor-pointer"
-      style={{ animationDelay: `${index * 0.1}s`, animation: "fade-in-up 0.5s ease-out forwards", opacity: 0 }}
+      className="rounded-[10px] p-6 transition-all duration-300 cursor-pointer"
+      style={{ animationDelay: `${index * 0.1}s`, animation: "fade-in-up 0.5s ease-out forwards", opacity: 0, background: theme.cardBg, border: `1px solid ${theme.border}` }}
     >
       <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: BRAND.gray100, color: BRAND.gray500 }}>
+        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
           Persona
         </span>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${persona.iconColor}15` }}>
@@ -560,27 +618,27 @@ function PersonaCard({ persona, index }: { persona: typeof MOCK_PERSONAS[0]; ind
         </div>
       </div>
 
-      <h3 className="text-xl font-bold mb-1" style={{ color: BRAND.black }}>
+      <h3 className="text-xl font-bold mb-1" style={{ color: theme.text }}>
         {persona.name} — {persona.title}
       </h3>
-      <p className="text-sm mb-4" style={{ color: BRAND.gray500 }}>
+      <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>
         {persona.desc}
       </p>
 
       {/* Match Score */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: BRAND.gray100 }}>
+        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: theme.barTrack }}>
           <div
             className="h-full rounded-full"
             style={{
               width: `${persona.match}%`,
-              background: persona.match >= 90 ? BRAND.teal : persona.match >= 85 ? BRAND.tealLight : BRAND.gray400,
+              background: persona.match >= 90 ? BRAND.teal : persona.match >= 85 ? BRAND.tealLight : theme.textMuted,
             }}
           />
         </div>
         <span
           className="text-sm font-bold"
-          style={{ color: persona.match >= 90 ? BRAND.teal : BRAND.gray600 }}
+          style={{ color: persona.match >= 90 ? BRAND.teal : theme.textSecondary }}
         >
           {persona.match}%
         </span>
@@ -588,15 +646,15 @@ function PersonaCard({ persona, index }: { persona: typeof MOCK_PERSONAS[0]; ind
 
       {/* Tags */}
       <div className="flex flex-wrap gap-2 mb-3">
-        <span className="text-xs px-2 py-1 rounded-full" style={{ background: "#F9F9F9", color: BRAND.tealDark }}>
+        <span className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: BRAND.tealDark }}>
           {persona.age}
         </span>
-        <span className="text-xs px-2 py-1 rounded-full" style={{ background: BRAND.gray100, color: BRAND.gray600 }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill={BRAND.gray500} stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+        <span className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill={theme.textSecondary} stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
           {persona.location}
         </span>
         {persona.tags.map((tag) => (
-          <span key={tag} className="text-xs px-2 py-1 rounded-full" style={{ background: BRAND.gray100, color: BRAND.gray600 }}>
+          <span key={tag} className="text-xs px-2 py-1 rounded-full" style={{ background: theme.badgeBg, color: theme.textSecondary }}>
             {tag}
           </span>
         ))}
@@ -605,28 +663,29 @@ function PersonaCard({ persona, index }: { persona: typeof MOCK_PERSONAS[0]; ind
   );
 }
 
-function Screen3({ onStartScan }: { onStartScan: () => void }) {
+function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
   return (
-    <div className="screen-enter min-h-screen flex flex-col" dir="ltr">
+    <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
       {/* Main Header */}
-      <header style={{ background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
+      <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <div style={{ justifySelf: "start", direction: "ltr" }}>
             <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill="#141414"><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
             </svg>
           </div>
           <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
+            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textSecondary }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
               <span>Connected</span>
             </div>
@@ -637,14 +696,14 @@ function Screen3({ onStartScan }: { onStartScan: () => void }) {
       <div
         className="py-8 px-4"
         style={{
-          background: "#F9F9F9",
+          background: theme.badgeBg,
         }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: BRAND.black }}>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.text }}>
             AI Presence Check
           </h1>
-          <p className="text-sm" style={{ color: BRAND.gray500 }}>
+          <p className="text-sm" style={{ color: theme.textSecondary }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -652,45 +711,45 @@ function Screen3({ onStartScan }: { onStartScan: () => void }) {
 
       {/* Step Indicator */}
       <div className="max-w-4xl mx-auto w-full px-4 mt-4">
-        <StepIndicator current={1} steps={["Details", "Audiences", "Scan"]} />
+        <StepIndicator current={1} steps={["Details", "Audiences", "Scan"]} theme={theme} />
       </div>
 
       {/* Sub-header */}
       <div className="max-w-4xl mx-auto w-full px-4 mt-2">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={BRAND.gray600} strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 00-3-3.87" />
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
-            <span className="font-semibold">Audience selection</span>
+            <span className="font-semibold" style={{ color: theme.text }}>Audience selection</span>
           </div>
-          <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: BRAND.gray500 }}>
-            <ArrowLeft size={14} color={BRAND.gray500} />
+          <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
+            <ArrowLeft size={14} color={theme.textSecondary} />
             Back
           </span>
         </div>
 
         {/* Info box */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-100">
+        <div className="rounded-xl p-4 mb-4" style={{ background: theme.hoverBg, border: `1px solid ${theme.border}` }}>
           <h4 className="font-semibold text-sm mb-1" style={{ color: BRAND.teal }}>
             Why it matters
           </h4>
-          <p className="text-xs" style={{ color: BRAND.gray500 }}>
+          <p className="text-xs" style={{ color: theme.textSecondary }}>
             Every audience searches differently. The scan checks how AI engines present your brand to different user types. Pick the ones relevant to you.
           </p>
         </div>
 
         {/* Counter */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xs" style={{ color: BRAND.gray400 }}>
+          <span className="text-xs" style={{ color: theme.textMuted }}>
             ~ 35 queries will be tested
           </span>
           <span
             className="text-sm font-semibold px-3 py-1 rounded-full"
-            style={{ background: "#F9F9F9", color: BRAND.tealDark }}
+            style={{ background: theme.badgeBg, color: BRAND.tealDark }}
           >
             5 / 5 selected
           </span>
@@ -701,7 +760,7 @@ function Screen3({ onStartScan }: { onStartScan: () => void }) {
       <div className="max-w-4xl mx-auto w-full px-4 flex-1 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {MOCK_PERSONAS.map((persona, i) => (
-            <PersonaCard key={persona.name} persona={persona} index={i} />
+            <PersonaCard key={persona.name} persona={persona} index={i} theme={theme} />
           ))}
         </div>
 
@@ -709,13 +768,14 @@ function Screen3({ onStartScan }: { onStartScan: () => void }) {
         <div className="mt-8 flex justify-center">
           <button
             onClick={onStartScan}
-            className="flex items-center gap-3 px-8 py-4 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: "#000",
+              background: darkMode ? "#E6EDF3" : "#000",
+              color: darkMode ? "#0D1117" : "#fff",
             }}
           >
             <span>Start scan</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={darkMode ? "#0D1117" : "white"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" />
             </svg>
@@ -723,7 +783,7 @@ function Screen3({ onStartScan }: { onStartScan: () => void }) {
         </div>
 
       </div>
-      <GeoFooter />
+      <GeoFooter theme={theme} />
     </div>
   );
 }
@@ -985,7 +1045,7 @@ function AIEngineCard({
   );
 }
 
-function Screen4({ brandName }: { brandName: string }) {
+function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: string; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
   const [phase, setPhase] = useState<ScanPhase>("queries");
   const [overallProgress, setOverallProgress] = useState(0);
   const [queryIndex, setQueryIndex] = useState(0);
@@ -1118,7 +1178,7 @@ function Screen4({ brandName }: { brandName: string }) {
 
       {/* Step Indicator */}
       <div className="max-w-3xl mx-auto w-full px-4 mt-4">
-        <StepIndicator current={2} steps={["Details", "Audiences", "Scan"]} />
+        <StepIndicator current={2} steps={["Details", "Audiences", "Scan"]} theme={theme} />
       </div>
 
       {/* Main Scan Area */}
@@ -1430,7 +1490,7 @@ function Screen4({ brandName }: { brandName: string }) {
         </div>
       </div>
 
-      <GeoFooter />
+      <GeoFooter theme={theme} />
     </div>
   );
 }
@@ -1442,6 +1502,12 @@ export default function Home() {
   const [screen, setScreen] = useState<1 | 2 | 3 | 4>(1);
   const [domain, setDomain] = useState("example.com");
   const [brandName, setBrandName] = useState("My brand");
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('geoscale-dark-mode') === 'true';
+    return false;
+  });
+  useEffect(() => { localStorage.setItem('geoscale-dark-mode', darkMode.toString()); }, [darkMode]);
+  const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
   const handleScreen1Submit = useCallback((d: string, b: string) => {
     setDomain(d);
@@ -1477,10 +1543,10 @@ export default function Home() {
         ))}
       </div>
 
-      {screen === 1 && <Screen1 onSubmit={handleScreen1Submit} />}
-      {screen === 2 && <Screen2 domain={domain} brandName={brandName} onComplete={handleScreen2Complete} />}
-      {screen === 3 && <Screen3 onStartScan={handleStartScan} />}
-      {screen === 4 && <Screen4 brandName={brandName} />}
+      {screen === 1 && <Screen1 onSubmit={handleScreen1Submit} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
+      {screen === 2 && <Screen2 domain={domain} brandName={brandName} onComplete={handleScreen2Complete} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
+      {screen === 3 && <Screen3 onStartScan={handleStartScan} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
+      {screen === 4 && <Screen4 brandName={brandName} theme={theme} />}
     </main>
   );
 }
