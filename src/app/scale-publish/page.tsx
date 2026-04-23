@@ -582,7 +582,20 @@ export default function BestLinksPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 15, fontWeight: 600 }}>{fmtCurrency(priceOverrides[pub.id] ?? pub.pricePerArticle)}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 2, justifyContent: "flex-end" }}>
+                        <span style={{ fontSize: 13, color: theme.textSecondary }}>$</span>
+                        <input
+                          type="number"
+                          value={priceOverrides[pub.id] ?? pub.pricePerArticle}
+                          onChange={e => setPriceOverrides(prev => ({ ...prev, [pub.id]: Number(e.target.value) }))}
+                          style={{
+                            width: 65, fontSize: 15, fontWeight: 600, color: theme.text,
+                            border: "none", borderBottom: `1px dashed ${theme.textMuted}`,
+                            background: "transparent", outline: "none", padding: "0 0 1px",
+                            textAlign: "right",
+                          }}
+                        />
+                      </div>
                       <div style={{ fontSize: 14, color: theme.textSecondary }}>~{pub.queries || 8} queries</div>
                     </div>
                     <button onClick={() => removeFromCart(pub.id)} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted, padding: 2 }}>
@@ -907,18 +920,35 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
         {pub.category}
       </span>
 
+      {/* Recommended badge */}
+      {pub.seoScore + pub.gioScore >= 170 && pub.gptPresent && pub.geminiPresent && (
+        <div style={{ marginBottom: 10, padding: "8px 10px", background: "#10A37F08", border: "1px solid #10A37F30", borderRadius: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#10A37F" }}>Recommended for All4Horses</span>
+          </div>
+          <p style={{ fontSize: 13, color: theme.textSecondary, margin: 0, lineHeight: 1.5 }}>
+            {pub.category === "Health" ? "Fits the therapeutic field - relevant audience for therapeutic riding and children's health"
+            : pub.category === "News" ? "Maximum exposure - leading news site with high AI engine presence"
+            : pub.category === "Lifestyle" ? "Fits the leisure and nature field - audience seeking outdoor activities"
+            : `High match - SEO score ${pub.seoScore} and GEO score ${pub.gioScore}, full presence in ChatGPT and Gemini`}
+          </p>
+        </div>
+      )}
+
       {/* Metrics row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <MetricBox label="SEO Score" value={pub.seoScore} color={scoreColor(pub.seoScore)} theme={theme} />
-        <MetricBox label="GIO Score" value={pub.gioScore} color={scoreColor(pub.gioScore)} theme={theme} />
+        <MetricBox label="SEO Score" value={pub.seoScore} color={scoreColor(pub.seoScore)} tooltip="SEO quality score based on DR, traffic, and indexing" theme={theme} />
+        <MetricBox label="GIO Score" value={pub.gioScore} color={scoreColor(pub.gioScore)} tooltip="AI engine presence score - GPT, Gemini" theme={theme} />
       </div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <StatItem label="DR" value={String(pub.dr)} theme={theme} />
-        <StatItem label="Monthly traffic" value={fmtNum(pub.traffic)} theme={theme} />
+        <StatItem label="DR" value={String(pub.dr)} tooltip="Domain Rating - domain authority score" theme={theme} />
+        <StatItem label="Monthly traffic" value={fmtNum(pub.traffic)} tooltip="Estimated monthly organic traffic" theme={theme} />
         <StatItem
           label="Google Index"
+          tooltip="Whether the site is indexed in Google"
           theme={theme}
           value={
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -938,17 +968,18 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
       {/* Footer: Price + CTA */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: `1px solid ${theme.border}` }}>
         <div>
-          <div style={{ fontSize: 14, color: theme.textSecondary }}>Price per article</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>$</span>
+          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 2 }}>Price per article</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 15, color: theme.textSecondary }}>$</span>
             <input
               type="number"
               value={getPrice(pub)}
               onChange={e => setPriceOverrides(prev => ({ ...prev, [pub.id]: Number(e.target.value) }))}
+              onClick={e => e.stopPropagation()}
               style={{
-                fontSize: 20, fontWeight: 700, color: theme.text, background: "transparent",
-                border: `1px solid ${theme.border}`, borderRadius: 6, padding: "2px 8px",
-                width: 90, outline: "none",
+                width: 80, fontSize: 20, fontWeight: 700, color: theme.text,
+                border: "none", borderBottom: `1px dashed ${theme.textMuted}`,
+                background: "transparent", outline: "none", padding: "0 0 2px",
               }}
             />
           </div>
@@ -986,22 +1017,27 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
   );
 }
 
-function MetricBox({ label, value, color, theme }: { label: string; value: number; color: string; theme: Theme }) {
+function MetricBox({ label, value, color, tooltip, theme }: { label: string; value: number; color: string; tooltip?: string; theme: Theme }) {
   return (
     <div style={{ background: theme.badgeBg, borderRadius: 8, padding: "10px 12px", border: `1px solid ${theme.border}` }}>
-      <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>{label} {tooltip && <Tooltip text={tooltip} />}</div>
       <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
     </div>
   );
 }
 
-function StatItem({ label, value, theme }: { label: string; value: React.ReactNode; theme: Theme }) {
+function StatItem({ label, value, tooltip, theme }: { label: string; value: React.ReactNode; tooltip?: string; theme: Theme }) {
   return (
     <div>
-      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 14, color: theme.textMuted, marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}>{label} {tooltip && <Tooltip text={tooltip} />}</div>
       <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{value}</div>
     </div>
   );
+}
+
+function AILogo({ engine, size = 16 }: { engine: string; size?: number }) {
+  const src = engine === "GPT" ? "/logos/chatgpt.svg" : engine === "Gemini" ? "/logos/gemini.svg" : "/logos/perplexity.svg";
+  return <img src={src} width={size} height={size} alt={engine} style={{ display: "inline-block" }} />;
 }
 
 function AiBadge({ engine, present }: { engine: string; present: boolean }) {
@@ -1009,7 +1045,7 @@ function AiBadge({ engine, present }: { engine: string; present: boolean }) {
     <span style={{
       display: "inline-flex",
       alignItems: "center",
-      gap: 4,
+      gap: 6,
       fontSize: 14,
       fontWeight: 500,
       padding: "4px 10px",
@@ -1018,7 +1054,8 @@ function AiBadge({ engine, present }: { engine: string; present: boolean }) {
       color: present ? "#10A37F" : "#DC2626",
       background: present ? "#10A37F08" : "#DC262608",
     }}>
-      {engine} {present ? "\u2713" : "\u2717"}
+      <AILogo engine={engine} size={14} />
+      {present ? "\u2713" : "\u2717"}
     </span>
   );
 }
