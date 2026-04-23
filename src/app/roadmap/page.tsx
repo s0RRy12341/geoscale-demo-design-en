@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // ============================================================
 // ROADMAP — Geoscale Feature Plan (English)
-// Criticality-based structure matching Hebrew version
-// 5 levels, 68 features, all not_started
+// Modern project-management dashboard layout
+// 5 levels, 90 features (78 original + 12 Alexei new requirements)
 // ============================================================
 
 // ── Theme types ──
@@ -25,6 +25,13 @@ type Theme = {
   barTrack: string;
   logoFill: string;
   logoStroke: string;
+  badgeGrayBg: string;
+  badgeGrayText: string;
+  badgeTealBg: string;
+  badgeTealText: string;
+  badgeGreenBg: string;
+  badgeGreenText: string;
+  subtleBg: string;
 };
 
 const LIGHT_THEME: Theme = {
@@ -37,12 +44,19 @@ const LIGHT_THEME: Theme = {
   headerBg: "rgba(255,255,255,0.96)",
   hoverBg: "#FAFAFA",
   tableBg: "#FFFFFF",
-  tableHeaderBg: "#FAFAFA",
+  tableHeaderBg: "#F7F8F9",
   badgeBg: "#F9F9F9",
   inputBg: "#FFFFFF",
   barTrack: "#E5E5E5",
   logoFill: "#141414",
   logoStroke: "#ABABAB",
+  badgeGrayBg: "#F0F0F0",
+  badgeGrayText: "#727272",
+  badgeTealBg: "#E6F9F1",
+  badgeTealText: "#0D8F6F",
+  badgeGreenBg: "#DCFCE7",
+  badgeGreenText: "#15803D",
+  subtleBg: "#F9FAFB",
 };
 
 const DARK_THEME: Theme = {
@@ -61,6 +75,13 @@ const DARK_THEME: Theme = {
   barTrack: "#30363D",
   logoFill: "#E6EDF3",
   logoStroke: "#484F58",
+  badgeGrayBg: "#2D333B",
+  badgeGrayText: "#8B949E",
+  badgeTealBg: "#0D8F6F22",
+  badgeTealText: "#3FB68B",
+  badgeGreenBg: "#15803D22",
+  badgeGreenText: "#4ADE80",
+  subtleBg: "#161B22",
 };
 
 // ── Dark Mode Toggle ──
@@ -112,6 +133,14 @@ function IconChevronDown({ size = 14, rotated = false }: { size?: number; rotate
       style={{ transition: "transform 200ms", transform: rotated ? "rotate(180deg)" : "rotate(0deg)" }}
     >
       <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+function IconCheck({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
     </svg>
   );
 }
@@ -194,6 +223,11 @@ const phases: Phase[] = [
       { name: "SEO-GEO Correlation Table", description: "Table linking traditional keywords to AI queries: keyword, search volume, difficulty, related queries with SEO/GEO toggle", ref: "Demo: /scan -> 'SEO-GEO Correlations' tab | Production: does not exist", priority: "P0", status: "not_started" },
       { name: "Brand Logo Instead of Percentage Circle", description: "In scans/dashboard screens - replace the percentage circle next to brand name with the brand's logo (favicon/logo from domain)", ref: "Production: scale.geoscale.ai -> dashboard + scan list - the percentage circle next to brand name", priority: "P0", status: "not_started" },
       { name: "Tooltips on Every Metric", description: "Info icon (i) next to every number and metric with a popup explaining what the metric means and how it's calculated", ref: "Demo: /scan -> every metric card has (i) with hover | Production: no tooltips at all", priority: "P0", status: "not_started" },
+      // Alexei NEW requirements - Level 1
+      { name: "Mobile Responsiveness", description: "All pages must be fully mobile-responsive (logo, menu, layout, tables)", ref: "All pages: dashboard, scan, scale-publish, editor, roadmap", priority: "P0", status: "not_started" },
+      { name: "Design Tokens System", description: "Single design tokens file for colors, typography, spacing across all pages", ref: "New system-wide file: tokens.ts or CSS variables", priority: "P0", status: "not_started" },
+      { name: "Plan Builder Demo Flow", description: "End-to-end flow: scope selection -> publisher picking -> SEO/GEO per article -> quote with publisher logos", ref: "New full flow spanning scan + scale-publish + quote pages", priority: "P0", status: "not_started" },
+      { name: "Brand/Non-Brand Mention Split", description: "Reputation Risk must separate branded vs non-branded query mention rates", ref: "Scan page -> Reputation Risk section: split by brand vs non-brand queries", priority: "P0", status: "not_started" },
     ],
   },
   {
@@ -224,6 +258,11 @@ const phases: Phase[] = [
       { name: "Quote - Combined Package", description: "Combined SEO+GEO package with 15% discount, visual comparison to separate options", ref: "New - not in demo or production", priority: "P1", status: "not_started" },
       { name: "Expand to 10 Personas Per Brand", description: "Expand persona system from 5 to 10 personas with unique queries for each", ref: "Production: /scan -> 'Audiences' tab -> currently 5 personas | Demo: 5 personas", priority: "P1", status: "not_started" },
       { name: "Per-Site Queries in ScalePublish Cart", description: "In cart: for each selected site, display relevant queries that content should target", ref: "Demo: /scale-publish -> cart with sites | Production: no ScalePublish", priority: "P1", status: "not_started" },
+      // Alexei NEW requirements - Level 2
+      { name: "Content Creation -> Ordering Flow", description: "Content creation ties to article ordering, 'own site vs external' choice", ref: "New flow: scan -> content tab -> order article -> choose own site or publisher", priority: "P1", status: "not_started" },
+      { name: "Keywords Historical Data", description: "DB schema for daily/weekly snapshots, date filter, avoid re-fetching via API", ref: "New DB table: keyword_snapshots with brand_id, keyword, position, date", priority: "P1", status: "not_started" },
+      { name: "Competitors Page Redesign", description: "Match SimilarWeb/Semrush competitor UI with SEO+GEO separation", ref: "Redesign /scan -> competitors section with tabbed SEO vs GEO view", priority: "P1", status: "not_started" },
+      { name: "Overview Insights Reorder", description: "Data tables at top, content/writing insights at bottom (like GA4)", ref: "Scan page -> Overview tab: reorder sections", priority: "P1", status: "not_started" },
     ],
   },
   {
@@ -255,6 +294,11 @@ const phases: Phase[] = [
       { name: "Share Report with Client - White Label", description: "Read-only client view with agency logo and custom branding", ref: "New - requires theming + branding settings", priority: "P1", status: "not_started" },
       { name: "Email Alerts on Changes", description: "Automatic email when mentions drop, new competitor appears, or negative mention detected", ref: "New - requires email service (SendGrid/Resend) + trigger logic", priority: "P1", status: "not_started" },
       { name: "SMS Alerts on Changes", description: "Automatic SMS for critical changes (sharp decline, negative mention)", ref: "New - requires SMS service (Twilio) + trigger logic", priority: "P1", status: "not_started" },
+      // Alexei NEW requirements - Level 3
+      { name: "Marketplace Content Types", description: "SEO only / GEO only / SEO+GEO selection per publisher", ref: "ScalePublish -> publisher cards: add content type selector", priority: "P1", status: "not_started" },
+      { name: "Publisher Discount Pricing", description: "Add sale/discount price option to publisher cards", ref: "ScalePublish -> publisher cards: show original + discounted price", priority: "P1", status: "not_started" },
+      { name: "Products & Services Images", description: "Pull images from brand websites, add to product cards", ref: "Scan -> Products tab: scrape og:image / product images from brand site", priority: "P1", status: "not_started" },
+      { name: "Tooltip System", description: "Every data point gets (i) icon with explanation tooltip, mobile-friendly tap targets", ref: "System-wide: reusable Tooltip component with mobile touch support", priority: "P1", status: "not_started" },
     ],
   },
   {
@@ -291,166 +335,254 @@ const phases: Phase[] = [
   },
 ];
 
-const priorityConfig: Record<Priority, { label: string; color: string; bg: string }> = {
-  P0: { label: "P0 - Critical", color: "#FFFFFF", bg: "rgba(16,163,127,1.0)" },
-  P1: { label: "P1 - Important", color: "#FFFFFF", bg: "rgba(16,163,127,0.75)" },
-  P2: { label: "P2 - Normal", color: "#FFFFFF", bg: "rgba(16,163,127,0.5)" },
-};
-
-const statusConfig: Record<Status, { label: string; color: string }> = {
-  not_started: { label: "Not started", color: "#727272" },
-  in_progress: { label: "In progress", color: "#10A37F" },
-  done: { label: "Done", color: "#10A37F" },
-};
-
-// ── Components ──
-
-function StatusDot({ status }: { status: Status }) {
-  const cfg = statusConfig[status];
+// ── Status Badge Component ──
+function StatusBadge({ status, theme }: { status: Status; theme: Theme }) {
+  if (status === "done") {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        fontSize: 13, fontWeight: 500, color: theme.badgeGreenText,
+        background: theme.badgeGreenBg, padding: "3px 10px", borderRadius: 20,
+        whiteSpace: "nowrap",
+      }}>
+        <IconCheck size={11} /> Done
+      </span>
+    );
+  }
+  if (status === "in_progress") {
+    return (
+      <span style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        fontSize: 13, fontWeight: 500, color: theme.badgeTealText,
+        background: theme.badgeTealBg, padding: "3px 10px", borderRadius: 20,
+        whiteSpace: "nowrap",
+      }}>
+        <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F", display: "inline-block" }} />
+        In Progress
+      </span>
+    );
+  }
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ width: 8, height: 8, borderRadius: 4, background: cfg.color, display: "inline-block", flexShrink: 0 }} />
-      <span style={{ fontSize: 14, color: cfg.color, fontWeight: 500 }}>{cfg.label}</span>
-    </div>
-  );
-}
-
-function PriorityBadge({ priority }: { priority: Priority }) {
-  const cfg = priorityConfig[priority];
-  return (
-    <span style={{ fontSize: 13, fontWeight: 600, color: cfg.color, background: cfg.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
-      {cfg.label}
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 5,
+      fontSize: 13, fontWeight: 500, color: theme.badgeGrayText,
+      background: theme.badgeGrayBg, padding: "3px 10px", borderRadius: 20,
+      whiteSpace: "nowrap",
+    }}>
+      Not started
     </span>
   );
 }
 
-function PhaseCard({ phase, theme }: { phase: Phase; theme: Theme }) {
-  const [expanded, setExpanded] = useState(phase.id === 1);
-  const featureCount = phase.features.length;
-  const inProgressCount = phase.features.filter(f => f.status === "in_progress").length;
+// ── Priority label ──
+function PriorityLabel({ priority, theme }: { priority: Priority; theme: Theme }) {
+  const labels: Record<Priority, string> = { P0: "Critical", P1: "High", P2: "Normal" };
+  const colors: Record<Priority, string> = { P0: "#10A37F", P1: "#10A37F", P2: theme.textSecondary };
+  return (
+    <span style={{ fontSize: 13, fontWeight: 500, color: colors[priority] }}>
+      {labels[priority]}
+    </span>
+  );
+}
+
+// ── Stat Card ──
+function StatCard({ label, value, subtext, theme, accent }: { label: string; value: string | number; subtext?: string; theme: Theme; accent?: boolean }) {
+  return (
+    <div style={{
+      border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg,
+      padding: "16px 20px", display: "flex", flexDirection: "column", gap: 4, minWidth: 0,
+    }}>
+      <span style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 26, fontWeight: 700, color: accent ? "#10A37F" : theme.text, lineHeight: 1.2 }}>{value}</span>
+      {subtext && <span style={{ fontSize: 13, color: theme.textMuted }}>{subtext}</span>}
+    </div>
+  );
+}
+
+// ── Progress Bar ──
+function ProgressBar({ pct, theme, height = 6 }: { pct: number; theme: Theme; height?: number }) {
+  return (
+    <div style={{ width: "100%", height, borderRadius: height / 2, background: theme.barTrack, overflow: "hidden" }}>
+      <div style={{ width: `${pct}%`, height: "100%", borderRadius: height / 2, background: "#10A37F", transition: "width 400ms ease" }} />
+    </div>
+  );
+}
+
+// ── Level Section ──
+function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: Theme; defaultExpanded: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const total = phase.features.length;
   const doneCount = phase.features.filter(f => f.status === "done").length;
-  const progressPct = featureCount > 0 ? Math.round(((doneCount + inProgressCount * 0.5) / featureCount) * 100) : 0;
+  const inProgressCount = phase.features.filter(f => f.status === "in_progress").length;
+  const pct = total > 0 ? Math.round(((doneCount + inProgressCount * 0.5) / total) * 100) : 0;
+
+  // Truncate description
+  const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max) + "..." : s;
 
   return (
     <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, overflow: "hidden" }}>
-      {/* Phase Header */}
+      {/* Section header */}
       <button
         onClick={() => setExpanded(!expanded)}
         style={{
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: "auto 1fr auto auto",
-          alignItems: "center",
-          gap: 16,
-          padding: "18px 24px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          direction: "ltr",
+          width: "100%", display: "flex", alignItems: "center", gap: 16,
+          padding: "16px 20px", background: "none", border: "none", cursor: "pointer",
           textAlign: "left",
         }}
       >
-        {/* Phase indicator */}
-        <div style={{ width: 6, height: 40, borderRadius: 3, background: phase.color, flexShrink: 0 }} />
+        {/* Color bar */}
+        <div style={{ width: 4, height: 36, borderRadius: 2, background: phase.color, flexShrink: 0 }} />
 
-        {/* Title block */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.title}</span>
+        {/* Title + progress */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>
+              Level {phase.id}
+            </span>
+            <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>
+              {phase.title}
+            </span>
           </div>
-          {/* Progress bar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 2 }}>
-            <div style={{ width: 120, height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden" }}>
-              <div style={{ width: `${progressPct}%`, height: "100%", borderRadius: 2, background: phase.color, transition: "width 300ms" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ flex: 1, maxWidth: 200 }}>
+              <ProgressBar pct={pct} theme={theme} height={4} />
             </div>
-            <span style={{ fontSize: 13, color: theme.textSecondary }}>{progressPct}%</span>
+            <span style={{ fontSize: 13, color: theme.textSecondary, whiteSpace: "nowrap" }}>{pct}% complete</span>
           </div>
         </div>
 
-        {/* Feature count */}
-        <span style={{ fontSize: 14, color: theme.textSecondary }}>{featureCount} features</span>
+        {/* Counts */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+          <span style={{ fontSize: 14, color: theme.textSecondary }}>
+            {total} feature{total !== 1 ? "s" : ""}
+          </span>
+          {doneCount > 0 && (
+            <span style={{ fontSize: 13, color: theme.badgeGreenText, fontWeight: 500 }}>{doneCount} done</span>
+          )}
+          {inProgressCount > 0 && (
+            <span style={{ fontSize: 13, color: "#10A37F", fontWeight: 500 }}>{inProgressCount} in progress</span>
+          )}
+        </div>
 
         {/* Chevron */}
-        <div style={{ color: theme.textMuted }}>
+        <div style={{ color: theme.textMuted, flexShrink: 0 }}>
           <IconChevronDown size={16} rotated={expanded} />
         </div>
       </button>
 
-      {/* Expanded content */}
+      {/* Feature table */}
       {expanded && (
-        <div style={{ borderTop: `1px solid ${theme.border}` }}>
+        <div style={{ borderTop: `1px solid ${theme.border}`, overflowX: "auto" }}>
           {/* Table header */}
           <div
+            className="roadmap-table-header"
             style={{
               display: "grid",
-              gridTemplateColumns: "2fr 2.5fr 2.5fr 0.8fr 0.8fr",
-              gap: 12,
-              padding: "10px 24px 10px 24px",
-              background: theme.tableHeaderBg,
-              direction: "ltr",
+              gridTemplateColumns: "minmax(180px, 2fr) minmax(200px, 3fr) minmax(80px, 0.7fr) minmax(90px, 0.8fr) minmax(160px, 2fr)",
+              gap: 8, padding: "8px 20px", background: theme.tableHeaderBg,
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Feature</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Description</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Where / What to Implement</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Priority</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase" }}>Status</span>
+            {["Feature", "Description", "Priority", "Status", "Implementation"].map(h => (
+              <span key={h} style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                {h}
+              </span>
+            ))}
           </div>
 
-          {/* Feature rows */}
-          {phase.features.map((feature, i) => (
+          {/* Rows */}
+          {phase.features.map((f, i) => (
             <div
               key={i}
+              className="roadmap-table-row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "2fr 2.5fr 2.5fr 0.8fr 0.8fr",
-                gap: 12,
-                padding: "14px 24px",
-                direction: "ltr",
+                gridTemplateColumns: "minmax(180px, 2fr) minmax(200px, 3fr) minmax(80px, 0.7fr) minmax(90px, 0.8fr) minmax(160px, 2fr)",
+                gap: 8, padding: "10px 20px",
                 borderTop: i > 0 ? `1px solid ${theme.border}` : "none",
-                transition: "background 150ms",
+                transition: "background 120ms",
+                alignItems: "center",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = theme.hoverBg)}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{feature.name}</span>
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.5 }}>{feature.description}</span>
-              <span style={{ fontSize: 13, color: "#10A37F", lineHeight: 1.5, fontFamily: "monospace", background: "#10A37F08", padding: "2px 6px", borderRadius: 4 }}>{feature.ref}</span>
-              <PriorityBadge priority={feature.priority} />
-              <StatusDot status={feature.status} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: theme.text, lineHeight: 1.4 }}>{f.name}</span>
+              <span style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5 }}>{truncate(f.description, 120)}</span>
+              <PriorityLabel priority={f.priority} theme={theme} />
+              <StatusBadge status={f.status} theme={theme} />
+              <span style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.4, fontFamily: "'SF Mono', 'Cascadia Code', 'Consolas', monospace" }}>{truncate(f.ref, 80)}</span>
             </div>
           ))}
-
-          {/* Phase total */}
-          <div style={{ display: "flex", justifyContent: "flex-start", padding: "12px 24px", background: theme.tableHeaderBg, borderTop: `1px solid ${theme.border}`, direction: "ltr" }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>Level {phase.id}: {phase.features.length} features</span>
-          </div>
         </div>
       )}
     </div>
   );
 }
 
+
 // ── Main Page ──
 export default function RoadmapPage() {
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('geoscale-dark-mode') === 'true';
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('geoscale-dark-mode', darkMode.toString());
-  }, [darkMode]);
+    const saved = localStorage.getItem("geoscale-dark-mode");
+    if (saved === "true") setDarkMode(true);
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("geoscale-dark-mode", darkMode.toString());
+    }
+  }, [darkMode, isHydrated]);
 
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
+  // Compute global stats
+  const stats = useMemo(() => {
+    const allFeatures = phases.flatMap(p => p.features);
+    const total = allFeatures.length;
+    const done = allFeatures.filter(f => f.status === "done").length;
+    const inProgress = allFeatures.filter(f => f.status === "in_progress").length;
+    const notStarted = allFeatures.filter(f => f.status === "not_started").length;
+    const pct = total > 0 ? Math.round(((done + inProgress * 0.5) / total) * 100) : 0;
+    return { total, done, inProgress, notStarted, pct };
+  }, []);
+
+  // Avoid hydration mismatch
+  if (!isHydrated) {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
+
   return (
-    <div style={{ background: theme.bg, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: theme.bg, minHeight: "100vh", display: "flex", flexDirection: "column", color: theme.text }}>
+      {/* -- Responsive CSS -- */}
+      <style>{`
+        @media (max-width: 768px) {
+          .roadmap-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .roadmap-header-inner { grid-template-columns: 1fr !important; gap: 8px !important; height: auto !important; padding: 8px 16px !important; }
+          .roadmap-header-nav { display: none !important; }
+          .roadmap-header-logo { display: none !important; }
+          .roadmap-table-header, .roadmap-table-row {
+            grid-template-columns: 1fr !important;
+            gap: 4px !important;
+          }
+          .roadmap-table-header { display: none !important; }
+          .roadmap-table-row {
+            display: flex !important; flex-direction: column !important;
+            gap: 6px !important; padding: 12px 16px !important;
+          }
+          .roadmap-footer-inner { flex-direction: column !important; gap: 12px !important; text-align: center !important; }
+          .roadmap-footer-links { flex-wrap: wrap !important; justify-content: center !important; }
+        }
+        @media (max-width: 480px) {
+          .roadmap-stats-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+
       {/* Header */}
-      <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+      <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}`, backdropFilter: "blur(12px)" }}>
+        <div className="roadmap-header-inner" style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
             <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: darkMode ? "1px solid #E6EDF3" : "1px solid #000", textDecoration: "none" }}>New Scan</a>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
@@ -459,14 +591,14 @@ export default function RoadmapPage() {
             </div>
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <nav className="roadmap-header-nav" style={{ display: "flex", alignItems: "center", gap: 32 }}>
             <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
             <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
             <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
             <a href="/editor" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
             <a href="/roadmap" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Roadmap</a>
           </nav>
-          <div style={{ justifySelf: "end" }}>
+          <div className="roadmap-header-logo" style={{ justifySelf: "end" }}>
             <GeoscaleLogo theme={theme} />
           </div>
         </div>
@@ -474,118 +606,107 @@ export default function RoadmapPage() {
 
       {/* Content */}
       <main style={{ flex: 1, maxWidth: 1300, margin: "0 auto", padding: "32px 24px 48px", width: "100%" }} dir="ltr">
-        {/* Title Section */}
-        <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: theme.text, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>
-            Roadmap <span style={{ fontWeight: 400, color: theme.textSecondary }}>-</span> Geoscale Feature Plan
+        {/* Title */}
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: theme.text, marginBottom: 6, fontFamily: "'Inter', sans-serif" }}>
+            Feature Roadmap
           </h1>
-          <p style={{ fontSize: 15, color: theme.textSecondary }}>
-            Features sorted by criticality level - what&apos;s missing in production vs. the demo and what clients need
+          <p style={{ fontSize: 14, color: theme.textSecondary, margin: 0 }}>
+            Tracking all features by priority level. What&apos;s missing in production vs. the demo and what clients need.
           </p>
         </div>
 
-        {/* Summary Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 32 }}>
-          {[
-            { label: "Features", value: "68", accent: false },
-            { label: "Criticality Levels", value: "5", accent: false },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              style={{
-                border: `1px solid ${theme.border}`,
-                borderRadius: 10,
-                background: theme.cardBg,
-                padding: "20px 24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-              }}
-            >
-              <span style={{ fontSize: 14, color: theme.textSecondary, fontWeight: 500 }}>{stat.label}</span>
-              <span style={{ fontSize: 24, fontWeight: 700, color: stat.accent ? "#10A37F" : theme.text }}>{stat.value}</span>
-            </div>
-          ))}
+        {/* Summary Stats Row */}
+        <div className="roadmap-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 28 }}>
+          <StatCard label="Total Features" value={stats.total} theme={theme} />
+          <StatCard label="Completion" value={`${stats.pct}%`} theme={theme} accent />
+          <StatCard label="Done" value={stats.done} subtext={`of ${stats.total}`} theme={theme} />
+          <StatCard label="In Progress" value={stats.inProgress} subtext={`of ${stats.total}`} theme={theme} />
+          <StatCard label="Not Started" value={stats.notStarted} subtext={`of ${stats.total}`} theme={theme} />
         </div>
 
-        {/* Phase Cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
+        {/* Overall progress bar */}
+        <div style={{ marginBottom: 32, padding: "0 2px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: theme.textSecondary }}>Overall Progress</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#10A37F" }}>{stats.pct}%</span>
+          </div>
+          <ProgressBar pct={stats.pct} theme={theme} height={8} />
+        </div>
+
+        {/* Level Sections */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
           {phases.map(phase => (
-            <PhaseCard key={phase.id} phase={phase} theme={theme} />
+            <LevelSection key={phase.id} phase={phase} theme={theme} defaultExpanded={phase.id === 1} />
           ))}
         </div>
 
         {/* Multi-Query SEO Prompt - Copy Section */}
-        <div style={{ border: "2px solid #10A37F", borderRadius: 10, background: darkMode ? "#101C18" : "#F0FFF8", padding: 24, direction: "ltr", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-            <span style={{ fontSize: 20 }}>&#x1F4CB;</span>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt - Copy to Production</h3>
+        <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.subtleBg, padding: 24, direction: "ltr", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 6, background: "#10A37F18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt</h3>
           </div>
           <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
-            This is the prompt that needs to be added to Geoscale&apos;s content writing engine. The idea: every article the system generates doesn&apos;t target just one query - but one primary query + 5-10 sub-queries. Each H2 answers a separate query that people search for, and the FAQ captures additional long-tail. This way one URL captures traffic from 8-15 different queries.
+            This prompt needs to be added to Geoscale&apos;s content writing engine. Every article targets one primary query + 5-10 sub-queries. Each H2 answers a separate search intent, and the FAQ captures additional long-tail queries. One URL captures traffic from 8-15 different queries.
           </p>
-          <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 16, lineHeight: 1.6 }}>
-            <strong>Live example:</strong> See how adsgpt.io builds their articles - <span style={{ color: "#10A37F" }}>adsgpt.io/blog/social-media-marketing-strategy</span> - each section answers an independent query, and the full article ranks for dozens of related queries.
+          <p style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 14, lineHeight: 1.6 }}>
+            <strong>Live example:</strong> See how adsgpt.io structures their articles -- <span style={{ color: "#10A37F" }}>adsgpt.io/blog/social-media-marketing-strategy</span>
           </p>
-          <div style={{ background: "#1a1a2e", borderRadius: 8, padding: 20, overflow: "auto", maxHeight: 500 }}>
-            <pre style={{ fontSize: 13, color: "#e0e0e0", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", fontFamily: "'Courier New', monospace", direction: "ltr", textAlign: "left" }}>
-              {multiQueryPrompt}
-            </pre>
-          </div>
-          <p style={{ fontSize: 13, color: theme.textSecondary, marginTop: 12 }}>
-            * Copy this prompt and add it to the content writing engine&apos;s system prompt, after the basic settings (article length, writing style) and before the format instructions.
-          </p>
+          <details style={{ cursor: "pointer" }}>
+            <summary style={{ fontSize: 14, fontWeight: 600, color: "#10A37F", marginBottom: 10, userSelect: "none" }}>
+              Show full prompt
+            </summary>
+            <div style={{ background: darkMode ? "#0D1117" : "#1a1a2e", borderRadius: 8, padding: 20, overflow: "auto", maxHeight: 400 }}>
+              <pre style={{ fontSize: 13, color: "#e0e0e0", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", fontFamily: "'Courier New', monospace", direction: "ltr", textAlign: "left" }}>
+                {multiQueryPrompt}
+              </pre>
+            </div>
+          </details>
         </div>
 
-        {/* Bottom Summary */}
+        {/* Dependencies & Risks */}
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, padding: 24, direction: "ltr" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, marginBottom: 16 }}>Dependencies & Risks</h3>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Multi-Query prompt requires Alexei&apos;s approval before integration into production system</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#DC2626", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>All visual features (charts, tooltips, alerts) are ready in the demo - only need migration to production</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Access to DataForSEO/Ahrefs API for publisher ranking system and SEO dashboard</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Publishers Portal requires separate UX spec + legal terms</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block", marginTop: 5, flexShrink: 0 }} />
-              <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>Expanding AI engines (Perplexity, Claude, Bing) depends on API access and pricing</span>
-            </div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, marginBottom: 14 }}>Dependencies & Risks</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { text: "Multi-Query prompt requires Alexei's approval before integration into production system", critical: true },
+              { text: "All visual features (charts, tooltips, alerts) are ready in the demo - only need migration to production", critical: true },
+              { text: "Access to DataForSEO/Ahrefs API for publisher ranking system and SEO dashboard", critical: false },
+              { text: "Publishers Portal requires separate UX spec + legal terms", critical: false },
+              { text: "Expanding AI engines (Perplexity, Claude, Bing) depends on API access and pricing", critical: false },
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <span style={{ width: 6, height: 6, borderRadius: 3, background: item.critical ? "#DC2626" : "#10A37F", display: "inline-block", marginTop: 6, flexShrink: 0 }} />
+                <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>{item.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </main>
 
       {/* Footer */}
       <footer style={{ borderTop: `1px solid ${theme.border}` }}>
-        <div className="max-w-[1300px] mx-auto px-6 py-5 flex items-center justify-between" dir="ltr">
-          <div className="flex items-center gap-3">
-            <GeoscaleLogoMark size={28} theme={theme} />
-            <span className="text-sm" style={{ color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
+        <div className="roadmap-footer-inner" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }} dir="ltr">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <GeoscaleLogoMark size={24} theme={theme} />
+            <span style={{ fontSize: 13, color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
           </div>
-          <div className="flex items-center gap-3">
-            {[
-              { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
-              { label: "Report a bug", color: "#10A37F", bg: "#10A37F15" },
-              { label: "Improvement ideas", color: "#10A37F", bg: "#10A37F15" },
-              { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
-            ].map((link, i) => (
-              <span key={i} className="text-xs font-medium px-3 py-1.5 cursor-pointer transition-opacity hover:opacity-70" style={{ color: link.color, background: link.bg, borderRadius: 20 }}>
-                {link.label}
+          <div className="roadmap-footer-links" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {["Feedback", "Report a bug", "Improvement ideas", "API usage"].map((label, i) => (
+              <span key={i} style={{ fontSize: 12, fontWeight: 500, color: "#10A37F", background: "#10A37F12", padding: "4px 12px", borderRadius: 20, cursor: "pointer" }}>
+                {label}
               </span>
             ))}
           </div>
-          <span className="text-xs" style={{ color: theme.textMuted }}>GeoScale 2026 &copy;</span>
+          <span style={{ fontSize: 12, color: theme.textMuted }}>GeoScale 2026 &copy;</span>
         </div>
       </footer>
     </div>

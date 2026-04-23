@@ -335,6 +335,19 @@ export default function BestLinksPage() {
   }, [darkMode]);
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<TabKey>("marketplace");
   const [cart, setCart] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -414,40 +427,107 @@ export default function BestLinksPage() {
     <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
       {/* ── Header ── */}
       <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          {/* LEFT in LTR = Logo */}
-          <div style={{ justifySelf: "start" }}>
-            <GeoscaleLogo width={150} theme={theme} />
-          </div>
-          {/* CENTER = Nav */}
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
-          </nav>
-          {/* RIGHT in LTR = Actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
+        <div style={{
+          maxWidth: 1300,
+          margin: "0 auto",
+          padding: isMobile ? "0 16px" : "0 24px",
+          height: isMobile ? 60 : 72,
+          display: isMobile ? "flex" : "grid",
+          gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr",
+          alignItems: "center",
+          justifyContent: isMobile ? "space-between" : undefined,
+        }}>
+          {isMobile ? (
+            <>
+              {/* Hamburger */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Toggle menu"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 6, color: theme.text }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  {menuOpen ? (
+                    <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>
+                  ) : (
+                    <><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>
+                  )}
+                </svg>
+              </button>
+              {/* Center logo */}
+              <GeoscaleLogo width={120} theme={theme} />
+              {/* Dark mode toggle */}
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+            </>
+          ) : (
+            <>
+              {/* LEFT in LTR = Logo */}
+              <div style={{ justifySelf: "start" }}>
+                <GeoscaleLogo width={150} theme={theme} />
+              </div>
+              {/* CENTER = Nav */}
+              <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+                <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
+                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+              </nav>
+              {/* RIGHT in LTR = Actions */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+                <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+                <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                  <span>Connected</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        {/* Mobile dropdown menu */}
+        {isMobile && menuOpen && (
+          <div style={{
+            background: theme.cardBg,
+            borderBottom: `1px solid ${theme.border}`,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}>
+            <a href="/" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
+            <a href="/scan" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
+            <a href="/scale-publish" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
+            <a href="/roadmap" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Roadmap</a>
+            <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 12, marginTop: 4, display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary, justifyContent: "center" }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                <span>Connected</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* ── Sub-tabs ── */}
       <div style={{ borderBottom: `1px solid ${theme.border}`, background: theme.bg }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", gap: 0 }}>
+        <div style={{
+          maxWidth: 1300,
+          margin: "0 auto",
+          padding: isMobile ? "0 12px" : "0 24px",
+          display: "flex",
+          alignItems: "center",
+          gap: 0,
+          overflowX: isMobile ? "auto" : undefined,
+          whiteSpace: isMobile ? "nowrap" : undefined,
+          WebkitOverflowScrolling: "touch" as never,
+        }}>
           {TABS.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               style={{
-                padding: "14px 24px",
-                fontSize: 15,
+                padding: isMobile ? "10px 14px" : "14px 24px",
+                fontSize: isMobile ? 14 : 15,
                 fontWeight: activeTab === tab.key ? 600 : 400,
                 color: activeTab === tab.key ? theme.text : theme.textSecondary,
                 background: "none",
@@ -455,9 +535,10 @@ export default function BestLinksPage() {
                 borderBottom: activeTab === tab.key ? `2px solid ${theme.text}` : "2px solid transparent",
                 cursor: "pointer",
                 transition: "all 0.2s",
+                flexShrink: 0,
               }}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{tab.label} <Tooltip text={tab.tooltip} /></span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{tab.label} {!isMobile && <Tooltip text={tab.tooltip} />}</span>
               {tab.key === "rejected" && rejectedPublishers.length > 0 && (
                 <span style={{ marginLeft: 6, background: "#DC262615", color: "#DC2626", fontSize: 14, fontWeight: 600, padding: "2px 8px", borderRadius: 20 }}>{rejectedPublishers.length}</span>
               )}
@@ -467,7 +548,7 @@ export default function BestLinksPage() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "32px 24px 80px" }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 60px" : "32px 24px 80px" }}>
         {activeTab === "marketplace" && (
           <MarketplaceTab
             publishers={filteredPublishers}
@@ -486,6 +567,8 @@ export default function BestLinksPage() {
             setPriceOverrides={setPriceOverrides}
             theme={theme}
             darkMode={darkMode}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
         )}
         {activeTab === "planner" && (
@@ -504,10 +587,12 @@ export default function BestLinksPage() {
             goToMarketplace={() => setActiveTab("marketplace")}
             theme={theme}
             darkMode={darkMode}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
         )}
-        {activeTab === "publishers" && <PublishersTab theme={theme} darkMode={darkMode} />}
-        {activeTab === "rejected" && <RejectedTab publishers={rejectedPublishers} pendingCount={pendingPublishers.length} theme={theme} darkMode={darkMode} />}
+        {activeTab === "publishers" && <PublishersTab theme={theme} darkMode={darkMode} isMobile={isMobile} isTablet={isTablet} />}
+        {activeTab === "rejected" && <RejectedTab publishers={rejectedPublishers} pendingCount={pendingPublishers.length} theme={theme} darkMode={darkMode} isMobile={isMobile} isTablet={isTablet} />}
       </div>
 
       {/* ── Cart Sidebar ── */}
@@ -545,16 +630,17 @@ export default function BestLinksPage() {
               position: "fixed",
               top: 0,
               right: 0,
-              width: 360,
+              width: isMobile ? "100%" : 360,
               height: "100vh",
               background: theme.cardBg,
-              borderLeft: `1px solid ${theme.border}`,
+              borderLeft: isMobile ? "none" : `1px solid ${theme.border}`,
               zIndex: 200,
               transform: cartOpen ? "translateX(0)" : "translateX(100%)",
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               display: "flex",
               flexDirection: "column",
               color: theme.text,
+              overflowX: "hidden",
             }}
           >
             <div style={{ padding: "20px 24px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -663,24 +749,34 @@ export default function BestLinksPage() {
 
       {/* ── Footer ── */}
       <footer style={{ borderTop: `1px solid ${theme.border}` }}>
-        <div className="max-w-[1300px] mx-auto px-6 py-5 flex items-center justify-between" dir="ltr">
-          <div className="flex items-center gap-3">
+        <div style={{
+          maxWidth: 1300,
+          margin: "0 auto",
+          padding: isMobile ? "20px 16px" : "20px 24px",
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: "center",
+          justifyContent: isMobile ? "center" : "space-between",
+          gap: isMobile ? 16 : 12,
+          textAlign: isMobile ? "center" : undefined,
+        }} dir="ltr">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <GeoscaleLogoMark size={28} theme={theme} />
-            <span className="text-sm" style={{ color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
+            <span style={{ fontSize: 14, color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             {[
               { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
               { label: "Report a bug", color: "#10A37F", bg: "#10A37F15" },
               { label: "Improvement ideas", color: "#10A37F", bg: "#10A37F15" },
               { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
             ].map((link, i) => (
-              <span key={i} className="text-xs font-medium px-3 py-1.5 cursor-pointer transition-opacity hover:opacity-70" style={{ color: link.color, background: link.bg, borderRadius: 20 }}>
+              <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "6px 12px", cursor: "pointer", color: link.color, background: link.bg, borderRadius: 20 }}>
                 {link.label}
               </span>
             ))}
           </div>
-          <span className="text-xs" style={{ color: theme.textMuted }}>&copy; GeoScale 2026</span>
+          <span style={{ fontSize: 12, color: theme.textMuted }}>&copy; GeoScale 2026</span>
         </div>
       </footer>
     </div>
@@ -692,7 +788,7 @@ export default function BestLinksPage() {
 // ============================================================
 function MarketplaceTab({
   publishers, cart, flashId, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory,
-  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart, getPrice, setPriceOverrides, theme, darkMode,
+  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart, getPrice, setPriceOverrides, theme, darkMode, isMobile, isTablet,
 }: {
   publishers: Publisher[];
   cart: number[];
@@ -710,13 +806,15 @@ function MarketplaceTab({
   setPriceOverrides: React.Dispatch<React.SetStateAction<Record<number, number>>>;
   theme: Theme;
   darkMode: boolean;
+  isMobile: boolean;
+  isTablet: boolean;
 }) {
   return (
     <div>
       {/* Title */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
-          ScalePublish <span style={{ fontWeight: 400, fontSize: 22 }}>— Content platform for agencies</span>
+      <div style={{ marginBottom: isMobile ? 20 : 28 }}>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, marginBottom: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          ScalePublish <span style={{ fontWeight: 400, fontSize: isMobile ? 16 : 22 }}>— Content platform for agencies</span>
           <Tooltip text="Platform for choosing sites, building work plans, and generating client quotes" />
         </h1>
         <p style={{ fontSize: 15, color: theme.textSecondary, lineHeight: 1.6 }}>
@@ -725,9 +823,9 @@ function MarketplaceTab({
       </div>
 
       {/* Filter bar */}
-      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "16px 20px", marginBottom: 24, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: isMobile ? "14px 14px" : "16px 20px", marginBottom: 24, display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", alignItems: isMobile ? "stretch" : "center", gap: 12 }}>
         {/* Search */}
-        <div style={{ position: "relative", minWidth: 220 }}>
+        <div style={{ position: "relative", minWidth: isMobile ? undefined : 220, width: isMobile ? "100%" : undefined }}>
           <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
             <IconSearch size={15} color={theme.textMuted} />
           </span>
@@ -750,17 +848,17 @@ function MarketplaceTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: theme.border }} />
+        {!isMobile && <div style={{ width: 1, height: 28, background: theme.border }} />}
 
         {/* Categories */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: 1 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: isMobile ? undefined : 1, width: isMobile ? "100%" : undefined }}>
           {CATEGORIES.map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               style={{
-                padding: "6px 14px",
-                fontSize: 15,
+                padding: isMobile ? "5px 10px" : "6px 14px",
+                fontSize: isMobile ? 13 : 15,
                 fontWeight: selectedCategory === cat ? 600 : 400,
                 color: selectedCategory === cat ? (darkMode ? "#0D1117" : "#fff") : theme.text,
                 background: selectedCategory === cat ? (darkMode ? "#E6EDF3" : "#000") : theme.inputBg,
@@ -776,12 +874,12 @@ function MarketplaceTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: theme.border }} />
+        {!isMobile && <div style={{ width: 1, height: 28, background: theme.border }} />}
 
         {/* Sort */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, width: isMobile ? "100%" : undefined }}>
           <span style={{ fontSize: 15, color: theme.textSecondary }}>Sort by:</span>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", flex: isMobile ? 1 : undefined }}>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
@@ -796,6 +894,7 @@ function MarketplaceTab({
                 cursor: "pointer",
                 color: theme.text,
                 outline: "none",
+                width: isMobile ? "100%" : undefined,
               }}
             >
               {SORT_OPTIONS.map(o => (
@@ -809,7 +908,7 @@ function MarketplaceTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 28, background: theme.border }} />
+        {!isMobile && <div style={{ width: 1, height: 28, background: theme.border }} />}
 
         {/* Approved only toggle */}
         <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 15, color: theme.text, whiteSpace: "nowrap" }}>
@@ -846,7 +945,7 @@ function MarketplaceTab({
       </div>
 
       {/* Publisher Cards Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 16 }}>
         {publishers.map(pub => (
           <PublisherCard
             key={pub.id}
@@ -1062,7 +1161,7 @@ function AiBadge({ engine, present }: { engine: string; present: boolean }) {
 
 // ── Projection Panel: shows forecasted query appearances + exposure growth ──
 function ProjectionPanel({
-  speed, duration, planType, cartSiteCount, cartQueries, theme,
+  speed, duration, planType, cartSiteCount, cartQueries, theme, isMobile,
 }: {
   speed: "fast" | "medium" | "slow";
   duration: 3 | 6;
@@ -1070,6 +1169,7 @@ function ProjectionPanel({
   cartSiteCount: number;
   cartQueries: number;
   theme: Theme;
+  isMobile: boolean;
 }) {
   const speedBase = { fast: 42, medium: 26, slow: 14 };
   const typeFactor: Record<PlanType, number> = { combined: 1, seo: 0.7, geo: 0.65 };
@@ -1101,19 +1201,19 @@ function ProjectionPanel({
   const areaD = pathD + ` L ${pointCoords[pointCoords.length - 1].x},${H - PAD_B} L ${pointCoords[0].x},${H - PAD_B} Z`;
 
   return (
-    <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: 24, marginBottom: 28, background: theme.cardBg }}>
+    <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? 16 : 24, marginBottom: 28, background: theme.cardBg }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "flex-start", justifyContent: "space-between", gap: isMobile ? 16 : 24, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 20, background: "#10A37F15", color: "#10A37F", fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
             <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F" }} />
             Vision forecast
           </div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: "0 0 4px" }}>What this plan will deliver</h3>
-          <p style={{ fontSize: 15, color: theme.textSecondary, margin: 0 }}>Projected appearances in AI queries and growth over {duration} months</p>
+          <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, margin: "0 0 4px" }}>What this plan will deliver</h3>
+          <p style={{ fontSize: isMobile ? 14 : 15, color: theme.textSecondary, margin: 0 }}>Projected appearances in AI queries and growth over {duration} months</p>
         </div>
         {/* KPIs */}
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12 }}>
           <div style={{ padding: "12px 18px", borderRadius: 10, background: theme.badgeBg, border: `1px solid ${theme.border}`, minWidth: 140 }}>
             <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4, fontWeight: 500 }}>Query appearances - end of period</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
@@ -1192,7 +1292,7 @@ function ProjectionPanel({
 // ============================================================
 function PlannerTab({
   planSpeed, setPlanSpeed, planDuration, setPlanDuration, planData, planTotals, planType, setPlanType,
-  cartSiteCount, cartQueries, cartTotal, goToMarketplace, theme, darkMode,
+  cartSiteCount, cartQueries, cartTotal, goToMarketplace, theme, darkMode, isMobile, isTablet,
 }: {
   planSpeed: "fast" | "medium" | "slow";
   setPlanSpeed: (v: "fast" | "medium" | "slow") => void;
@@ -1208,6 +1308,8 @@ function PlannerTab({
   goToMarketplace: () => void;
   theme: Theme;
   darkMode: boolean;
+  isMobile: boolean;
+  isTablet: boolean;
 }) {
   const discount = getDiscountInfo(planSpeed, planDuration);
 
@@ -1215,14 +1317,14 @@ function PlannerTab({
     <div>
       {/* Title */}
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Work Plan Builder</h1>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Work Plan Builder</h1>
         <p style={{ fontSize: 15, color: theme.textSecondary }}>Define brand, duration, and pace - get a personalized work plan with a quote</p>
       </div>
 
       {/* Configuration row */}
-      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "20px 24px", marginBottom: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
+      <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: isMobile ? "16px 14px" : "20px 24px", marginBottom: 20, display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 16 : 24 }}>
         {/* Brand selector */}
-        <div>
+        <div style={{ width: isMobile ? "100%" : undefined }}>
           <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Brand <Tooltip text="Select the brand this plan is being built for" /></div>
           <div style={{
             display: "flex",
@@ -1244,10 +1346,10 @@ function PlannerTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 48, background: theme.border }} />
+        {!isMobile && <div style={{ width: 1, height: 48, background: theme.border }} />}
 
         {/* Duration */}
-        <div>
+        <div style={{ width: isMobile ? "100%" : undefined }}>
           <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Plan duration <Tooltip text="3 months for quick results, 6 months for depth and control" /></div>
           <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([3, 6] as const).map(d => (
@@ -1272,10 +1374,10 @@ function PlannerTab({
         </div>
 
         {/* Divider */}
-        <div style={{ width: 1, height: 48, background: theme.border }} />
+        {!isMobile && <div style={{ width: 1, height: 48, background: theme.border }} />}
 
         {/* Speed */}
-        <div>
+        <div style={{ width: isMobile ? "100%" : undefined }}>
           <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Pace <Tooltip text="Aggressive = 8 articles/month, Medium = 5, Conservative = 3" /></div>
           <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([
@@ -1333,7 +1435,7 @@ function PlannerTab({
       </div>
 
       {/* Plan Type Cards — SEO / GEO / Combined with discount */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 16, marginBottom: 28 }}>
         {/* SEO Only */}
         {(() => {
           const seoPrices: Record<string, number> = { fast: 2125, medium: 1400, slow: 875 };
@@ -1446,11 +1548,12 @@ function PlannerTab({
         cartSiteCount={cartSiteCount}
         cartQueries={cartQueries}
         theme={theme}
+        isMobile={isMobile}
       />
 
       {/* Plan table */}
-      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
+      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28, overflowX: isMobile ? "auto" : undefined, WebkitOverflowScrolling: "touch" as never }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: isMobile ? 13 : 15, minWidth: isMobile ? 500 : undefined }}>
           <thead>
             <tr style={{ background: theme.tableHeaderBg }}>
               <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>Month</th>
@@ -1489,7 +1592,7 @@ function PlannerTab({
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
         <SummaryCard label="Total articles" value={String(planTotals.articles)} accent={false} theme={theme} />
         <SummaryCard label="Total budget" value={fmtCurrency(planTotals.budget)} accent={false} theme={theme} />
         {planType === "combined" ? (
@@ -1514,7 +1617,7 @@ function PlannerTab({
         </div>
 
         {/* Two columns: SEO/GEO plan + External publisher cart */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 16 }}>
           {/* Left: content plan */}
           <div style={{ padding: 18, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.badgeBg }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -1594,7 +1697,7 @@ function SummaryCard({ label, value, accent, theme }: { label: string; value: st
 // ============================================================
 // TAB 3: Publishers Portal
 // ============================================================
-function PublishersTab({ theme, darkMode }: { theme: Theme; darkMode: boolean }) {
+function PublishersTab({ theme, darkMode, isMobile, isTablet }: { theme: Theme; darkMode: boolean; isMobile: boolean; isTablet: boolean }) {
   const [newDomain, setNewDomain] = useState("");
   const [newCategory, setNewCategory] = useState("Technology");
   const [newPrice, setNewPrice] = useState("");
@@ -1621,16 +1724,16 @@ function PublishersTab({ theme, darkMode }: { theme: Theme; darkMode: boolean })
     <div>
       {/* Title */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Publishers Portal</h1>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Publishers Portal</h1>
         <p style={{ fontSize: 15, color: theme.textSecondary }}>Manage your sites, track sales, and see agency activity</p>
       </div>
 
       {/* Stats bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 12 : 16, marginBottom: 28 }}>
         {stats.map((stat, i) => (
-          <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: "16px 20px" }}>
+          <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "12px 14px" : "16px 20px" }}>
             <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 6 }}>{stat.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
           </div>
         ))}
       </div>
@@ -1724,8 +1827,8 @@ function PublishersTab({ theme, darkMode }: { theme: Theme; darkMode: boolean })
       </div>
 
       {/* Publisher sites table */}
-      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 28, overflowX: isMobile ? "auto" : undefined, WebkitOverflowScrolling: "touch" as never }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: isMobile ? 13 : 14, minWidth: isMobile ? 700 : undefined }}>
           <thead>
             <tr style={{ background: theme.tableHeaderBg }}>
               <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 600, color: theme.text, borderBottom: `1px solid ${theme.border}` }}>Site</th>
@@ -1756,7 +1859,7 @@ function PublishersTab({ theme, darkMode }: { theme: Theme; darkMode: boolean })
       </div>
 
       {/* Agency Interest */}
-      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: "20px 24px", marginBottom: 28 }}>
+      <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "14px 14px" : "20px 24px", marginBottom: 28 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 16 }}>Agencies that recently showed interest</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {AGENCY_ACTIVITIES.map((activity, i) => (
@@ -1826,7 +1929,7 @@ function PublishersTab({ theme, darkMode }: { theme: Theme; darkMode: boolean })
 // ============================================================
 // TAB 4: Rejected Sites
 // ============================================================
-function RejectedTab({ publishers, pendingCount, theme, darkMode }: { publishers: Publisher[]; pendingCount: number; theme: Theme; darkMode: boolean }) {
+function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTablet }: { publishers: Publisher[]; pendingCount: number; theme: Theme; darkMode: boolean; isMobile: boolean; isTablet: boolean }) {
   const totalPublishers = PUBLISHERS.length;
   const approvedCount = PUBLISHERS.filter(p => p.status === "approved").length;
   const rejectedCount = publishers.length;
@@ -1842,16 +1945,16 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode }: { publishers
     <div>
       {/* Title */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Rejected Sites</h1>
-        <p style={{ fontSize: 15, color: theme.textSecondary }}>Sites that were reviewed and did not meet our quality criteria</p>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Rejected Sites</h1>
+        <p style={{ fontSize: isMobile ? 14 : 15, color: theme.textSecondary }}>Sites that were reviewed and did not meet our quality criteria</p>
       </div>
 
       {/* Stats bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 12 : 16, marginBottom: 28 }}>
         {stats.map((stat, i) => (
-          <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: "16px 20px" }}>
+          <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "12px 14px" : "16px 20px" }}>
             <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 6 }}>{stat.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
           </div>
         ))}
       </div>
@@ -1859,9 +1962,9 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode }: { publishers
       {/* Rejected cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {publishers.map(pub => (
-          <div key={pub.id} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: "18px 24px", display: "flex", alignItems: "center", gap: 24, background: theme.cardBg }}>
+          <div key={pub.id} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "14px 14px" : "18px 24px", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 12 : 24, background: theme.cardBg }}>
             {/* Info */}
-            <div style={{ flex: "0 0 180px" }}>
+            <div style={{ flex: isMobile ? undefined : "0 0 180px" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 2 }}>{pub.name}</div>
               <div style={{ fontSize: 14, color: theme.textSecondary }}>{pub.domain}</div>
             </div>

@@ -225,10 +225,12 @@ const CHART_DATA = {
 
 // ── TOOLTIP DESCRIPTIONS ──
 const METRIC_TOOLTIPS: Record<string, string> = {
-  "Mention rate": "Percentage of queries where your brand is mentioned in AI engine responses",
-  "Avg. position": "The average position where your brand is mentioned in responses (lower = better)",
-  "Citation quality": "How accurate, relevant, and complete the brand's citation is in AI answers",
-  "Reputation risk": "Percentage of responses where the brand is presented in a positive or neutral light (no negative info)",
+  "Mention rate": "Percentage of queries where your brand is mentioned in AI engine responses. Source: ChatGPT & Gemini query analysis",
+  "Avg. position": "The average position where your brand is mentioned in responses (lower = better). Source: ChatGPT & Gemini query analysis",
+  "Citation quality": "How accurate, relevant, and complete the brand's citation is in AI answers. Source: ChatGPT & Gemini response analysis",
+  "Reputation risk": "Percentage of responses where the brand is presented in a positive or neutral light (no negative info). Source: Sentiment analysis of AI responses",
+  "Branded mention rate": "Mention rate for queries that contain your brand name (e.g. 'All4Horses reviews'). Expected to be high. Source: ChatGPT & Gemini query analysis",
+  "Non-branded mention rate": "Mention rate for keyword-only queries without your brand name. This is the meaningful metric for GEO performance. Source: ChatGPT & Gemini query analysis",
 };
 
 // ════════════════════════════════════════════════════════════
@@ -248,9 +250,10 @@ function Tooltip({ text }: { text: string }) {
   };
   return (
     <span ref={ref}
-      style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
+      style={{ display: "inline-flex", alignItems: "center", cursor: "help", minWidth: 24, minHeight: 24, justifyContent: "center" }}
       onMouseEnter={handleEnter}
       onMouseLeave={() => setShow(false)}
+      onClick={() => setShow(!show)}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0B7BF" strokeWidth="2" style={{ display: "block", transition: "stroke 150ms" }} onMouseEnter={(e) => { (e.currentTarget as SVGElement).style.stroke = "#666"; }} onMouseLeave={(e) => { (e.currentTarget as SVGElement).style.stroke = "#B0B7BF"; }}>
         <circle cx="12" cy="12" r="10" />
@@ -260,7 +263,7 @@ function Tooltip({ text }: { text: string }) {
         <div style={{
           position: "fixed",
           top: pos.top,
-          left: pos.left,
+          left: Math.min(Math.max(pos.left, 150), typeof window !== 'undefined' ? window.innerWidth - 150 : pos.left),
           transform: "translate(-50%, -100%)",
           background: "#1B1F23",
           color: "#FFFFFF",
@@ -641,6 +644,15 @@ export default function ScanPage() {
     }
     return false;
   });
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('geoscale-dark-mode', darkMode.toString());
@@ -668,12 +680,12 @@ export default function ScanPage() {
   };
 
   const card: React.CSSProperties = { background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 };
-  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 };
+  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 };
   const bodyText: React.CSSProperties = { fontSize: 15, color: theme.text, fontWeight: 500 };
   const thinBorder = `1px solid ${theme.border}`;
 
   const reputationValue = 100;
-  const reputationColor = reputationValue < 80 ? "#DC2626" : theme.text;
+  const reputationColor = "#DC2626"; // Reputation risk always uses red
 
   // Button helpers for dark mode
   const btnFilled: React.CSSProperties = { background: darkMode ? "#E6EDF3" : "#000000", color: darkMode ? "#0D1117" : "#FFFFFF", border: darkMode ? "1px solid #E6EDF3" : "1px solid #000000" };
@@ -686,43 +698,92 @@ export default function ScanPage() {
 
       {/* -- Sticky Header -- */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
-            <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
-              New Scan
-            </HoverButton>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
-            </div>
-            <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
-                {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
-              </svg>
-            </button>
-          </div>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {isMobile ? (
+            <>
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.text} strokeWidth="2">
+                  {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></>}
+                </svg>
+              </button>
+              <div style={{ direction: "ltr" }}>
+                <svg width={120} height={24} viewBox="0 0 510 102" fill="none">
+                  <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                  <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                  <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+                </svg>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
+                    {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
+                  </svg>
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
+                  New Scan
+                </HoverButton>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                  <span>Connected</span>
+                </div>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
+                    {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
+                  </svg>
+                </button>
+              </div>
 
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>ScalePublish</a>
-            <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Content Editor</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Roadmap</a>
-          </nav>
+              <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Dashboard</a>
+                <a href="/scan" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Scans</a>
+                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>ScalePublish</a>
+                <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Content Editor</a>
+                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Roadmap</a>
+              </nav>
 
-          <div style={{ justifySelf: "end", direction: "ltr" }}>
-            <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
-            </svg>
-          </div>
+              <div style={{ direction: "ltr" }}>
+                <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                  <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                  <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                  <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+                </svg>
+              </div>
+            </>
+          )}
         </div>
+        {/* Mobile menu dropdown */}
+        {isMobile && mobileMenuOpen && (
+          <nav style={{ display: "flex", flexDirection: "column", padding: "8px 12px 16px", borderTop: `1px solid ${theme.border}`, background: theme.headerBg, gap: 0 }}>
+            {[
+              { href: "/", label: "Dashboard", active: false },
+              { href: "/scan", label: "Scans", active: true },
+              { href: "/scale-publish", label: "ScalePublish", active: false },
+              { href: "/editor", label: "Content Editor", active: false },
+              { href: "/roadmap", label: "Roadmap", active: false },
+            ].map((item) => (
+              <a key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 15, fontWeight: item.active ? 600 : 500, color: item.active ? theme.text : theme.textSecondary, textDecoration: "none", padding: "10px 8px", borderBottom: `1px solid ${theme.border}` }}>{item.label}</a>
+            ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 8px" }}>
+              <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
+                New Scan
+              </HoverButton>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: theme.textSecondary }}>
+                <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F", display: "inline-block" }} />
+                Connected
+              </div>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* -- Brand Header (centered, logo above) -- */}
       <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "24px 24px 20px" }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "16px 12px 14px" : "24px 24px 20px" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <div style={{ width: 52, height: 52, borderRadius: 12, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", background: darkMode ? "#1C2128" : "#FFFFFF", overflow: "hidden" }}>
               <img src="https://www.google.com/s2/favicons?domain=all4horses.co.il&sz=64" alt="" width={36} height={36} style={{ borderRadius: 4 }} />
@@ -752,8 +813,8 @@ export default function ScanPage() {
 
       {/* -- Tab Bar -- */}
       <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "flex", gap: 0 }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 8px" : "0 24px" }}>
+          <div style={{ display: "flex", gap: 0, overflowX: isMobile ? "auto" : "visible", WebkitOverflowScrolling: "touch" as any, scrollbarWidth: "none" as any, msOverflowStyle: "none" as any }}>
             {([
               { key: "overview" as const, label: "Overview", tooltip: "Overall brand presence overview", iconPath: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /> },
               { key: "queries" as const, label: "Queries", tooltip: "All queries tested against AI engines", iconPath: <><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></>, count: totalQueries },
@@ -766,7 +827,7 @@ export default function ScanPage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 8, padding: "12px 20px", fontSize: 15,
+                  display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "10px 12px" : "12px 20px", fontSize: isMobile ? 13 : 15, whiteSpace: "nowrap" as const,
                   fontWeight: activeTab === tab.key ? 600 : 500,
                   color: activeTab === tab.key ? theme.text : theme.textSecondary,
                   background: "transparent", border: "none",
@@ -788,18 +849,82 @@ export default function ScanPage() {
       </div>
 
       {/* -- Main Content -- */}
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "20px 24px", flex: 1 }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px 10px" : "20px 24px", flex: 1 }}>
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-            {/* BIG TIME-SERIES CHART */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            {/* === SECTION 1: KPI STAT CARDS (data first per Alexei) === */}
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10 }}>
+              {[
+                { label: "Mention rate", value: "76%", change: 4.2, unit: "%", invertColor: false },
+                { label: "Avg. position", value: "9.7", change: -1.3, unit: "", invertColor: true },
+                { label: "Citation quality", value: "70%", change: -3.8, unit: "%", invertColor: false },
+              ].map((stat, i) => (
+                <div key={i} style={{ ...card, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                    <span style={{ fontSize: 14, color: theme.textSecondary, fontWeight: 500 }}>{stat.label}</span>
+                    <Tooltip text={METRIC_TOOLTIPS[stat.label] || ""} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 28, fontWeight: 700, color: theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
+                    {stat.change !== 0 && <ChangeIndicator value={stat.change} unit={stat.unit} invertColor={stat.invertColor} />}
+                  </div>
+                </div>
+              ))}
+              {/* Reputation Risk card - always red */}
+              <div style={{ ...card, padding: "12px 14px", borderColor: "#DC262640" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                  <span style={{ fontSize: 14, color: "#DC2626", fontWeight: 500 }}>Reputation risk</span>
+                  <Tooltip text={METRIC_TOOLTIPS["Reputation risk"] || ""} />
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", letterSpacing: "-1px" }}>{reputationValue}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* === Reputation Risk: Brand vs Non-Brand Split (Alexei critical fix) === */}
+            <div style={{ ...card, padding: 16, border: "1px solid #DC262640" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#DC2626", margin: 0 }}>Reputation Risk - Brand vs Non-Brand Split</h3>
+                <Tooltip text="The overall mention rate includes brand-name queries (e.g. 'All4Horses reviews'), which are expected to be high. The non-branded rate is the real GEO performance metric. Source: ChatGPT and Gemini query analysis" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+                <div style={{ border: "1px solid #DC262630", borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Branded queries mention rate</span>
+                    <Tooltip text={METRIC_TOOLTIPS["Branded mention rate"]} />
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>95%</div>
+                  <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
+                    <div style={{ width: "95%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
+                  </div>
+                  <p style={{ fontSize: 14, color: "#DC2626", margin: 0, opacity: 0.8 }}>12 branded queries (expected high)</p>
+                </div>
+                <div style={{ border: "2px solid #DC2626", borderRadius: 10, padding: 14, position: "relative" }}>
+                  <div style={{ position: "absolute", top: -10, right: 12, background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Non-branded queries mention rate</span>
+                    <Tooltip text={METRIC_TOOLTIPS["Non-branded mention rate"]} />
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>68%</div>
+                  <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
+                    <div style={{ width: "68%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
+                  </div>
+                  <p style={{ fontSize: 14, color: "#DC2626", margin: 0, opacity: 0.8 }}>25 non-branded queries (the real metric)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mention Rate Over Time Chart */}
+            <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>Mention rate over time</h3>
-                  <Tooltip text="Tracks your brand's mention rate across AI engines over time" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Mention rate over time</h3>
+                  <Tooltip text="Tracks your brand's mention rate across AI engines over time. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
                   {(["7", "30", "90"] as const).map((p) => (
@@ -810,40 +935,19 @@ export default function ScanPage() {
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>{`ChatGPT`}</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#727272" }} /><span style={{ fontSize: 15, color: theme.text }}>{`Gemini`}</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>ChatGPT</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#727272" }} /><span style={{ fontSize: 15, color: theme.text }}>Gemini</span></div>
               </div>
-              <div style={{ height: 240 }}><TimeSeriesChart period={chartPeriod} theme={theme} /></div>
-            </div>
-
-            {/* 4 Stat Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-              {[
-                { label: "Mention rate", value: "76%", change: 4.2, unit: "%", invertColor: false },
-                { label: "Avg. position", value: "9.7", change: -1.3, unit: "", invertColor: true },
-                { label: "Citation quality", value: "70%", change: -3.8, unit: "%", invertColor: false },
-                { label: "Reputation risk", value: `${reputationValue}%`, change: 0, unit: "%", invertColor: false },
-              ].map((stat, i) => (
-                <div key={i} style={{ ...card, padding: "12px 14px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                    <span style={{ fontSize: 15, color: theme.textSecondary, fontWeight: 500 }}>{stat.label}</span>
-                    <Tooltip text={METRIC_TOOLTIPS[stat.label] || ""} />
-                  </div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: stat.label === "Reputation risk" ? reputationColor : theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
-                    {stat.change !== 0 && <ChangeIndicator value={stat.change} unit={stat.unit} invertColor={stat.invertColor} />}
-                  </div>
-                </div>
-              ))}
+              <div style={{ height: isMobile ? 180 : 240, width: "100%" }}><TimeSeriesChart period={chartPeriod} theme={theme} /></div>
             </div>
 
             {/* GPT vs Gemini */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <h3 style={{ ...sectionTitle }}>AI engine comparison</h3>
-                <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini" />
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI engine comparison</h3>
+                <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini. Source: ChatGPT and Gemini query analysis" />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
                 <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -874,14 +978,14 @@ export default function ScanPage() {
             </div>
 
             {/* Customer Journey */}
-            <div style={{ display: "grid", gridTemplateColumns: `repeat(${JOURNEY_STAGES.length}, 1fr)`, gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : `repeat(${JOURNEY_STAGES.length}, 1fr)`, gap: 10 }}>
               {JOURNEY_STAGES.map((stage, i) => {
                 const journeyTooltips: Record<string, string> = {
-                  "Awareness": "Percent presence in initial brand-discovery queries",
-                  "Research": "Percent presence in research and comparison queries",
-                  "Decision": "Percent presence in decision-stage queries",
-                  "Support": "Percent presence in service and support queries",
-                  "Reputation": "Percent presence in review and rating queries",
+                  "Awareness": "Percent presence in initial brand-discovery queries. Source: ChatGPT and Gemini query analysis",
+                  "Research": "Percent presence in research and comparison queries. Source: ChatGPT and Gemini query analysis",
+                  "Decision": "Percent presence in decision-stage queries. Source: ChatGPT and Gemini query analysis",
+                  "Support": "Percent presence in service and support queries. Source: ChatGPT and Gemini query analysis",
+                  "Reputation": "Percent presence in review and rating queries. Source: ChatGPT and Gemini query analysis",
                 };
                 return (
                   <div key={i} style={{ ...card, padding: 14, textAlign: "center" }}>
@@ -897,11 +1001,11 @@ export default function ScanPage() {
             </div>
 
             {/* Persona + Competitors */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ ...sectionTitle }}>Identified persona</h3>
-                  <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Identified persona</h3>
+                  <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses. Source: AI response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {[
@@ -922,8 +1026,8 @@ export default function ScanPage() {
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ ...sectionTitle }}>Competitors</h3>
-                  <Tooltip text="Presence scores of leading competitors compared to your brand" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <Tooltip text="Presence scores of leading competitors compared to your brand. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {COMPETITORS.map((comp, i) => (
@@ -945,11 +1049,11 @@ export default function ScanPage() {
             </div>
 
             {/* Sentiment + Citation Quality */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ ...sectionTitle }}>Sentiment</h3>
-                  <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Sentiment</h3>
+                  <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How AI talks about you</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
@@ -962,8 +1066,8 @@ export default function ScanPage() {
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ ...sectionTitle }}>Citation quality</h3>
-                  <Tooltip text="How accurately and fully AI engines cite your brand" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Citation quality</h3>
+                  <Tooltip text="How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How well AI links back to you</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
@@ -977,14 +1081,14 @@ export default function ScanPage() {
               </div>
             </div>
 
-            {/* ═══ Top 5 Keywords ═══ */}
+            {/* Top 5 Keywords */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ ...sectionTitle }}>Top 5 Keywords</h3>
-                <Tooltip text="Keyword data powered by DataForSEO API" />
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Top 5 Keywords</h3>
+                <Tooltip text="Keyword data powered by DataForSEO API. Source: DataForSEO API" />
               </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+                <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 600 : "auto" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                       <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Keyword</th>
@@ -1029,12 +1133,12 @@ export default function ScanPage() {
               </div>
             </div>
 
-            {/* ═══ SEO Performance Graph ═══ */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            {/* SEO Performance Graph */}
+            <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>SEO Performance</h3>
-                  <Tooltip text="Organic traffic and keyword growth over the past 6 months" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>SEO Performance</h3>
+                  <Tooltip text="Organic traffic and keyword growth over the past 6 months. Source: Ahrefs API" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1046,17 +1150,17 @@ export default function ScanPage() {
                   </span>
                 </div>
               </div>
-              <div style={{ height: 220 }}>
+              <div style={{ height: isMobile ? 180 : 220, width: "100%" }}>
                 <SEOPerformanceChart theme={theme} />
               </div>
             </div>
 
-            {/* ═══ SEO <-> GEO Connection ═══ */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            {/* SEO <-> GEO Connection (Redesigned per Alexei - diagram layout) */}
+            <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>SEO {"↔"} GEO Connection</h3>
-                  <Tooltip text="How traditional SEO keywords connect to AI-generated query answers (GEO)" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>SEO {"<>"} GEO Connection</h3>
+                  <Tooltip text="How traditional SEO keywords connect to AI-generated query answers (GEO). Source: DataForSEO API + ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1073,182 +1177,51 @@ export default function ScanPage() {
                   </div>
                 </div>
               </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      {seoToggle && (
-                        <>
-                          <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14, background: theme.tableHeaderBg }}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="3"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-                              SEO Keyword
-                            </span>
-                          </th>
-                          <th style={{ textAlign: "right", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14, background: theme.tableHeaderBg }}>Volume</th>
-                          <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14, background: theme.tableHeaderBg }}>KD</th>
-                        </>
-                      )}
-                      {seoToggle && geoToggle && (
-                        <th style={{ textAlign: "center", padding: "7px 6px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}></th>
-                      )}
-                      {geoToggle && (
-                        <>
-                          <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14, background: theme.tableHeaderBg }}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#727272" strokeWidth="3"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                              AI Queries (GEO)
-                            </span>
-                          </th>
-                          <th style={{ textAlign: "center", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14, background: theme.tableHeaderBg }}>Status</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {KEYWORD_DATA.map((kw, i) => {
-                      const queryStatuses = kw.matchingQueries.map(qText => {
-                        const found = QUERIES.find(q => q.text === qText);
-                        return { text: qText, mentioned: found ? (found.gpt || found.gemini) : false };
-                      });
-                      return (
-                        <tr key={i} style={{ borderBottom: thinBorder }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}>
-                          {seoToggle && (
-                            <>
-                              <td style={{ padding: "10px 10px", fontWeight: 500, color: theme.text }}>{kw.keyword}</td>
-                              <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 500, color: theme.text }}>{kw.volume.toLocaleString()}</td>
-                              <td style={{ padding: "10px 10px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                  <div style={{ width: 36, height: 4, borderRadius: 2, overflow: "hidden", background: theme.barTrack }}>
-                                    <div style={{ width: `${kw.difficulty}%`, height: "100%", borderRadius: 2, background: kw.difficulty < 30 ? "#10A37F" : kw.difficulty < 50 ? "#727272" : "#DC2626" }} />
-                                  </div>
-                                  <span style={{ fontSize: 15, color: theme.text }}>{kw.difficulty}</span>
-                                </div>
-                              </td>
-                            </>
-                          )}
-                          {seoToggle && geoToggle && (
-                            <td style={{ padding: "10px 6px", textAlign: "center" }}>
-                              <svg width="20" height="14" viewBox="0 0 20 14" fill="none">
-                                <path d="M2 7h16M14 3l4 4-4 4" stroke={theme.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </td>
-                          )}
-                          {geoToggle && (
-                            <>
-                              <td style={{ padding: "10px 10px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                  {queryStatuses.map((qs, j) => (
-                                    <span key={j} style={{ display: "inline-flex", fontSize: 15, padding: "2px 8px", borderRadius: 10, border: `1px solid ${qs.mentioned ? "#10A37F40" : theme.border}`, background: qs.mentioned ? "#10A37F08" : theme.badgeBg, color: qs.mentioned ? theme.text : theme.textSecondary, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{qs.text}</span>
-                                  ))}
-                                </div>
-                              </td>
-                              <td style={{ padding: "10px 10px", textAlign: "center" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
-                                  {queryStatuses.map((qs, j) => (
-                                    <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 13, fontWeight: 500, padding: "2px 8px", borderRadius: 10, background: qs.mentioned ? "#10A37F15" : theme.badgeBg, color: qs.mentioned ? "#10A37F" : theme.textSecondary, border: `1px solid ${qs.mentioned ? "#10A37F30" : theme.border}` }}>
-                                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        {qs.mentioned ? <path d="M20 6L9 17l-5-5" /> : <path d="M18 6L6 18M6 6l12 12" />}
-                                      </svg>
-                                      {qs.mentioned ? "Mentioned" : "Not mentioned"}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Signals */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
-                  <h3 style={{ ...sectionTitle }}>What worked</h3>
-                  <Tooltip text="Strengths - areas where the brand receives positive mentions in AI engines" />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {POSITIVE_SIGNALS.map((signal, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <div style={{ width: 5, height: 5, borderRadius: 3, marginTop: 7, flexShrink: 0, background: "#10A37F" }} />
-                      <span style={{ ...bodyText }}>{signal}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
-                  <Tooltip text="Risk alerts - areas with missing mentions and reputation risk" />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {NEGATIVE_SIGNALS.map((signal, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 12px", borderLeft: "3px solid #DC2626", borderRadius: 4 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: 3, marginTop: 6, flexShrink: 0, background: "#DC2626" }} />
-                      <span style={{ ...bodyText }}>{signal}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* AI INSIGHTS */}
-            <div style={{ ...card, padding: 16, borderLeft: "4px solid #10A37F" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                <h3 style={{ ...sectionTitle }}>AI Insights</h3>
-                <Tooltip text="Insights automatically generated from the latest scan analysis" />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {[
-                  { type: "warning", text: "Heads up - there's a decline in 3 key terms (\"beginner riding lessons\", \"children's riding gear\", \"horse ranches with accommodation\"). It's recommended to strengthen content on these topics." },
-                  { type: "opportunity", text: "You have 4 queries where you don't appear in the top 5 - create dedicated content for: \"rehabilitation fund for therapeutic riding\", \"horse ranches near Jerusalem\", \"weekly riding class\", \"therapeutic riding costs\"." },
-                  { type: "insight", text: "There's a GEO increase (+4.2%) parallel to SEO stability - invest in SEO to boost GEO, since GEO depends on SEO. Strong SEO terms increase the chance of AI mentions." },
-                  { type: "positive", text: "Your Gemini score (73%) is above the industry average (52%). Continue with current content activity - it's working." },
-                ].map((insight, i) => {
-                  const colors: Record<string, { border: string }> = { warning: { border: "#727272" }, opportunity: { border: "#727272" }, insight: { border: theme.textSecondary }, positive: { border: "#10A37F" } };
-                  const c = colors[insight.type];
+              {/* Redesigned: diagram-like flow layout instead of boxed table cells */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {KEYWORD_DATA.map((kw, i) => {
+                  const queryStatuses = kw.matchingQueries.map(qText => {
+                    const found = QUERIES.find(q => q.text === qText);
+                    return { text: qText, mentioned: found ? (found.gpt || found.gemini) : false, gpt: found?.gpt || false, gemini: found?.gemini || false };
+                  });
                   return (
-                    <div key={i} style={{ padding: "10px 14px", borderLeft: `3px solid ${c.border}`, borderRadius: 4, fontSize: 15, lineHeight: 1.6, color: theme.text, background: theme.hoverBg }}>
-                      {insight.text}
+                    <div key={i} style={{ padding: "14px 0", borderBottom: i < KEYWORD_DATA.length - 1 ? `1px solid ${theme.border}` : "none" }}>
+                      {seoToggle && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: geoToggle ? 8 : 0, flexWrap: "wrap" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="3"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+                          <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{kw.keyword}</span>
+                          <span style={{ fontSize: 14, color: theme.textSecondary, fontWeight: 500 }}>Vol: {kw.volume.toLocaleString()}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <div style={{ width: 30, height: 4, borderRadius: 2, overflow: "hidden", background: theme.barTrack }}>
+                              <div style={{ width: `${kw.difficulty}%`, height: "100%", borderRadius: 2, background: kw.difficulty < 30 ? "#10A37F" : kw.difficulty < 50 ? "#727272" : "#DC2626" }} />
+                            </div>
+                            <span style={{ fontSize: 13, color: theme.textSecondary }}>KD {kw.difficulty}</span>
+                          </div>
+                        </div>
+                      )}
+                      {geoToggle && queryStatuses.map((qs, j) => (
+                        <div key={j} style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: seoToggle ? 24 : 0, padding: "5px 0", flexWrap: isMobile ? "wrap" : "nowrap" }}>
+                          {seoToggle && (
+                            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" style={{ flexShrink: 0 }}>
+                              <path d="M0 0v6c0 3.3 2.7 6 6 6h10" stroke={theme.textMuted} strokeWidth="1.2" fill="none" strokeDasharray="3 2" />
+                            </svg>
+                          )}
+                          <span style={{ fontSize: 14, fontWeight: 500, color: qs.mentioned ? theme.text : theme.textSecondary, flex: 1, minWidth: 0 }}>{qs.text}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                            <span style={{ opacity: qs.gpt ? 1 : 0.25, display: "inline-flex" }}><AIEngineLogo engine="gpt" size={16} /></span>
+                            <span style={{ opacity: qs.gemini ? 1 : 0.25, display: "inline-flex" }}><AIEngineLogo engine="gemini" size={16} /></span>
+                          </div>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 10, background: qs.mentioned ? "#10A37F15" : theme.badgeBg, color: qs.mentioned ? "#10A37F" : theme.textSecondary, border: `1px solid ${qs.mentioned ? "#10A37F30" : theme.border}`, flexShrink: 0, whiteSpace: "nowrap" }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              {qs.mentioned ? <path d="M20 6L9 17l-5-5" /> : <path d="M18 6L6 18M6 6l12 12" />}
+                            </svg>
+                            {qs.mentioned ? "Mentioned" : "Missing"}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* AI Summary */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ ...sectionTitle }}>AI Summary - What engines say about you</h3>
-                <Tooltip text="Summary of answers AI engines return when asked about your brand" />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <AIEngineLogo engine="gpt" size={18} />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F" }}>ChatGPT Summary</span>
-                  </div>
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
-                    &ldquo;All4Horses is a leading horse ranch in Israel, specializing in therapeutic riding for children with special needs. The ranch offers personalized programs for children with ADHD and autism, guided by a team of certified therapists. Rating 4.8/5 on Google reviews.&rdquo;
-                  </p>
-                </div>
-                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <AIEngineLogo engine="gemini" size={18} />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: "#727272" }}>Gemini Summary</span>
-                  </div>
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
-                    &ldquo;All4Horses provides therapeutic riding services and horse activities in the central region. The ranch is known for its professional approach and integration of scientific research into treatment programs. Offers riding lessons, tours, summer camps, and team building days.&rdquo;
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -1256,11 +1229,12 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>Competitors</h3>
-                  <Tooltip text="Key competitors identified by query overlap and AI engine presence" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <Tooltip text="Key competitors identified by query overlap and AI engine presence. Source: ChatGPT and Gemini query analysis" />
                 </div>
               </div>
-              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 550 : "auto" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                     <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Competitor</th>
@@ -1297,20 +1271,22 @@ export default function ScanPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Top 5 Queries */}
             <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ ...sectionTitle }}>Top 5 queries</h3>
-                  <Tooltip text="Queries with the highest brand presence across AI engines" />
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Top 5 queries</h3>
+                  <Tooltip text="Queries with the highest brand presence across AI engines. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <HoverButton onClick={() => setActiveTab("queries")} theme={theme} style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>
                   View all {totalQueries} queries
                 </HoverButton>
               </div>
-              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 550 : "auto" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                     <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Query <Tooltip text="The query tested against AI engines" /></span></th>
@@ -1336,6 +1312,108 @@ export default function ScanPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
+            </div>
+
+            {/* === INSIGHTS SECTION (bottom per Alexei) === */}
+
+            {/* Signals */}
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+              <div style={{ ...card, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>What worked</h3>
+                  <Tooltip text="Strengths - areas where the brand receives positive mentions in AI engines. Source: ChatGPT and Gemini response analysis" />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {POSITIVE_SIGNALS.map((signal, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: 3, marginTop: 7, flexShrink: 0, background: "#10A37F" }} />
+                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{signal}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ ...card, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
+                  <Tooltip text="Risk alerts - areas with missing mentions and reputation risk. Source: ChatGPT and Gemini response analysis" />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {NEGATIVE_SIGNALS.map((signal, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 12px", borderLeft: "3px solid #DC2626", borderRadius: 4 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: 3, marginTop: 6, flexShrink: 0, background: "#DC2626" }} />
+                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{signal}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* AI Summary */}
+            <div style={{ ...card, padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI Summary - What engines say about you</h3>
+                <Tooltip text="Summary of answers AI engines return when asked about your brand. Source: ChatGPT and Gemini direct query" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <AIEngineLogo engine="gpt" size={18} />
+                    <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F" }}>ChatGPT Summary</span>
+                  </div>
+                  <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
+                    &ldquo;All4Horses is a leading horse ranch in Israel, specializing in therapeutic riding for children with special needs. The ranch offers personalized programs for children with ADHD and autism, guided by a team of certified therapists. Rating 4.8/5 on Google reviews.&rdquo;
+                  </p>
+                </div>
+                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <AIEngineLogo engine="gemini" size={18} />
+                    <span style={{ fontSize: 15, fontWeight: 600, color: "#727272" }}>Gemini Summary</span>
+                  </div>
+                  <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
+                    &ldquo;All4Horses provides therapeutic riding services and horse activities in the central region. The ranch is known for its professional approach and integration of scientific research into treatment programs. Offers riding lessons, tours, summer camps, and team building days.&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI INSIGHTS (styled like GA insights with trend icons) */}
+            <div style={{ ...card, padding: 16, borderLeft: "4px solid #10A37F" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI Insights</h3>
+                <Tooltip text="Insights automatically generated from the latest scan analysis. Source: GeoScale analysis engine" />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { type: "warning", text: "Heads up - there's a decline in 3 key terms (\"beginner riding lessons\", \"children's riding gear\", \"horse ranches with accommodation\"). It's recommended to strengthen content on these topics.", trendDir: "down" as const },
+                  { type: "opportunity", text: "You have 4 queries where you don't appear in the top 5 - create dedicated content for: \"rehabilitation fund for therapeutic riding\", \"horse ranches near Jerusalem\", \"weekly riding class\", \"therapeutic riding costs\".", trendDir: "up" as const },
+                  { type: "insight", text: "There's a GEO increase (+4.2%) parallel to SEO stability - invest in SEO to boost GEO, since GEO depends on SEO. Strong SEO terms increase the chance of AI mentions.", trendDir: "up" as const },
+                  { type: "positive", text: "Your Gemini score (73%) is above the industry average (52%). Continue with current content activity - it's working.", trendDir: "up" as const },
+                ].map((insight, i) => {
+                  const colors: Record<string, { border: string; icon: string }> = {
+                    warning: { border: "#DC2626", icon: "#DC2626" },
+                    opportunity: { border: "#727272", icon: "#727272" },
+                    insight: { border: theme.textSecondary, icon: theme.textSecondary },
+                    positive: { border: "#10A37F", icon: "#10A37F" },
+                  };
+                  const c = colors[insight.type];
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px", borderLeft: `3px solid ${c.border}`, borderRadius: 4, fontSize: 15, lineHeight: 1.6, color: theme.text, background: theme.hoverBg }}>
+                      <svg width="20" height="16" viewBox="0 0 20 16" fill="none" style={{ flexShrink: 0, marginTop: 3 }}>
+                        {insight.trendDir === "up" ? (
+                          <polyline points="2,12 6,8 10,10 14,4 18,2" stroke={c.icon} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        ) : (
+                          <polyline points="2,2 6,6 10,4 14,10 18,14" stroke={c.icon} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        )}
+                      </svg>
+                      <span style={{ flex: 1 }}>{insight.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -1367,7 +1445,8 @@ export default function ScanPage() {
             </div>
 
             <div style={{ ...card, overflow: "hidden" }}>
-              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 650 : "auto" }}>
                 <thead>
                   <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
                     <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>#</th>
@@ -1472,7 +1551,8 @@ export default function ScanPage() {
                   ))}
                 </tbody>
               </table>
-              <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${theme.border}`, background: theme.tableHeaderBg }}>
+              </div>
+              <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${theme.border}`, background: theme.tableHeaderBg, flexWrap: "wrap", gap: 8 }}>
                 <span style={{ fontSize: 15, color: theme.textSecondary }}>Showing {filteredQueries.length} of {totalQueries} queries</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 15 }}>
                   <span style={{ color: "#10A37F" }}>Mentioned: {filterCounts.mentioned}</span>
@@ -1494,7 +1574,8 @@ export default function ScanPage() {
               </p>
             </div>
             <div style={{ ...card, overflow: "hidden" }}>
-              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse" }}>
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+              <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 700 : "auto" }}>
                 <thead>
                   <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
                     <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>#</th>
@@ -1550,7 +1631,8 @@ export default function ScanPage() {
                   ))}
                 </tbody>
               </table>
-              <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${theme.border}`, background: theme.tableHeaderBg }}>
+              </div>
+              <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${theme.border}`, background: theme.tableHeaderBg, flexWrap: "wrap", gap: 8 }}>
                 <span style={{ fontSize: 15, color: theme.textSecondary }}>Showing 12 keywords</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 15 }}>
                   <span style={{ color: "#10A37F" }}>Top 3: 3</span>
@@ -1565,9 +1647,9 @@ export default function ScanPage() {
         {/* TAB 3: AUDIENCES */}
         {activeTab === "audiences" && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 20, flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0 }}>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 600, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis" /></h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis. Source: AI response analysis" /></h2>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: 0 }}>{PERSONAS.length} personas identified in the latest scan</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1590,7 +1672,7 @@ export default function ScanPage() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
                   <h3 style={{ ...sectionTitle }}>Suggest a new persona</h3>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
                   <div>
                     <label style={{ display: "block", fontSize: 15, fontWeight: 500, marginBottom: 6, color: theme.text }}>Persona name</label>
                     <input type="text" placeholder="Example: Sarah" style={{ width: "100%", padding: "8px 12px", borderRadius: 10, fontSize: 15, border: `1px solid ${theme.border}`, color: theme.text, outline: "none", background: theme.inputBg, boxSizing: "border-box" }} />
@@ -1617,7 +1699,7 @@ export default function ScanPage() {
               </div>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>
               {PERSONAS.map((p) => (
                 <div key={p.id} style={{ ...card, overflow: "hidden" }}>
                   <div style={{ height: 3, background: "#10A37F" }} />
@@ -1736,14 +1818,14 @@ export default function ScanPage() {
                       <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Services</h3>
                       <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, border: thinBorder }}>{services.length}</span>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>{services.map((p, i) => renderProductCard(p, i))}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>{services.map((p, i) => renderProductCard(p, i))}</div>
                   </div>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Products</h3>
                       <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, border: thinBorder }}>{products.length}</span>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>{products.map((p, i) => renderProductCard(p, i))}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>{products.map((p, i) => renderProductCard(p, i))}</div>
                   </div>
                 </>
               );
@@ -1810,7 +1892,7 @@ export default function ScanPage() {
                             </HoverButton>
                           </div>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
                           {[{ label: "Word count", value: "1,500" }, { label: "Format", value: "GEO-Optimized" }, { label: "Language", value: "English" }, { label: "Status", value: "Pending creation" }].map((s, i) => (
                             <div key={i} style={{ textAlign: "center", padding: "8px 0", background: theme.hoverBg, borderRadius: 8 }}>
                               <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 2 }}>{s.label}</div>
@@ -1837,19 +1919,21 @@ export default function ScanPage() {
 
       {/* -- Footer -- */}
       <footer style={{ borderTop: `1px solid ${theme.border}`, marginTop: "auto" }}>
-        <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px" : "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <svg width={28} height={28} viewBox="0 0 102 102" fill="none">
               <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
               <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
             </svg>
-            <span style={{ fontSize: 15, color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>
+            {!isMobile && <span style={{ fontSize: 15, color: theme.textSecondary }}>Powered by advanced AI to analyze your search presence</span>}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {["Feedback", "Report a bug", "Improvement ideas", "API usage"].map((label, i) => (
-              <span key={i} style={{ fontSize: 15, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: theme.textSecondary, background: theme.badgeBg, border: `1px solid ${theme.border}`, cursor: "pointer", transition: "all 150ms" }}>{label}</span>
-            ))}
-          </div>
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {["Feedback", "Report a bug", "Improvement ideas", "API usage"].map((label, i) => (
+                <span key={i} style={{ fontSize: 15, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: theme.textSecondary, background: theme.badgeBg, border: `1px solid ${theme.border}`, cursor: "pointer", transition: "all 150ms" }}>{label}</span>
+              ))}
+            </div>
+          )}
           <span style={{ fontSize: 15, color: theme.textMuted }}>GeoScale 2026 &copy;</span>
         </div>
       </footer>
