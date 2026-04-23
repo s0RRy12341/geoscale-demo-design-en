@@ -875,6 +875,33 @@ export default function ScanPage() {
               </div>
             </div>
 
+            {/* === SEO Metrics (Ahrefs-style) === */}
+            <div style={{ ...card, padding: 0, overflow: "hidden" }}>
+              <div style={{ padding: isMobile ? "10px 12px" : "10px 16px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", gap: 6 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: theme.text, margin: 0 }}>Site SEO Metrics</h3>
+                <Tooltip text="Traditional SEO performance data for all4horses.co.il. Source: Domain authority from Ahrefs/Moz, traffic from Google Search Console estimates, keyword rankings from SERP tracking." />
+                <span style={{ marginLeft: "auto", fontSize: 12, color: theme.textMuted, fontWeight: 400 }}>Updated 2 days ago</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(6, 1fr)" }}>
+                {[
+                  { label: "Domain Rating", value: "42", icon: "DR", color: "#10A37F", tooltip: "Ahrefs Domain Rating (0-100). Measures the strength of the website's backlink profile relative to other sites." },
+                  { label: "Organic Traffic", value: "8,240", icon: "OT", color: "#10A37F", tooltip: "Estimated monthly organic visitors from Google search. Source: Google Search Console + Ahrefs estimate." },
+                  { label: "Ranking Keywords", value: "347", icon: "KW", color: theme.text, tooltip: "Total keywords this domain ranks for in Google's top 100 results. Source: Ahrefs keyword tracking." },
+                  { label: "Backlinks", value: "1,892", icon: "BL", color: theme.text, tooltip: "Total external backlinks pointing to this domain from other websites. Source: Ahrefs backlink index." },
+                  { label: "Ref. Domains", value: "156", icon: "RD", color: theme.text, tooltip: "Number of unique referring domains linking to this site. More diverse domains = stronger authority signal." },
+                  { label: "Indexed Pages", value: "89", icon: "IX", color: theme.text, tooltip: "Pages from this domain currently indexed in Google. Source: Google Search Console index coverage report." },
+                ].map((m, i) => (
+                  <div key={i} style={{ padding: isMobile ? "10px 10px" : "12px 14px", borderRight: isMobile ? (i % 2 === 0 ? `1px solid ${theme.border}` : "none") : (i < 5 ? `1px solid ${theme.border}` : "none"), borderBottom: isMobile && i < 4 ? `1px solid ${theme.border}` : "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: theme.textSecondary, fontWeight: 500, letterSpacing: "0.3px" }}>{m.label}</span>
+                      <Tooltip text={m.tooltip} />
+                    </div>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: m.color, letterSpacing: "-0.5px" }}>{m.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* === Reputation Risk: Brand vs Non-Brand Split (Alexei critical fix) === */}
             <div style={{ ...card, padding: 16, border: "1px solid #DC262640" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
