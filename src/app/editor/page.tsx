@@ -67,6 +67,81 @@ function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkM
   );
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function IconHamburger({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18" />
+    </svg>
+  );
+}
+function IconClose({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+function GeoscaleLogoMark({ size = 32, theme }: { size?: number; theme: Theme }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 102 102" fill="none">
+      <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
+      <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+    </svg>
+  );
+}
+
+function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boolean; onClose: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        background: theme.cardBg, borderBottom: `1px solid ${theme.border}`,
+        padding: "16px 20px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <GeoscaleLogoMark size={28} theme={theme} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <IconClose color={theme.text} />
+          </button>
+        </div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {[
+            { href: "/", label: "Dashboard", active: false },
+            { href: "/scan", label: "Scans", active: false },
+            { href: "/scale-publish", label: "ScalePublish", active: false },
+            { href: "/editor", label: "Content Editor", active: true },
+            { href: "/roadmap", label: "Roadmap", active: false },
+          ].map((item, i) => (
+            <a key={i} href={item.href} onClick={onClose} style={{
+              display: "block", padding: "14px 0", fontSize: 16,
+              fontWeight: item.active ? 700 : 500,
+              color: item.active ? theme.text : theme.textSecondary,
+              textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
+            }}>{item.label}</a>
+          ))}
+        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type ToolbarBtn = { label: string; key: string; title: string };
 
 const TOOLBAR: ToolbarBtn[] = [
@@ -105,6 +180,8 @@ export default function EditorPage() {
     if (typeof window !== "undefined") return localStorage.getItem("geoscale-dark-mode") === "true";
     return false;
   });
+  const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("geoscale-dark-mode", darkMode.toString());
@@ -114,30 +191,49 @@ export default function EditorPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: darkMode ? "#0D1117" : "#F5F5F5", fontFamily: "'Inter','Segoe UI',sans-serif" }}>
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
       {/* Header */}
-      <header style={{ background: theme.cardBg, borderBottom: "1px solid " + theme.border, padding: "14px 32px", display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-        <div style={{ justifySelf: "start" }}><GeoscaleLogo width={140} theme={theme} /></div>
-        <nav style={{ display: "flex", gap: 24 }}>
-          <a href="/" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-          <a href="/editor" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Content editor</a>
-          <a href="/editor-roadmap" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
-        </nav>
-        <div style={{ justifySelf: "end", display: "flex", gap: 20, alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-            <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F" }} />
-            <span>Auto-saved 3s ago</span>
-          </div>
-          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-          <a href="/" style={{ fontSize: 14, color: theme.textSecondary, textDecoration: "none" }}>&larr; Dashboard</a>
-        </div>
+      <header style={{
+        background: theme.cardBg, borderBottom: "1px solid " + theme.border,
+        padding: isMobile ? "14px 16px" : "14px 32px",
+        display: isMobile ? "flex" : "grid",
+        gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr",
+        justifyContent: isMobile ? "space-between" : undefined,
+        alignItems: "center",
+      }}>
+        {isMobile ? (
+          <>
+            <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
+          </>
+        ) : (
+          <>
+            <div style={{ justifySelf: "start" }}><GeoscaleLogo width={140} theme={theme} /></div>
+            <nav style={{ display: "flex", gap: 24 }}>
+              <a href="/" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Content editor</a>
+              <a href="/editor-roadmap" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            <div style={{ justifySelf: "end", display: "flex", gap: 20, alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F" }} />
+                <span>Auto-saved 3s ago</span>
+              </div>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+              <a href="/" style={{ fontSize: 14, color: theme.textSecondary, textDecoration: "none" }}>&larr; Dashboard</a>
+            </div>
+          </>
+        )}
       </header>
 
       {/* Breadcrumb bar */}
-      <div style={{ background: theme.cardBg, borderBottom: "1px solid " + theme.border, padding: "10px 32px", fontSize: 14, color: theme.textSecondary }}>
+      <div style={{ background: theme.cardBg, borderBottom: "1px solid " + theme.border, padding: isMobile ? "10px 16px" : "10px 32px", fontSize: isMobile ? 13 : 14, color: theme.textSecondary, wordBreak: "break-word" }}>
         All4Horses / 6-month plan / Article #3 of 24 / <span style={{ color: theme.text, fontWeight: 600 }}>Therapeutic riding for children with ADHD</span>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 32px", display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 320px", gap: isMobile ? 16 : 24 }}>
         {/* MAIN EDITOR */}
         <div style={{ background: theme.cardBg, borderRadius: 12, border: "1px solid " + theme.border, overflow: "hidden" }}>
           {/* Tabs */}
@@ -177,9 +273,9 @@ export default function EditorPage() {
           </div>
 
           {/* Article */}
-          <div style={{ padding: "32px 48px", minHeight: 600 }}>
+          <div style={{ padding: isMobile ? "16px 16px" : "32px 48px", minHeight: isMobile ? 400 : 600 }}>
             <input defaultValue="Therapeutic Riding for Children with ADHD — Complete 2026 Guide" style={{
-              width: "100%", fontSize: 30, fontWeight: 700, border: "none", outline: "none", marginBottom: 16, color: theme.text, background: "transparent",
+              width: "100%", fontSize: isMobile ? 22 : 30, fontWeight: 700, border: "none", outline: "none", marginBottom: 16, color: theme.text, background: "transparent",
             }} />
             <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 24, display: "flex", gap: 16 }}>
               <span>{"📝"} 1,847 words</span>
@@ -220,11 +316,11 @@ export default function EditorPage() {
           </div>
 
           {/* Footer actions */}
-          <div style={{ padding: "14px 20px", borderTop: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center", background: theme.hoverBg }}>
+          <div style={{ padding: isMobile ? "14px 16px" : "14px 20px", borderTop: "1px solid " + theme.border, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 0, background: theme.hoverBg }}>
             <div style={{ fontSize: 14, color: theme.textSecondary }}>Version 3 - last edited by you 12 minutes ago</div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button style={{ padding: "9px 18px", background: theme.cardBg, border: "1px solid " + theme.border, borderRadius: 7, fontSize: 14, fontWeight: 500, cursor: "pointer", color: theme.text }}>Save draft</button>
-              <button style={{ padding: "9px 18px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", border: "none", borderRadius: 7, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Publish to site</button>
+              <button style={{ padding: "9px 18px", background: theme.cardBg, border: "1px solid " + theme.border, borderRadius: 7, fontSize: 14, fontWeight: 500, cursor: "pointer", color: theme.text, flex: isMobile ? 1 : undefined }}>Save draft</button>
+              <button style={{ padding: "9px 18px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", border: "none", borderRadius: 7, fontSize: 14, fontWeight: 600, cursor: "pointer", flex: isMobile ? 1 : undefined }}>Publish to site</button>
             </div>
           </div>
         </div>

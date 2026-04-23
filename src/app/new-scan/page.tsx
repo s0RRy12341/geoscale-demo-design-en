@@ -130,8 +130,46 @@ function StepIndicator({ current, steps, theme }: { current: number; steps: stri
   );
 }
 
+// ── Mobile detection hook ──
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+// ── Geoscale Logo Mark (circle only, for mobile header) ──
+function GeoscaleLogoMark({ size = 32, theme }: { size?: number; theme: Theme }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 102 102" fill="none">
+      <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
+      <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+    </svg>
+  );
+}
+
+// ── SVG Icons for mobile menu ──
+function IconHamburger({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18" />
+    </svg>
+  );
+}
+function IconClose({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
 // ── Dark Mode Toggle Button ──
-function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+function DarkModeToggle({ darkMode, setDarkMode, theme }: { darkMode: boolean; setDarkMode: (v: boolean) => void; theme?: Theme }) {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
@@ -163,8 +201,74 @@ function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkM
   );
 }
 
+// ── Mobile Menu Overlay ──
+function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boolean; onClose: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        background: theme.cardBg, borderBottom: `1px solid ${theme.border}`,
+        padding: "16px 20px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <GeoscaleLogoMark size={28} theme={theme} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <IconClose color={theme.text} />
+          </button>
+        </div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {[
+            { href: "/", label: "Dashboard", active: false },
+            { href: "/scan", label: "Scans", active: false },
+            { href: "/scale-publish", label: "ScalePublish", active: false },
+            { href: "/editor", label: "Content Editor", active: false },
+            { href: "/roadmap", label: "Roadmap", active: false },
+          ].map((item, i) => (
+            <a key={i} href={item.href} onClick={onClose} style={{
+              display: "block", padding: "14px 0", fontSize: 16,
+              fontWeight: item.active ? 700 : 500,
+              color: item.active ? theme.text : theme.textSecondary,
+              textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
+            }}>{item.label}</a>
+          ))}
+        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+          <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "10px 24px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none", flex: 1, justifyContent: "center" }}>New Scan</a>
+          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 14, color: theme.textSecondary, fontWeight: 400 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+          <span>Connected</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Shared Footer (matching all Geoscale pages) ──
-function GeoFooter({ theme }: { theme: Theme }) {
+function GeoFooter({ theme, isMobile }: { theme: Theme; isMobile?: boolean }) {
+  if (isMobile) {
+    return (
+      <footer style={{ borderTop: `1px solid ${theme.border}`, marginTop: "auto", background: theme.bg }}>
+        <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <GeoscaleLogoMark size={24} theme={theme} />
+              <span style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 400, textAlign: "center" }}>Powered by advanced AI</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
+              {["Feedback", "Report a bug", "API usage"].map((label, i) => (
+                <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "4px 10px", cursor: "pointer", color: theme.textSecondary, background: theme.badgeBg, borderRadius: 20, border: `1px solid ${theme.border}` }}>{label}</span>
+              ))}
+            </div>
+            <span style={{ fontSize: 12, color: theme.textMuted, fontWeight: 400 }}>GeoScale 2026 &copy;</span>
+          </div>
+        </div>
+      </footer>
+    );
+  }
   return (
     <footer style={{ borderTop: `1px solid ${theme.border}`, marginTop: "auto", background: theme.bg }}>
       <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -194,44 +298,58 @@ function GeoFooter({ theme }: { theme: Theme }) {
 // ════════════════════════════════════════════
 // SCREEN 1: Brand Input
 // ════════════════════════════════════════════
-function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain: string, brand: string) => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, setMenuOpen }: { onSubmit: (domain: string, brand: string) => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void; isMobile: boolean; menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
   const [domain, setDomain] = useState("");
   const [brandName, setBrandName] = useState("");
 
   return (
     <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
+      {/* Mobile Menu */}
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
+
       {/* Header */}
       <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          <div style={{ justifySelf: "start", direction: "ltr" }}>
-            <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
-            </svg>
+        {isMobile ? (
+          <div style={{ padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
-          </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
+        ) : (
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+            <div style={{ justifySelf: "start", direction: "ltr" }}>
+              <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              </svg>
+            </div>
+            <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                <span>Connected</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Hero Section */}
       <div
-        className="relative py-12 px-4"
+        className="relative px-4"
         style={{
           background: theme.badgeBg,
+          padding: isMobile ? "24px 16px" : "48px 16px",
         }}
       >
         {/* Subtle dot pattern overlay */}
@@ -243,10 +361,11 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
           }}
         />
         <div className="relative max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: theme.text }}>
-            AI Presence Check
+          <h1 className="font-bold mb-4" style={{ color: theme.text, fontSize: isMobile ? 28 : undefined }}>
+            {!isMobile && <span className="text-4xl md:text-5xl">AI Presence Check</span>}
+            {isMobile && "AI Presence Check"}
           </h1>
-          <p className="text-lg" style={{ color: theme.textSecondary }}>
+          <p style={{ color: theme.textSecondary, fontSize: isMobile ? 15 : 18 }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -258,8 +377,8 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
       </div>
 
       {/* Form Card */}
-      <div className="max-w-2xl mx-auto w-full px-4 flex-1 pb-16">
-        <div className="rounded-[10px] p-8" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
+      <div className="max-w-2xl mx-auto w-full flex-1" style={{ padding: isMobile ? "0 12px 32px" : "0 16px 64px" }}>
+        <div className="rounded-[10px]" style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, padding: isMobile ? 20 : 32 }}>
           {/* Card Header */}
           <div className="flex items-center gap-2 mb-8">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={BRAND.teal} strokeWidth="2">
@@ -344,7 +463,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
           </ul>
         </div>
       </div>
-      <GeoFooter theme={theme} />
+      <GeoFooter theme={theme} isMobile={isMobile} />
     </div>
   );
 }
@@ -352,7 +471,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode }: { onSubmit: (domain
 // ════════════════════════════════════════════
 // SCREEN 2: Analyzing Animation
 // ════════════════════════════════════════════
-function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }: { domain: string; brandName: string; onComplete: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode, isMobile, menuOpen, setMenuOpen }: { domain: string; brandName: string; onComplete: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void; isMobile: boolean; menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Connecting to site...");
   const [dots, setDots] = useState("");
@@ -396,26 +515,39 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }
 
   return (
     <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
+      {/* Mobile Menu */}
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
+
       {/* Header */}
       <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div className="flex items-center gap-3">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 00-3-3.87" />
-            <path d="M16 3.13a4 4 0 010 7.75" />
-          </svg>
-          <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-          <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
-            <ArrowLeft size={14} color={theme.textSecondary} />
-            Back
-          </span>
-        </div>
-        </div>
+        {isMobile ? (
+          <div style={{ padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+          </div>
+        ) : (
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="flex items-center gap-3">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+              <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
+                <ArrowLeft size={14} color={theme.textSecondary} />
+                Back
+              </span>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
@@ -538,7 +670,7 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode }
         </div>
       </div>
 
-      <GeoFooter theme={theme} />
+      <GeoFooter theme={theme} isMobile={isMobile} />
     </div>
   );
 }
@@ -663,47 +795,61 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
   );
 }
 
-function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen, setMenuOpen }: { onStartScan: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void; isMobile: boolean; menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
   return (
     <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
+      {/* Mobile Menu */}
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
+
       {/* Main Header */}
       <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          <div style={{ justifySelf: "start", direction: "ltr" }}>
-            <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
-            </svg>
+        {isMobile ? (
+          <div style={{ padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
-          </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
+        ) : (
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+            <div style={{ justifySelf: "start", direction: "ltr" }}>
+              <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              </svg>
+            </div>
+            <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                <span>Connected</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
       {/* Hero section */}
       <div
-        className="py-8 px-4"
         style={{
           background: theme.badgeBg,
+          padding: isMobile ? "20px 16px" : "32px 16px",
         }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: theme.text }}>
-            AI Presence Check
+          <h1 className="font-bold mb-2" style={{ color: theme.text, fontSize: isMobile ? 24 : undefined }}>
+            {!isMobile && <span className="text-3xl md:text-4xl">AI Presence Check</span>}
+            {isMobile && "AI Presence Check"}
           </h1>
-          <p className="text-base" style={{ color: theme.textSecondary }}>
+          <p style={{ color: theme.textSecondary, fontSize: isMobile ? 14 : 16 }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -715,7 +861,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
       </div>
 
       {/* Sub-header */}
-      <div className="max-w-4xl mx-auto w-full px-4 mt-2">
+      <div className="max-w-4xl mx-auto w-full mt-2" style={{ padding: isMobile ? "0 12px" : "0 16px" }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
@@ -724,7 +870,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
               <path d="M23 21v-2a4 4 0 00-3-3.87" />
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
-            <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
+            <span className="font-semibold" style={{ color: theme.text, fontSize: isMobile ? 18 : 20 }}>Audience selection</span>
           </div>
           <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
             <ArrowLeft size={14} color={theme.textSecondary} />
@@ -757,7 +903,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
       </div>
 
       {/* Persona Grid */}
-      <div className="max-w-4xl mx-auto w-full px-4 flex-1 pb-8">
+      <div className="max-w-4xl mx-auto w-full flex-1" style={{ padding: isMobile ? "0 12px 24px" : "0 16px 32px" }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {MOCK_PERSONAS.map((persona, i) => (
             <PersonaCard key={persona.name} persona={persona} index={i} theme={theme} />
@@ -783,7 +929,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode }: { onStartScan: (
         </div>
 
       </div>
-      <GeoFooter theme={theme} />
+      <GeoFooter theme={theme} isMobile={isMobile} />
     </div>
   );
 }
@@ -1047,7 +1193,7 @@ function AIEngineCard({
   );
 }
 
-function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: string; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, setMenuOpen }: { brandName: string; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void; isMobile: boolean; menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
   const [phase, setPhase] = useState<ScanPhase>("queries");
   const [overallProgress, setOverallProgress] = useState(0);
   const [queryIndex, setQueryIndex] = useState(0);
@@ -1136,44 +1282,57 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
 
   return (
     <div className="screen-enter min-h-screen flex flex-col" dir="ltr" style={{ background: theme.bg }}>
+      {/* Mobile Menu */}
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
+
       {/* Main Header */}
       <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          <div style={{ justifySelf: "start", direction: "ltr" }}>
-            <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
-            </svg>
+        {isMobile ? (
+          <div style={{ padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button onClick={() => setMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
-          </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
+        ) : (
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+            <div style={{ justifySelf: "start", direction: "ltr" }}>
+              <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              </svg>
+            </div>
+            <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                <span>Connected</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
       {/* Top Bar */}
       <div
-        className="py-6 px-4"
         style={{
           background: theme.badgeBg,
+          padding: isMobile ? "16px 16px" : "24px 16px",
         }}
       >
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-1" style={{ color: theme.text }}>
+          <h1 className="font-bold mb-1" style={{ color: theme.text, fontSize: isMobile ? 22 : 30 }}>
             AI Presence Check
           </h1>
-          <p className="text-base" style={{ color: theme.textSecondary }}>
+          <p style={{ color: theme.textSecondary, fontSize: isMobile ? 14 : 16 }}>
             See how AI models (GPT, Gemini) recognize and recommend your brand — for every audience
           </p>
         </div>
@@ -1185,9 +1344,9 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
       </div>
 
       {/* Main Scan Area */}
-      <div className="max-w-3xl mx-auto w-full px-4 flex-1 pb-12">
+      <div className="max-w-3xl mx-auto w-full flex-1" style={{ padding: isMobile ? "0 12px 24px" : "0 16px 48px" }}>
         {/* Scan Status Card */}
-        <div className="rounded-[10px] p-8 relative overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
+        <div className="rounded-[10px] relative overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, padding: isMobile ? 16 : 32 }}>
           {/* Animated corner accent */}
           {phase !== "complete" && (
             <div
@@ -1377,7 +1536,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
             {/* ANALYSIS PHASE */}
             {phase === "analysis" && (
               <div className="animate-fade-in-up">
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                   <AIEngineCard
                     name="ChatGPT"
                     icon={
@@ -1498,7 +1657,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode }: { brandName: strin
         </div>
       </div>
 
-      <GeoFooter theme={theme} />
+      <GeoFooter theme={theme} isMobile={isMobile} />
     </div>
   );
 }
@@ -1514,6 +1673,8 @@ export default function Home() {
     if (typeof window !== 'undefined') return localStorage.getItem('geoscale-dark-mode') === 'true';
     return false;
   });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   useEffect(() => { localStorage.setItem('geoscale-dark-mode', darkMode.toString()); }, [darkMode]);
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
@@ -1551,10 +1712,10 @@ export default function Home() {
         ))}
       </div>
 
-      {screen === 1 && <Screen1 onSubmit={handleScreen1Submit} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
-      {screen === 2 && <Screen2 domain={domain} brandName={brandName} onComplete={handleScreen2Complete} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
-      {screen === 3 && <Screen3 onStartScan={handleStartScan} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
-      {screen === 4 && <Screen4 brandName={brandName} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />}
+      {screen === 1 && <Screen1 onSubmit={handleScreen1Submit} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} isMobile={isMobile} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
+      {screen === 2 && <Screen2 domain={domain} brandName={brandName} onComplete={handleScreen2Complete} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} isMobile={isMobile} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
+      {screen === 3 && <Screen3 onStartScan={handleStartScan} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} isMobile={isMobile} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
+      {screen === 4 && <Screen4 brandName={brandName} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} isMobile={isMobile} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
     </main>
   );
 }
