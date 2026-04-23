@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
 // ============================================================
 // SCALEPUBLISH — Publisher Marketplace
@@ -117,6 +117,41 @@ function IconFilter({ size = 14 }: { size?: number }) {
 }
 function IconExternalLink({ size = 12 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" /></svg>;
+}
+
+// ── Tooltip (Ahrefs-style) ──
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const handleEnter = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top - 10, left: r.left + r.width / 2 });
+    }
+    setShow(true);
+  };
+  return (
+    <span ref={ref}
+      style={{ display: "inline-flex", alignItems: "center", cursor: "help" }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={() => setShow(false)}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A2A9B0" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+      {show && (
+        <div style={{
+          position: "fixed", top: pos.top, left: pos.left,
+          transform: "translate(-50%, -100%)",
+          background: "#1B1F23", color: "#fff", fontSize: 13, fontWeight: 400, lineHeight: 1.5,
+          padding: "8px 12px", borderRadius: 6, whiteSpace: "normal", maxWidth: 280,
+          zIndex: 99999, pointerEvents: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+        }}>
+          {text}
+          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "#1B1F23" }} />
+        </div>
+      )}
+    </span>
+  );
 }
 
 // ── Favicon helper ──
@@ -309,6 +344,7 @@ export default function BestLinksPage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [flashId, setFlashId] = useState<number | null>(null);
   const [agencyMargin, setAgencyMargin] = useState(20);
+  const [priceOverrides, setPriceOverrides] = useState<Record<number, number>>({});
 
   // Plan builder state
   const [planSpeed, setPlanSpeed] = useState<"fast" | "medium" | "slow">("medium");
@@ -334,7 +370,8 @@ export default function BestLinksPage() {
   }, []);
 
   const cartPublishers = useMemo(() => PUBLISHERS.filter(p => cart.includes(p.id)), [cart]);
-  const cartTotal = useMemo(() => cartPublishers.reduce((s, p) => s + p.pricePerArticle, 0), [cartPublishers]);
+  const getPrice = useCallback((pub: Publisher) => priceOverrides[pub.id] ?? pub.pricePerArticle, [priceOverrides]);
+  const cartTotal = useMemo(() => cartPublishers.reduce((s, p) => s + (priceOverrides[p.id] ?? p.pricePerArticle), 0), [cartPublishers, priceOverrides]);
   const cartQueries = useMemo(() => cartPublishers.reduce((s, p) => s + (p.queries || 8), 0), [cartPublishers]);
   const marginAmount = useMemo(() => Math.round(cartTotal * agencyMargin / 100), [cartTotal, agencyMargin]);
   const clientTotal = useMemo(() => cartTotal + marginAmount, [cartTotal, marginAmount]);
@@ -366,11 +403,11 @@ export default function BestLinksPage() {
     budget: planData.reduce((s, r) => s + r.budget, 0),
   }), [planData]);
 
-  const TABS: { key: TabKey; label: string }[] = [
-    { key: "marketplace", label: "Site Marketplace" },
-    { key: "planner", label: "Plan Builder" },
-    { key: "publishers", label: "Publishers Portal" },
-    { key: "rejected", label: "Rejected Sites" },
+  const TABS: { key: TabKey; label: string; tooltip: string }[] = [
+    { key: "marketplace", label: "Site Marketplace", tooltip: "Verified site database for SEO and GEO content publishing" },
+    { key: "planner", label: "Plan Builder", tooltip: "Build a monthly work plan and generate a client quote" },
+    { key: "publishers", label: "Publishers Portal", tooltip: "Manage your sites as a Publisher on the platform" },
+    { key: "rejected", label: "Rejected Sites", tooltip: "Sites that did not meet quality criteria" },
   ];
 
   return (
@@ -420,7 +457,7 @@ export default function BestLinksPage() {
                 transition: "all 0.2s",
               }}
             >
-              {tab.label}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{tab.label} <Tooltip text={tab.tooltip} /></span>
               {tab.key === "rejected" && rejectedPublishers.length > 0 && (
                 <span style={{ marginLeft: 6, background: "#DC262615", color: "#DC2626", fontSize: 14, fontWeight: 600, padding: "2px 8px", borderRadius: 20 }}>{rejectedPublishers.length}</span>
               )}
@@ -445,6 +482,8 @@ export default function BestLinksPage() {
             approvedOnly={approvedOnly}
             setApprovedOnly={setApprovedOnly}
             onAddToCart={addToCart}
+            getPrice={getPrice}
+            setPriceOverrides={setPriceOverrides}
             theme={theme}
             darkMode={darkMode}
           />
@@ -543,7 +582,7 @@ export default function BestLinksPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 15, fontWeight: 600 }}>{fmtCurrency(pub.pricePerArticle)}</span>
+                      <span style={{ fontSize: 15, fontWeight: 600 }}>{fmtCurrency(priceOverrides[pub.id] ?? pub.pricePerArticle)}</span>
                       <div style={{ fontSize: 14, color: theme.textSecondary }}>~{pub.queries || 8} queries</div>
                     </div>
                     <button onClick={() => removeFromCart(pub.id)} style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted, padding: 2 }}>
@@ -581,23 +620,23 @@ export default function BestLinksPage() {
 
             <div style={{ padding: "20px 24px", borderTop: `1px solid ${theme.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 15 }}>
-                <span style={{ color: theme.textSecondary }}>Total sites</span>
+                <span style={{ color: theme.textSecondary, display: "inline-flex", alignItems: "center", gap: 4 }}>Total sites <Tooltip text="Number of sites selected for the plan" /></span>
                 <span style={{ fontWeight: 600 }}>{cart.length}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 15 }}>
-                <span style={{ color: theme.textSecondary }}>Total queries</span>
+                <span style={{ color: theme.textSecondary, display: "inline-flex", alignItems: "center", gap: 4 }}>Total queries <Tooltip text="Total queries covered by the selected sites" /></span>
                 <span style={{ fontWeight: 600 }}>{cartQueries}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 15 }}>
-                <span style={{ color: theme.textSecondary }}>Base price</span>
+                <span style={{ color: theme.textSecondary, display: "inline-flex", alignItems: "center", gap: 4 }}>Base price <Tooltip text="Your cost before adding Agency margin" /></span>
                 <span style={{ fontWeight: 600 }}>{fmtCurrency(cartTotal)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 15 }}>
-                <span style={{ color: theme.textSecondary }}>Agency margin ({agencyMargin}%)</span>
+                <span style={{ color: theme.textSecondary, display: "inline-flex", alignItems: "center", gap: 4 }}>Agency margin ({agencyMargin}%) <Tooltip text="Your profit — calculated as a percentage of the base price" /></span>
                 <span style={{ fontWeight: 600, color: "#10A37F" }}>{fmtCurrency(marginAmount)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, fontSize: 15, paddingTop: 8, borderTop: `1px solid ${theme.border}` }}>
-                <span style={{ fontWeight: 600 }}>Client total</span>
+                <span style={{ fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>Client total <Tooltip text="Amount the client pays — base price + Agency margin" /></span>
                 <span style={{ fontWeight: 700, fontSize: 16 }}>{fmtCurrency(clientTotal)}</span>
               </div>
               <button style={{ width: "100%", padding: "12px 0", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: "none", cursor: "pointer" }}>
@@ -640,7 +679,7 @@ export default function BestLinksPage() {
 // ============================================================
 function MarketplaceTab({
   publishers, cart, flashId, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory,
-  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart, theme, darkMode,
+  sortBy, setSortBy, approvedOnly, setApprovedOnly, onAddToCart, getPrice, setPriceOverrides, theme, darkMode,
 }: {
   publishers: Publisher[];
   cart: number[];
@@ -654,6 +693,8 @@ function MarketplaceTab({
   approvedOnly: boolean;
   setApprovedOnly: (v: boolean) => void;
   onAddToCart: (id: number) => void;
+  getPrice: (pub: Publisher) => number;
+  setPriceOverrides: React.Dispatch<React.SetStateAction<Record<number, number>>>;
   theme: Theme;
   darkMode: boolean;
 }) {
@@ -661,8 +702,9 @@ function MarketplaceTab({
     <div>
       {/* Title */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: theme.text, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
           ScalePublish <span style={{ fontWeight: 400, fontSize: 22 }}>— Content platform for agencies</span>
+          <Tooltip text="Platform for choosing sites, building work plans, and generating client quotes" />
         </h1>
         <p style={{ fontSize: 15, color: theme.textSecondary, lineHeight: 1.6 }}>
           Choose sites, build work plans, and generate quotes — SEO and GEO in one place
@@ -799,6 +841,8 @@ function MarketplaceTab({
             inCart={cart.includes(pub.id)}
             isFlashing={flashId === pub.id}
             onToggleCart={() => onAddToCart(pub.id)}
+            getPrice={getPrice}
+            setPriceOverrides={setPriceOverrides}
             theme={theme}
             darkMode={darkMode}
           />
@@ -816,11 +860,13 @@ function MarketplaceTab({
 }
 
 // ── Publisher Card ──
-function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, theme, darkMode }: {
+function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPrice, setPriceOverrides, theme, darkMode }: {
   publisher: Publisher;
   inCart: boolean;
   isFlashing: boolean;
   onToggleCart: () => void;
+  getPrice: (pub: Publisher) => number;
+  setPriceOverrides: React.Dispatch<React.SetStateAction<Record<number, number>>>;
   theme: Theme;
   darkMode: boolean;
 }) {
@@ -893,7 +939,19 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, theme
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: `1px solid ${theme.border}` }}>
         <div>
           <div style={{ fontSize: 14, color: theme.textSecondary }}>Price per article</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>{fmtCurrency(pub.pricePerArticle)}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>$</span>
+            <input
+              type="number"
+              value={getPrice(pub)}
+              onChange={e => setPriceOverrides(prev => ({ ...prev, [pub.id]: Number(e.target.value) }))}
+              style={{
+                fontSize: 20, fontWeight: 700, color: theme.text, background: "transparent",
+                border: `1px solid ${theme.border}`, borderRadius: 6, padding: "2px 8px",
+                width: 90, outline: "none",
+              }}
+            />
+          </div>
         </div>
         <button
           onClick={onToggleCart}
@@ -1128,7 +1186,7 @@ function PlannerTab({
       <div style={{ background: theme.badgeBg, borderRadius: 10, border: `1px solid ${theme.border}`, padding: "20px 24px", marginBottom: 20, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
         {/* Brand selector */}
         <div>
-          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6 }}>Brand</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Brand <Tooltip text="Select the brand this plan is being built for" /></div>
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -1153,7 +1211,7 @@ function PlannerTab({
 
         {/* Duration */}
         <div>
-          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6 }}>Plan duration</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Plan duration <Tooltip text="3 months for quick results, 6 months for depth and control" /></div>
           <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([3, 6] as const).map(d => (
               <button
@@ -1181,7 +1239,7 @@ function PlannerTab({
 
         {/* Speed */}
         <div>
-          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6 }}>Pace</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>Pace <Tooltip text="Aggressive = 8 articles/month, Medium = 5, Conservative = 3" /></div>
           <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
             {([
               { key: "fast" as const, label: "Aggressive" },
