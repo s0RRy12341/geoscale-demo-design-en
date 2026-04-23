@@ -149,26 +149,42 @@ function IconClose({ color = "#000" }: { color?: string }) {
   );
 }
 
-// ── Ahrefs-style Tooltip ──
+// ── Ahrefs-style Tooltip (mobile-friendly: tap to open, tap anywhere to dismiss) ──
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
-  const handleEnter = () => {
+  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+
+  const updatePos = () => {
     if (ref.current) {
       const r = ref.current.getBoundingClientRect();
-      setPos({ top: r.top - 10, left: r.left + r.width / 2 });
+      const tooltipWidth = 280;
+      let left = r.left + r.width / 2;
+      if (left - tooltipWidth / 2 < 12) left = tooltipWidth / 2 + 12;
+      if (left + tooltipWidth / 2 > window.innerWidth - 12) left = window.innerWidth - tooltipWidth / 2 - 12;
+      setPos({ top: r.top - 10, left });
     }
-    setShow(true);
   };
+
+  useEffect(() => {
+    if (!show) return;
+    const dismiss = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    };
+    document.addEventListener("touchstart", dismiss);
+    document.addEventListener("mousedown", dismiss);
+    return () => { document.removeEventListener("touchstart", dismiss); document.removeEventListener("mousedown", dismiss); };
+  }, [show]);
+
   return (
     <span ref={ref}
-      style={{ display: "inline-flex", alignItems: "center", cursor: "help", flexShrink: 0 }}
-      onMouseEnter={handleEnter}
-      onMouseLeave={() => setShow(false)}
-      onClick={(e) => { e.stopPropagation(); setShow(!show); }}
+      style={{ display: "inline-flex", alignItems: "center", cursor: "help", flexShrink: 0, padding: 4, margin: -4 }}
+      onMouseEnter={() => { if (!isTouchDevice) { updatePos(); setShow(true); } }}
+      onMouseLeave={() => { if (!isTouchDevice) setShow(false); }}
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); updatePos(); setShow(!show); }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0B7BF" strokeWidth="2" style={{ display: "block", transition: "stroke 150ms" }} onMouseEnter={(e) => { (e.currentTarget as SVGElement).style.stroke = "#666"; }} onMouseLeave={(e) => { (e.currentTarget as SVGElement).style.stroke = "#B0B7BF"; }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={show ? "#10A37F" : "#B0B7BF"} strokeWidth="2" style={{ display: "block", transition: "stroke 150ms" }}>
         <circle cx="12" cy="12" r="10" />
         <path d="M12 16v-4M12 8h.01" />
       </svg>
@@ -177,8 +193,8 @@ function Tooltip({ text }: { text: string }) {
           position: "fixed", top: pos.top, left: pos.left,
           transform: "translate(-50%, -100%)",
           background: "#1B1F23", color: "#FFFFFF", fontSize: 14, lineHeight: 1.55,
-          padding: "8px 12px", borderRadius: 6, whiteSpace: "normal", maxWidth: 280,
-          zIndex: 99999, pointerEvents: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+          padding: "10px 14px", borderRadius: 8, whiteSpace: "normal", maxWidth: 280,
+          zIndex: 99999, pointerEvents: "auto", boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
         }}>
           {text}
           <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "#1B1F23" }} />
@@ -642,94 +658,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── AI Traffic & Bot Activity Row ── */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
-            gap: 8,
-            marginBottom: 16,
-          }}>
-            {/* AI vs Traditional SEO */}
-            <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI vs Traditional SEO</h3>
-                <Tooltip text="Breakdown of traffic originating from AI engine referrals vs traditional organic search. AI traffic includes clicks from ChatGPT, Gemini, Perplexity and Bing Copilot answers." />
-              </div>
-              <p style={{ fontSize: 13, marginBottom: 10, color: theme.textSecondary, fontWeight: 400, margin: "0 0 10px" }}>Traffic split</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 28, fontWeight: 700, color: "#10A37F" }}>13.3%</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#10A37F" }}>+28.4%</span>
-              </div>
-              <div style={{ display: "flex", height: 8, overflow: "hidden", borderRadius: 20, marginBottom: 8 }}>
-                <div style={{ width: "13.3%", background: "#10A37F" }} />
-                <div style={{ width: "86.7%", background: theme.barTrack }} />
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: theme.textSecondary, fontWeight: 400 }}>
-                <span>AI - 23,847</span>
-                <span>SEO - 156,234</span>
-              </div>
-            </div>
-
-            {/* Bot Crawl Activity */}
-            <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, margin: 0 }}>Bot Crawl Activity</h3>
-                  <Tooltip text="Real-time monitoring of AI bot crawlers visiting your sites. Shows which AI engines are indexing your content and how recently." />
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 600, padding: "1px 8px", background: "#10A37F15", color: "#10A37F", borderRadius: 20 }}>live</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-                {[
-                  { bot: "GPTBot", domain: "openai.com", pages: "1,247", ago: "2h", tooltip: "OpenAI's web crawler that indexes content for ChatGPT's knowledge" },
-                  { bot: "PerplexityBot", domain: "perplexity.ai", pages: "892", ago: "15m", tooltip: "Perplexity AI's crawler that indexes pages for its AI search answers" },
-                  { bot: "Claude-Web", domain: "anthropic.com", pages: "456", ago: "4h", tooltip: "Anthropic's web crawler for Claude AI's web search feature" },
-                  { bot: "BingBot", domain: "bing.com", pages: "2,134", ago: "1h", tooltip: "Microsoft's crawler powering Bing search and Copilot AI answers" },
-                ].map((b, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={16} height={16} style={{ borderRadius: 3, flexShrink: 0, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
-                    <span style={{ fontSize: 14, fontWeight: 500, flex: 1, color: theme.text }}>{b.bot}</span>
-                    <span style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 400 }}>{b.pages}</span>
-                    <span style={{ fontSize: 13, color: theme.textMuted, fontWeight: 400 }}>{b.ago}</span>
-                    <Tooltip text={b.tooltip} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Engine Coverage */}
-            <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
-                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, margin: 0 }}>Engine Coverage</h3>
-                <Tooltip text="Visibility score per AI engine. Shows how often your brands are mentioned or cited in each engine's AI-generated answers." />
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { engine: "Google AIO", score: 78, icon: <img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="" width={12} height={12} style={{ borderRadius: 2, flexShrink: 0 }} />, tooltip: "Google AI Overviews - the AI-generated summary boxes at the top of Google search results" },
-                  { engine: "Bing Copilot", score: 82, icon: <img src="https://www.google.com/s2/favicons?domain=bing.com&sz=64" alt="" width={12} height={12} style={{ borderRadius: 2, flexShrink: 0 }} />, tooltip: "Microsoft Bing Copilot - AI-powered search answers integrated into Bing search" },
-                  { engine: "ChatGPT", score: 71, icon: <img src="/logos/chatgpt.svg" width={12} height={12} alt="ChatGPT" style={{ display: "inline-block" }} />, tooltip: "OpenAI ChatGPT with web search - tracks brand mentions in ChatGPT's responses" },
-                  { engine: "Gemini", score: 69, icon: <img src="/logos/gemini.svg" width={12} height={12} alt="Gemini" style={{ display: "inline-block" }} />, tooltip: "Google Gemini AI assistant - measures how often Gemini cites your content" },
-                  { engine: "Perplexity", score: 85, icon: <img src="/logos/perplexity.svg" width={12} height={12} alt="Perplexity" style={{ display: "inline-block" }} />, tooltip: "Perplexity AI search engine - tracks citations and mentions in Perplexity answers" },
-                ].map((e, i) => {
-                  return (
-                    <div key={i}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          {e.icon}
-                          <span style={{ fontSize: 14, fontWeight: 500, color: theme.text }}>{e.engine}</span>
-                          <Tooltip text={e.tooltip} />
-                        </div>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{e.score}%</span>
-                      </div>
-                      <div style={{ height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${e.score}%`, background: "#10A37F", borderRadius: 2 }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
 
           {/* ── Brands Table ── */}
           <div style={{ marginBottom: 20 }}>
