@@ -211,23 +211,23 @@ const phases: Phase[] = [
     color: "#10A37F",
     features: [
       { name: "Multi-Query Content Engine", description: "Every article the system generates must include multiple sub-queries under one primary query. Each H2/H3 answers an independent query, FAQ captures additional long-tail", ref: "See full prompt below | Live example: adsgpt.io/blog/social-media-marketing-strategy", priority: "P0", status: "not_started" },
-      { name: "Primary Time-Series Chart", description: "Large time-series chart at the top of the scan page: GPT+Gemini mention rate over time, with 7/30/90 day filter buttons", ref: "Demo: /scan -> 'Mention Trend' block | Production: completely missing from scan page", priority: "P0", status: "done" },
-      { name: "Change Indicator (+/-) on Mention Rate", description: "Green/red arrow + change number next to mention percentage compared to previous scan", ref: "Demo: /scan -> top metric cards (up 2.3%) | Production: shows number only without comparison", priority: "P0", status: "done" },
-      { name: "Change Indicator (+/-) on Average Position", description: "Green/red arrow + change number next to average position compared to previous scan", ref: "Demo: /scan -> 'Average Position' card | Production: shows number only", priority: "P0", status: "done" },
-      { name: "Change Indicator (+/-) on Citation Quality", description: "Green/red arrow + change number next to citation quality score compared to previous scan", ref: "Demo: /scan -> 'Citation Quality' card | Production: shows number only", priority: "P0", status: "done" },
+      { name: "Primary Time-Series Chart", description: "Large time-series chart at the top of the scan page: GPT+Gemini mention rate over time, with 7/30/90 day filter buttons", ref: "Demo: /scan -> 'Mention Trend' block | Production: completely missing from scan page", priority: "P0", status: "not_started" },
+      { name: "Change Indicator (+/-) on Mention Rate", description: "Green/red arrow + change number next to mention percentage compared to previous scan", ref: "Demo: /scan -> top metric cards (up 2.3%) | Production: shows number only without comparison", priority: "P0", status: "not_started" },
+      { name: "Change Indicator (+/-) on Average Position", description: "Green/red arrow + change number next to average position compared to previous scan", ref: "Demo: /scan -> 'Average Position' card | Production: shows number only", priority: "P0", status: "not_started" },
+      { name: "Change Indicator (+/-) on Citation Quality", description: "Green/red arrow + change number next to citation quality score compared to previous scan", ref: "Demo: /scan -> 'Citation Quality' card | Production: shows number only", priority: "P0", status: "not_started" },
       { name: "AI Strategy Box - Strategic Recommendations", description: "Yellow/prominent block on scan page with 3-5 recommendations based on scan data: what to do to improve", ref: "Demo: /scan -> 'Recommended AI Strategy' block (yellow) | Production: does not exist", priority: "P0", status: "not_started" },
-      { name: "What Worked (Green Block)", description: "Green box with bullet points: positive mentions, citations, queries where the brand appears", ref: "Demo: /scan -> green 'What Works' block | Production: does not exist", priority: "P0", status: "done" },
-      { name: "What's Missing (Red Block)", description: "Red box with bullet points: queries without mentions, weak areas, missed opportunities", ref: "Demo: /scan -> red 'What's Missing' block | Production: does not exist", priority: "P0", status: "done" },
-      { name: "AI Summary - ChatGPT Summary", description: "Block with textual summary of what ChatGPT says about the brand in AI responses", ref: "Demo: /scan -> 'ChatGPT says' block with logo | Production: does not exist", priority: "P0", status: "done" },
-      { name: "AI Summary - Gemini Summary", description: "Block with textual summary of what Gemini says about the brand in AI responses", ref: "Demo: /scan -> 'Gemini says' block with logo | Production: does not exist", priority: "P0", status: "done" },
-      { name: "SEO-GEO Correlation Table", description: "Table linking traditional keywords to AI queries: keyword, search volume, difficulty, related queries with SEO/GEO toggle", ref: "Demo: /scan -> 'SEO-GEO Correlations' tab | Production: does not exist", priority: "P0", status: "done" },
+      { name: "What Worked (Green Block)", description: "Green box with bullet points: positive mentions, citations, queries where the brand appears", ref: "Demo: /scan -> green 'What Works' block | Production: does not exist", priority: "P0", status: "not_started" },
+      { name: "What's Missing (Red Block)", description: "Red box with bullet points: queries without mentions, weak areas, missed opportunities", ref: "Demo: /scan -> red 'What's Missing' block | Production: does not exist", priority: "P0", status: "not_started" },
+      { name: "AI Summary - ChatGPT Summary", description: "Block with textual summary of what ChatGPT says about the brand in AI responses", ref: "Demo: /scan -> 'ChatGPT says' block with logo | Production: does not exist", priority: "P0", status: "not_started" },
+      { name: "AI Summary - Gemini Summary", description: "Block with textual summary of what Gemini says about the brand in AI responses", ref: "Demo: /scan -> 'Gemini says' block with logo | Production: does not exist", priority: "P0", status: "not_started" },
+      { name: "SEO-GEO Correlation Table", description: "Table linking traditional keywords to AI queries: keyword, search volume, difficulty, related queries with SEO/GEO toggle", ref: "Demo: /scan -> 'SEO-GEO Correlations' tab | Production: does not exist", priority: "P0", status: "not_started" },
       { name: "Brand Logo Instead of Percentage Circle", description: "In scans/dashboard screens - replace the percentage circle next to brand name with the brand's logo (favicon/logo from domain)", ref: "Production: scale.geoscale.ai -> dashboard + scan list - the percentage circle next to brand name", priority: "P0", status: "not_started" },
-      { name: "Tooltips on Every Metric", description: "Info icon (i) next to every number and metric with a popup explaining what the metric means and how it's calculated", ref: "Demo: /scan -> every metric card has (i) with hover | Production: no tooltips at all", priority: "P0", status: "done" },
+      { name: "Tooltips on Every Metric", description: "Info icon (i) next to every number and metric with a popup explaining what the metric means and how it's calculated", ref: "Demo: /scan -> every metric card has (i) with hover | Production: no tooltips at all", priority: "P0", status: "not_started" },
       // Alexei NEW requirements - Level 1
-      { name: "Mobile Responsiveness", description: "All pages must be fully mobile-responsive (logo, menu, layout, tables)", ref: "All pages: dashboard, scan, scale-publish, editor, roadmap", priority: "P0", status: "in_progress" },
+      { name: "Mobile Responsiveness", description: "All pages must be fully mobile-responsive (logo, menu, layout, tables)", ref: "All pages: dashboard, scan, scale-publish, editor, roadmap", priority: "P0", status: "not_started" },
       { name: "Design Tokens System", description: "Single design tokens file for colors, typography, spacing across all pages", ref: "New system-wide file: tokens.ts or CSS variables", priority: "P0", status: "not_started" },
       { name: "Plan Builder Demo Flow", description: "End-to-end flow: scope selection -> publisher picking -> SEO/GEO per article -> quote with publisher logos", ref: "New full flow spanning scan + scale-publish + quote pages", priority: "P0", status: "not_started" },
-      { name: "Brand/Non-Brand Mention Split", description: "Reputation Risk must separate branded vs non-branded query mention rates", ref: "Scan page -> Reputation Risk section: split by brand vs non-brand queries", priority: "P0", status: "done" },
+      { name: "Brand/Non-Brand Mention Split", description: "Reputation Risk must separate branded vs non-branded query mention rates", ref: "Scan page -> Reputation Risk section: split by brand vs non-brand queries", priority: "P0", status: "not_started" },
     ],
   },
   {
@@ -235,16 +235,16 @@ const phases: Phase[] = [
     title: "Important - Impacts Experience & Sales",
     color: "#10A37F",
     features: [
-      { name: "Competitor Analysis - Horizontal Bar Chart", description: "Horizontal bar chart of 4-5 competitors with mention percentage, name and domain next to each", ref: "Demo: /scan -> 'Competitor Analysis' block with colored bars | Production: no competitor comparison at all", priority: "P0", status: "done" },
-      { name: "Donut Chart - Sentiment", description: "Donut chart showing sentiment distribution: positive (green), neutral (gray), negative (red)", ref: "Demo: /scan -> donut in 'Sentiment' block | Production: simple bar only", priority: "P1", status: "done" },
-      { name: "Donut Chart - Citation Quality", description: "Donut chart showing citation quality distribution: high, medium, low", ref: "Demo: /scan -> donut in 'Citation Quality' block | Production: simple bar only", priority: "P1", status: "done" },
+      { name: "Competitor Analysis - Horizontal Bar Chart", description: "Horizontal bar chart of 4-5 competitors with mention percentage, name and domain next to each", ref: "Demo: /scan -> 'Competitor Analysis' block with colored bars | Production: no competitor comparison at all", priority: "P0", status: "not_started" },
+      { name: "Donut Chart - Sentiment", description: "Donut chart showing sentiment distribution: positive (green), neutral (gray), negative (red)", ref: "Demo: /scan -> donut in 'Sentiment' block | Production: simple bar only", priority: "P1", status: "not_started" },
+      { name: "Donut Chart - Citation Quality", description: "Donut chart showing citation quality distribution: high, medium, low", ref: "Demo: /scan -> donut in 'Citation Quality' block | Production: simple bar only", priority: "P1", status: "not_started" },
       { name: "Product/Service Tags in Products Tab", description: "In products tab: product/service badge on each identified item", ref: "Production: /scan -> 'Products/Services' tab -> currently 'No products identified'", priority: "P1", status: "not_started" },
       { name: "B2C/B2B Tags in Products Tab", description: "In products tab: B2C or B2B badge on each item by audience type", ref: "Production: /scan -> 'Products/Services' tab", priority: "P1", status: "not_started" },
       { name: "Automatic Brand Logo Pull", description: "Automatic favicon/logo retrieval from the brand's domain during scanning", ref: "New - not in demo or production | Google Favicon API: google.com/s2/favicons?domain=X", priority: "P1", status: "not_started" },
       { name: "Automatic Product Image Pull", description: "Automatic product image retrieval from the brand's website via scraping/OG tags", ref: "New - not in demo or production | og:image meta tag from website", priority: "P1", status: "not_started" },
-      { name: "Hover Effects on Buttons and Cards", description: "Every button and card should respond to hover with smooth color/shadow change", ref: "Demo: exists on most elements | Production: feels static - missing on most buttons", priority: "P1", status: "done" },
-      { name: "Hover Effects on Table Rows", description: "Every row in tables (queries, audiences) should respond to hover with background highlight", ref: "Demo: rows respond to hover | Production: static tables", priority: "P1", status: "done" },
-      { name: "Content Editor - WYSIWYG", description: "WYSIWYG interface for editing system-generated articles, with preview", ref: "Demo: /editor -> full editor | Production: /scan -> 'Content' tab -> only 'Create content ideas'", priority: "P1", status: "done" },
+      { name: "Hover Effects on Buttons and Cards", description: "Every button and card should respond to hover with smooth color/shadow change", ref: "Demo: exists on most elements | Production: feels static - missing on most buttons", priority: "P1", status: "not_started" },
+      { name: "Hover Effects on Table Rows", description: "Every row in tables (queries, audiences) should respond to hover with background highlight", ref: "Demo: rows respond to hover | Production: static tables", priority: "P1", status: "not_started" },
+      { name: "Content Editor - WYSIWYG", description: "WYSIWYG interface for editing system-generated articles, with preview", ref: "Demo: /editor -> full editor | Production: /scan -> 'Content' tab -> only 'Create content ideas'", priority: "P1", status: "not_started" },
       { name: "Direct Publish from Editor", description: "'Publish' button in content editor that sends directly to target site (WordPress API / custom)", ref: "New - not in demo or production", priority: "P1", status: "not_started" },
       { name: "7-Day Filter", description: "7-day filter button for all data and charts", ref: "Demo: /scan -> 7/30/90 buttons on trend chart | Production: no time filtering", priority: "P1", status: "not_started" },
       { name: "30-Day Filter", description: "30-day filter button for all data and charts", ref: "Demo: /scan -> 7/30/90 buttons | Production: no time filtering", priority: "P1", status: "not_started" },
@@ -262,7 +262,7 @@ const phases: Phase[] = [
       { name: "Content Creation -> Ordering Flow", description: "Content creation ties to article ordering, 'own site vs external' choice", ref: "New flow: scan -> content tab -> order article -> choose own site or publisher", priority: "P1", status: "not_started" },
       { name: "Keywords Historical Data", description: "DB schema for daily/weekly snapshots, date filter, avoid re-fetching via API", ref: "New DB table: keyword_snapshots with brand_id, keyword, position, date", priority: "P1", status: "not_started" },
       { name: "Competitors Page Redesign", description: "Match SimilarWeb/Semrush competitor UI with SEO+GEO separation", ref: "Redesign /scan -> competitors section with tabbed SEO vs GEO view", priority: "P1", status: "not_started" },
-      { name: "Overview Insights Reorder", description: "Data tables at top, content/writing insights at bottom (like GA4)", ref: "Scan page -> Overview tab: reorder sections", priority: "P1", status: "done" },
+      { name: "Overview Insights Reorder", description: "Data tables at top, content/writing insights at bottom (like GA4)", ref: "Scan page -> Overview tab: reorder sections", priority: "P1", status: "not_started" },
     ],
   },
   {
@@ -612,7 +612,7 @@ export default function RoadmapPage() {
             Feature Roadmap
           </h1>
           <p style={{ fontSize: 14, color: theme.textSecondary, margin: 0 }}>
-            Tracking all features by priority level. What&apos;s missing in production vs. the demo and what clients need.
+            Production tasks for scale.geoscale.ai &mdash; use this demo as a visual reference for each feature. &quot;Implementation&quot; column shows where to find the demo preview.
           </p>
         </div>
 
