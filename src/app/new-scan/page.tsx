@@ -238,10 +238,6 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "10px 24px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none", flex: 1, justifyContent: "center" }}>New Scan</a>
           <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 14, color: theme.textSecondary, fontWeight: 400 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-          <span>Connected</span>
-        </div>
       </div>
     </div>
   );
@@ -318,7 +314,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, s
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
         ) : (
-          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
             <div style={{ justifySelf: "start", direction: "ltr" }}>
               <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
                 <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
@@ -330,15 +326,12 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, s
               <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
               <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
               <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
               <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
             <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                <span>Connected</span>
-              </div>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}
@@ -529,22 +522,24 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode, 
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
         ) : (
-          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div className="flex items-center gap-3">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                <path d="M16 3.13a4 4 0 010 7.75" />
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+            <div style={{ justifySelf: "start", direction: "ltr" }}>
+              <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
               </svg>
-              <span className="font-semibold text-xl" style={{ color: theme.text }}>Audience selection</span>
             </div>
-            <div className="flex items-center gap-3">
+            <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-              <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
-                <ArrowLeft size={14} color={theme.textSecondary} />
-                Back
-              </span>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}
@@ -812,7 +807,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
         ) : (
-          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
             <div style={{ justifySelf: "start", direction: "ltr" }}>
               <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
                 <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
@@ -824,15 +819,12 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
               <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
               <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
               <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
               <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
             <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                <span>Connected</span>
-              </div>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}
@@ -1296,7 +1288,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
         ) : (
-          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
             <div style={{ justifySelf: "start", direction: "ltr" }}>
               <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
                 <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
@@ -1308,15 +1300,12 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
               <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
               <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
               <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
               <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
             <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                <span>Connected</span>
-              </div>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}

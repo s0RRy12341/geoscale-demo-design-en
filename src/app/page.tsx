@@ -335,10 +335,6 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "10px 24px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none", flex: 1, justifyContent: "center" }}>New Scan</a>
           <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 14, color: theme.textSecondary, fontWeight: 400 }}>
-          <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-          <span>Connected</span>
-        </div>
       </div>
     </div>
   );
@@ -513,20 +509,15 @@ export default function Dashboard() {
             <button onClick={() => setMobileMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
               <IconHamburger color={theme.text} />
             </button>
-            <GeoscaleLogo width={120} theme={theme} />
+            <GeoscaleLogoMark size={32} theme={theme} />
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
         ) : (
           /* ── Desktop Header ── */
           <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-            {/* LEFT = Actions */}
-            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
-              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none" }}>New Scan</a>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary, fontWeight: 400 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                <span>Connected</span>
-              </div>
-              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+            {/* LEFT = Logo */}
+            <div style={{ justifySelf: "start" }}>
+              <GeoscaleLogo width={150} theme={theme} />
             </div>
 
             {/* CENTER = Nav */}
@@ -538,9 +529,10 @@ export default function Dashboard() {
               <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
 
-            {/* RIGHT = Logo */}
-            <div style={{ justifySelf: "end" }}>
-              <GeoscaleLogo width={150} theme={theme} />
+            {/* RIGHT = Actions */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}

@@ -453,32 +453,29 @@ export default function BestLinksPage() {
                   )}
                 </svg>
               </button>
-              {/* Center logo */}
-              <GeoscaleLogo width={120} theme={theme} />
+              {/* Center logo mark */}
+              <GeoscaleLogoMark size={32} theme={theme} />
               {/* Dark mode toggle */}
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
             </>
           ) : (
             <>
-              {/* LEFT in LTR = Logo */}
+              {/* LEFT = Logo */}
               <div style={{ justifySelf: "start" }}>
                 <GeoscaleLogo width={150} theme={theme} />
               </div>
               {/* CENTER = Nav */}
               <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-                <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-                <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
-                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+                <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+                <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
+                <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
               </nav>
-              {/* RIGHT in LTR = Actions */}
+              {/* RIGHT = Actions */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
                 <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-                <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                  <span>Connected</span>
-                </div>
+                <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
               </div>
             </>
           )}
@@ -493,16 +490,13 @@ export default function BestLinksPage() {
             flexDirection: "column",
             gap: 8,
           }}>
-            <a href="/" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
-            <a href="/scan" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
-            <a href="/scale-publish" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
-            <a href="/roadmap" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Roadmap</a>
+            <a href="/" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
+            <a href="/scan" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
+            <a href="/scale-publish" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
+            <a href="/editor" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Content Editor</a>
+            <a href="/roadmap" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Roadmap</a>
             <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 12, marginTop: 4, display: "flex", flexDirection: "column", gap: 10 }}>
-              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New scan</a>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary, justifyContent: "center" }}>
-                <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                <span>Connected</span>
-              </div>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "10px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: `1px solid ${darkMode ? "#E6EDF3" : "#000"}`, textDecoration: "none" }}>New Scan</a>
             </div>
           </div>
         )}

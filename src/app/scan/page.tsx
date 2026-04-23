@@ -698,7 +698,7 @@ export default function ScanPage() {
 
       {/* -- Sticky Header -- */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: 56, display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr", alignItems: "center", justifyContent: isMobile ? "space-between" : undefined }}>
           {isMobile ? (
             <>
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
@@ -706,52 +706,46 @@ export default function ScanPage() {
                   {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></>}
                 </svg>
               </button>
-              <div style={{ direction: "ltr" }}>
-                <svg width={120} height={24} viewBox="0 0 510 102" fill="none">
-                  <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
-                  <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-                  <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+              <svg width={32} height={32} viewBox="0 0 102 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+              </svg>
+              <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
+                  {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
                 </svg>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
-                    {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
-                  </svg>
-                </button>
-              </div>
+              </button>
             </>
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
-                  New Scan
-                </HoverButton>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, color: theme.textSecondary }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-                  <span>Connected</span>
-                </div>
-                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
-                    {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
-                  </svg>
-                </button>
-              </div>
-
-              <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-                <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Dashboard</a>
-                <a href="/scan" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Scans</a>
-                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>ScalePublish</a>
-                <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Content Editor</a>
-                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", transition: "all 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.text; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.textSecondary; }}>Roadmap</a>
-              </nav>
-
-              <div style={{ direction: "ltr" }}>
+              {/* LEFT = Logo */}
+              <div style={{ justifySelf: "start", direction: "ltr" }}>
                 <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
                   <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="13" fill="none" />
                   <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
                   <g fill={theme.logoFill}><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
                 </svg>
+              </div>
+
+              {/* CENTER = Nav */}
+              <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+                <a href="/scan" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Scans</a>
+                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+                <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+                <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+              </nav>
+
+              {/* RIGHT = Actions */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
+                    {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
+                  </svg>
+                </button>
+                <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
+                  New Scan
+                </HoverButton>
               </div>
             </>
           )}
@@ -772,10 +766,6 @@ export default function ScanPage() {
               <HoverButton filled href="/new-scan" theme={theme} style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9 }}>
                 New Scan
               </HoverButton>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: theme.textSecondary }}>
-                <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F", display: "inline-block" }} />
-                Connected
-              </div>
             </div>
           </nav>
         )}

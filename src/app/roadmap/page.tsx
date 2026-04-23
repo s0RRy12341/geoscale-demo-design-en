@@ -119,6 +119,76 @@ function GeoscaleLogoMark({ size = 32, theme }: { size?: number; theme: Theme })
   );
 }
 
+// ── Responsive Hook ──
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+// ── Mobile Icons ──
+function IconHamburger({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18" />
+    </svg>
+  );
+}
+function IconClose({ color = "#000" }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+// ── Mobile Menu Overlay ──
+function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boolean; onClose: () => void; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        background: theme.cardBg, borderBottom: `1px solid ${theme.border}`,
+        padding: "16px 20px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <GeoscaleLogoMark size={28} theme={theme} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <IconClose color={theme.text} />
+          </button>
+        </div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {[
+            { href: "/", label: "Dashboard", active: false },
+            { href: "/scan", label: "Scans", active: false },
+            { href: "/scale-publish", label: "ScalePublish", active: false },
+            { href: "/editor", label: "Content Editor", active: false },
+            { href: "/roadmap", label: "Roadmap", active: true },
+          ].map((item, i) => (
+            <a key={i} href={item.href} onClick={onClose} style={{
+              display: "block", padding: "14px 0", fontSize: 16,
+              fontWeight: item.active ? 700 : 500,
+              color: item.active ? theme.text : theme.textSecondary,
+              textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
+            }}>{item.label}</a>
+          ))}
+        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+          <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "10px 24px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none", flex: 1, justifyContent: "center" }}>New Scan</a>
+          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Icons ──
 function IconChevronDown({ size = 14, rotated = false }: { size?: number; rotated?: boolean }) {
   return (
@@ -523,6 +593,8 @@ function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: 
 export default function RoadmapPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile(768);
 
   useEffect(() => {
     const saved = localStorage.getItem("geoscale-dark-mode");
@@ -535,6 +607,11 @@ export default function RoadmapPage() {
       localStorage.setItem("geoscale-dark-mode", darkMode.toString());
     }
   }, [darkMode, isHydrated]);
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    if (!isMobile) setMobileMenuOpen(false);
+  }, [isMobile]);
 
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
@@ -561,8 +638,6 @@ export default function RoadmapPage() {
         @media (max-width: 768px) {
           .roadmap-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .roadmap-header-inner { grid-template-columns: 1fr !important; gap: 8px !important; height: auto !important; padding: 8px 16px !important; }
-          .roadmap-header-nav { display: none !important; }
-          .roadmap-header-logo { display: none !important; }
           .roadmap-table-header, .roadmap-table-row {
             grid-template-columns: 1fr !important;
             gap: 4px !important;
@@ -581,27 +656,39 @@ export default function RoadmapPage() {
       `}</style>
 
       {/* Header */}
+      {/* Mobile Menu Overlay */}
+      <MobileMenu open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} theme={theme} darkMode={darkMode} setDarkMode={setDarkMode} />
+
       <header className="sticky top-0 z-50" style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}`, backdropFilter: "blur(12px)" }}>
-        <div className="roadmap-header-inner" style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "start" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: darkMode ? "1px solid #E6EDF3" : "1px solid #000", textDecoration: "none" }}>New Scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
-            </div>
+        {isMobile ? (
+          <div style={{ padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button onClick={() => setMobileMenuOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
+              <IconHamburger color={theme.text} />
+            </button>
+            <GeoscaleLogoMark size={32} theme={theme} />
             <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
           </div>
-          <nav className="roadmap-header-nav" style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-            <a href="/editor" style={{ fontSize: 15, fontWeight: 400, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
-            <a href="/roadmap" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Roadmap</a>
-          </nav>
-          <div className="roadmap-header-logo" style={{ justifySelf: "end" }}>
-            <GeoscaleLogo theme={theme} />
+        ) : (
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 56, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+            {/* LEFT = Logo */}
+            <div style={{ justifySelf: "start" }}>
+              <GeoscaleLogo theme={theme} />
+            </div>
+            {/* CENTER = Nav */}
+            <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Roadmap</a>
+            </nav>
+            {/* RIGHT = Actions */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+              <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} theme={theme} />
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: darkMode ? "1px solid #E6EDF3" : "1px solid #000", textDecoration: "none" }}>New Scan</a>
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Content */}

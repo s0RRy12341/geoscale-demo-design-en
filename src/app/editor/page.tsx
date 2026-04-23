@@ -135,6 +135,7 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           ))}
         </nav>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+          <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "10px 24px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none", flex: 1, justifyContent: "center" }}>New Scan</a>
           <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
         </div>
       </div>
@@ -195,7 +196,8 @@ export default function EditorPage() {
       {/* Header */}
       <header style={{
         background: theme.cardBg, borderBottom: "1px solid " + theme.border,
-        padding: isMobile ? "14px 16px" : "14px 32px",
+        padding: isMobile ? "0 16px" : "0 32px",
+        height: 56,
         display: isMobile ? "flex" : "grid",
         gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr",
         justifyContent: isMobile ? "space-between" : undefined,
@@ -207,22 +209,25 @@ export default function EditorPage() {
               <IconHamburger color={theme.text} />
             </button>
             <GeoscaleLogoMark size={32} theme={theme} />
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
           </>
         ) : (
           <>
             <div style={{ justifySelf: "start" }}><GeoscaleLogo width={140} theme={theme} /></div>
-            <nav style={{ display: "flex", gap: 24 }}>
-              <a href="/" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-              <a href="/editor" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Content editor</a>
-              <a href="/editor-roadmap" style={{ fontSize: 15, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
+            <nav style={{ display: "flex", gap: 32 }}>
+              <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+              <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Content Editor</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
-            <div style={{ justifySelf: "end", display: "flex", gap: 20, alignItems: "center" }}>
+            <div style={{ justifySelf: "end", display: "flex", gap: 16, alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: theme.textSecondary }}>
                 <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F" }} />
                 <span>Auto-saved 3s ago</span>
               </div>
               <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-              <a href="/" style={{ fontSize: 14, color: theme.textSecondary, textDecoration: "none" }}>&larr; Dashboard</a>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, border: "none", textDecoration: "none" }}>New Scan</a>
             </div>
           </>
         )}
