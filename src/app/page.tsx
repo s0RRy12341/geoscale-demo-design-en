@@ -711,7 +711,6 @@ export default function Dashboard() {
                   { engine: "Gemini", score: 69, icon: <img src="/logos/gemini.svg" width={12} height={12} alt="Gemini" style={{ display: "inline-block" }} />, tooltip: "Google Gemini AI assistant - measures how often Gemini cites your content" },
                   { engine: "Perplexity", score: 85, icon: <img src="/logos/perplexity.svg" width={12} height={12} alt="Perplexity" style={{ display: "inline-block" }} />, tooltip: "Perplexity AI search engine - tracks citations and mentions in Perplexity answers" },
                 ].map((e, i) => {
-                  const color = e.score >= 80 ? "#10A37F" : e.score >= 70 ? "#727272" : "#DC2626";
                   return (
                     <div key={i}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
@@ -720,10 +719,10 @@ export default function Dashboard() {
                           <span style={{ fontSize: 14, fontWeight: 500, color: theme.text }}>{e.engine}</span>
                           <Tooltip text={e.tooltip} />
                         </div>
-                        <span style={{ fontSize: 14, fontWeight: 700, color }}>{e.score}%</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{e.score}%</span>
                       </div>
                       <div style={{ height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${e.score}%`, background: color, borderRadius: 2 }} />
+                        <div style={{ height: "100%", width: `${e.score}%`, background: "#10A37F", borderRadius: 2 }} />
                       </div>
                     </div>
                   );
