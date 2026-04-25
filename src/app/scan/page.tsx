@@ -611,6 +611,171 @@ function MentionBadge({ mentioned }: { mentioned: boolean }) {
   );
 }
 
+type SourceKind = "Publication" | "Social" | "News" | "Blog" | "Review" | "Forum";
+type CitationRow = { domain: string; kind: SourceKind; urls: number; gpt: boolean; gemini: boolean; perplexity: boolean };
+
+const CITATION_SOURCES: { key: string; label: string; brand?: boolean; rows: CitationRow[] }[] = [
+  {
+    key: "all4horses", label: "All4Horses", brand: true,
+    rows: [
+      { domain: "wikipedia.org", kind: "Publication", urls: 4, gpt: true, gemini: true, perplexity: true },
+      { domain: "reddit.com", kind: "Social", urls: 11, gpt: true, gemini: true, perplexity: false },
+      { domain: "ynet.co.il", kind: "News", urls: 3, gpt: false, gemini: true, perplexity: true },
+      { domain: "horsemag.com", kind: "Blog", urls: 8, gpt: true, gemini: false, perplexity: false },
+      { domain: "quora.com", kind: "Forum", urls: 14, gpt: true, gemini: true, perplexity: true },
+      { domain: "tripadvisor.com", kind: "Review", urls: 6, gpt: true, gemini: false, perplexity: true },
+      { domain: "calcalist.co.il", kind: "News", urls: 2, gpt: false, gemini: true, perplexity: false },
+      { domain: "all4horses.co.il", kind: "Publication", urls: 9, gpt: true, gemini: true, perplexity: true },
+    ],
+  },
+  {
+    key: "galilee", label: "Galilee Horses",
+    rows: [
+      { domain: "wikipedia.org", kind: "Publication", urls: 2, gpt: true, gemini: true, perplexity: false },
+      { domain: "reddit.com", kind: "Social", urls: 5, gpt: true, gemini: false, perplexity: false },
+      { domain: "horseforum.com", kind: "Forum", urls: 18, gpt: true, gemini: true, perplexity: true },
+      { domain: "ynet.co.il", kind: "News", urls: 4, gpt: false, gemini: true, perplexity: false },
+      { domain: "susim-galil.co.il", kind: "Publication", urls: 7, gpt: true, gemini: true, perplexity: true },
+      { domain: "facebook.com", kind: "Social", urls: 9, gpt: false, gemini: true, perplexity: false },
+    ],
+  },
+  {
+    key: "ride-il", label: "Riding Israel",
+    rows: [
+      { domain: "ride-il.co.il", kind: "Publication", urls: 5, gpt: true, gemini: true, perplexity: false },
+      { domain: "reddit.com", kind: "Social", urls: 7, gpt: true, gemini: true, perplexity: false },
+      { domain: "tripadvisor.com", kind: "Review", urls: 12, gpt: true, gemini: false, perplexity: true },
+      { domain: "globes.co.il", kind: "News", urls: 1, gpt: false, gemini: true, perplexity: false },
+      { domain: "g2.com", kind: "Review", urls: 0, gpt: false, gemini: false, perplexity: false },
+    ],
+  },
+  {
+    key: "horse-therapy", label: "Horse Therapy Center",
+    rows: [
+      { domain: "horse-therapy.co.il", kind: "Publication", urls: 4, gpt: false, gemini: true, perplexity: true },
+      { domain: "ynet.co.il", kind: "News", urls: 6, gpt: false, gemini: true, perplexity: false },
+      { domain: "facebook.com", kind: "Social", urls: 11, gpt: false, gemini: true, perplexity: false },
+      { domain: "doctors.co.il", kind: "Publication", urls: 3, gpt: true, gemini: true, perplexity: true },
+    ],
+  },
+  {
+    key: "sport-ride", label: "Sport Riding IL",
+    rows: [
+      { domain: "sport-ride.co.il", kind: "Publication", urls: 2, gpt: false, gemini: false, perplexity: false },
+      { domain: "instagram.com", kind: "Social", urls: 8, gpt: false, gemini: false, perplexity: false },
+      { domain: "youtube.com", kind: "Social", urls: 4, gpt: true, gemini: false, perplexity: false },
+    ],
+  },
+];
+
+const KIND_STYLES: Record<SourceKind, { bg: string; color: string; border: string }> = {
+  Publication: { bg: "#ECFDF5", color: "#047857", border: "#A7F3D0" },
+  Social:      { bg: "#FEF2F2", color: "#B45309", border: "#FECACA" },
+  News:        { bg: "#EFF6FF", color: "#1D4ED8", border: "#BFDBFE" },
+  Blog:        { bg: "#F5F3FF", color: "#6D28D9", border: "#DDD6FE" },
+  Review:      { bg: "#FFFBEB", color: "#B45309", border: "#FDE68A" },
+  Forum:       { bg: "#F3F4F6", color: "#374151", border: "#E5E7EB" },
+};
+
+function KindPill({ kind }: { kind: SourceKind }) {
+  const s = KIND_STYLES[kind];
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: 999, fontSize: 13, fontWeight: 500, background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{kind}</span>
+  );
+}
+
+function EngineRow({ row }: { row: CitationRow }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <span style={{ opacity: row.gpt ? 1 : 0.2, display: "inline-flex" }}><AIEngineLogo engine="gpt" size={16} /></span>
+      <span style={{ opacity: row.gemini ? 1 : 0.2, display: "inline-flex" }}><AIEngineLogo engine="gemini" size={16} /></span>
+      <span style={{ opacity: row.perplexity ? 1 : 0.2, display: "inline-flex" }}><AIEngineLogo engine="perplexity" size={16} /></span>
+    </span>
+  );
+}
+
+function CitationSources({ theme, card, thinBorder, isMobile }: { theme: Theme; card: React.CSSProperties; thinBorder: string; isMobile: boolean }) {
+  const [activeKey, setActiveKey] = useState(CITATION_SOURCES[0].key);
+  const active = CITATION_SOURCES.find((s) => s.key === activeKey) || CITATION_SOURCES[0];
+  const sortedRows = [...active.rows].sort((a, b) => b.urls - a.urls);
+  const totalUrls = sortedRows.reduce((s, r) => s + r.urls, 0);
+  return (
+    <div style={{ ...card, padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Citation sources</h3>
+          <Tooltip text="The websites AI engines pull from when they mention each brand. Switch tabs to see where competitors get cited - this reveals which third-party sources to seed (PR, guest posts, Reddit/Quora, reviews) for GEO." />
+        </div>
+        <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 500, color: "#10A37F", textDecoration: "underline", whiteSpace: "nowrap" }}>Plan article placement &rarr;</a>
+      </div>
+
+      {/* Brand / competitor tab bar */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap", borderBottom: `1px solid ${theme.border}`, paddingBottom: 0 }}>
+        {CITATION_SOURCES.map((s) => {
+          const isActive = s.key === activeKey;
+          return (
+            <button
+              key={s.key}
+              onClick={() => setActiveKey(s.key)}
+              style={{
+                padding: "8px 14px",
+                fontSize: 14,
+                fontWeight: 500,
+                background: "transparent",
+                color: isActive ? theme.text : theme.textMuted,
+                border: "none",
+                borderBottom: isActive ? `2px solid #10A37F` : "2px solid transparent",
+                marginBottom: -1,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {s.label}
+              {s.brand && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#10A37F1A", color: "#047857", fontWeight: 600 }}>YOU</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 10 }}>
+        {sortedRows.length} sources &bull; {totalUrls} cited URLs &bull; data from last 30 days
+      </div>
+
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+        <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 560 : "auto" }}>
+          <thead>
+            <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Source</th>
+              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Type</th>
+              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>URLs cited</th>
+              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Cited by <Tooltip text="Which AI engines pull from this source. Greyed = no citations detected." /></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedRows.map((r) => (
+              <tr key={r.domain} style={{ borderBottom: thinBorder }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}>
+                <td style={{ padding: "10px 12px" }}>
+                  <a href={`https://${r.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.text, fontWeight: 500, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {r.domain}
+                    <span style={{ fontSize: 11, color: theme.textMuted }}>&#x2197;</span>
+                  </a>
+                </td>
+                <td style={{ padding: "10px 12px" }}><KindPill kind={r.kind} /></td>
+                <td style={{ padding: "10px 12px" }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: r.urls > 0 ? "#10A37F" : theme.textMuted }}>{r.urls > 0 ? `${r.urls} URLs` : "0"}</span>
+                </td>
+                <td style={{ padding: "10px 12px" }}><EngineRow row={r} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function HoverButton({ children, style, filled, onClick, href, theme }: { children: React.ReactNode; style: React.CSSProperties; filled?: boolean; onClick?: (e: React.MouseEvent) => void; href?: string; theme?: Theme }) {
   const [hovered, setHovered] = useState(false);
   const hoverStyle: React.CSSProperties = filled
@@ -1339,6 +1504,9 @@ export default function ScanPage() {
               </table>
               </div>
             </div>
+
+            {/* Citation Sources — where AI engines pull mentions from for the brand & each competitor */}
+            <CitationSources theme={theme} card={card} thinBorder={thinBorder} isMobile={isMobile} />
 
             {/* Top 5 Queries */}
             <div style={{ ...card, padding: 16 }}>
