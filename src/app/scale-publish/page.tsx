@@ -339,13 +339,19 @@ export default function BestLinksPage() {
   const [isTablet, setIsTablet] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
+    const mqMobile = window.matchMedia('(max-width: 767px)');
+    const mqTablet = window.matchMedia('(min-width: 768px) and (max-width: 1023px)');
     const check = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+      setIsMobile(mqMobile.matches);
+      setIsTablet(mqTablet.matches);
     };
     check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    mqMobile.addEventListener('change', check);
+    mqTablet.addEventListener('change', check);
+    return () => {
+      mqMobile.removeEventListener('change', check);
+      mqTablet.removeEventListener('change', check);
+    };
   }, []);
 
   const [activeTab, setActiveTab] = useState<TabKey>("marketplace");
@@ -542,7 +548,7 @@ export default function BestLinksPage() {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 60px" : "32px 24px 80px" }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 60px" : "32px 24px 80px", width: "100%", minWidth: 0, boxSizing: "border-box" }}>
         {activeTab === "marketplace" && (
           <MarketplaceTab
             publishers={filteredPublishers}

@@ -648,10 +648,11 @@ export default function ScanPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const mq = window.matchMedia('(max-width: 767px)');
+    const check = () => setIsMobile(mq.matches);
     check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    mq.addEventListener('change', check);
+    return () => mq.removeEventListener('change', check);
   }, []);
 
   useEffect(() => {
@@ -839,7 +840,7 @@ export default function ScanPage() {
       </div>
 
       {/* -- Main Content -- */}
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px 10px" : "20px 24px", flex: 1 }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px 10px" : "20px 24px", flex: 1, width: "100%", minWidth: 0, boxSizing: "border-box" }}>
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
@@ -1455,7 +1456,7 @@ export default function ScanPage() {
           <div>
             <div style={{ ...card, padding: 14, marginBottom: 14 }}>
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   {([{ key: "all" as const, label: "All" }, { key: "mentioned" as const, label: "Mentioned" }, { key: "missing" as const, label: "Missing" }, { key: "negative" as const, label: "Negative" }]).map((f) => (
                     <HoverButton key={f.key} onClick={() => setQueryFilter(f.key)} filled={queryFilter === f.key} theme={theme} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 9, fontSize: 15, fontWeight: queryFilter === f.key ? 600 : 500, ...(queryFilter === f.key ? btnActive : btnInactive), cursor: "pointer" }}>
                       {f.label} <span style={{ opacity: 0.7 }}>({filterCounts[f.key]})</span>

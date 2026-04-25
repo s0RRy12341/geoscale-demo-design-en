@@ -70,10 +70,11 @@ function DarkModeToggle({ darkMode, setDarkMode }: { darkMode: boolean; setDarkM
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const check = () => setIsMobile(mq.matches);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
   }, [breakpoint]);
   return isMobile;
 }
@@ -238,7 +239,7 @@ export default function EditorPage() {
         All4Horses / 6-month plan / Article #3 of 24 / <span style={{ color: theme.text, fontWeight: 500 }}>Therapeutic riding for children with ADHD</span>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 320px", gap: isMobile ? 16 : 24 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 320px", gap: isMobile ? 16 : 24, width: "100%", minWidth: 0, boxSizing: "border-box" }}>
         {/* MAIN EDITOR */}
         <div style={{ background: theme.cardBg, borderRadius: 12, border: "1px solid " + theme.border, overflow: "hidden" }}>
           {/* Tabs */}

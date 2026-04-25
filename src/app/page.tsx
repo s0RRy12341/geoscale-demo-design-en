@@ -71,10 +71,11 @@ const DARK_THEME: Theme = {
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const check = () => setIsMobile(mq.matches);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
   }, [breakpoint]);
   return isMobile;
 }
@@ -539,8 +540,8 @@ export default function Dashboard() {
       </header>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <main style={{ flex: 1 }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "16px 16px" : "16px 24px" }}>
+      <main style={{ flex: 1, width: "100%", minWidth: 0 }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "16px 16px" : "16px 24px", width: "100%", boxSizing: "border-box" }}>
           {/* Page title */}
           <div style={{ marginBottom: 16, textAlign: isMobile ? "center" : "left" }}>
             <h1 style={{

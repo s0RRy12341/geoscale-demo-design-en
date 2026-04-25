@@ -123,10 +123,11 @@ function GeoscaleLogoMark({ size = 32, theme }: { size?: number; theme: Theme })
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const check = () => setIsMobile(mq.matches);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
   }, [breakpoint]);
   return isMobile;
 }
@@ -692,7 +693,7 @@ export default function RoadmapPage() {
       </header>
 
       {/* Content */}
-      <main style={{ flex: 1, maxWidth: 1300, margin: "0 auto", padding: "32px 24px 48px", width: "100%" }} dir="ltr">
+      <main style={{ flex: 1, maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 32px" : "32px 24px 48px", width: "100%", minWidth: 0, boxSizing: "border-box" }} dir="ltr">
         {/* Title */}
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 24, fontWeight: 600, color: theme.text, marginBottom: 6, fontFamily: "'Inter', sans-serif" }}>

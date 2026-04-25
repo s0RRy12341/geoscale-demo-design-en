@@ -5,10 +5,11 @@ import React, { useState, useEffect } from "react";
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const mq = window.matchMedia('(max-width: 767px)');
+    const check = () => setIsMobile(mq.matches);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
   }, []);
   return isMobile;
 }
@@ -263,8 +264,8 @@ export default function ProductsPage() {
       </header>
 
       {/* ── Main Content ── */}
-      <main style={{ flex: 1 }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px" : "32px 24px" }}>
+      <main style={{ flex: 1, width: "100%", minWidth: 0 }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px" : "32px 24px", width: "100%", boxSizing: "border-box" }}>
 
           {/* ── Intro banner ── */}
           <div style={{ ...card, padding: 24, marginBottom: 32, borderLeft: "4px solid #10A37F" }}>
