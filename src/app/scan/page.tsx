@@ -694,11 +694,76 @@ function EngineRow({ row }: { row: CitationRow }) {
   );
 }
 
+// Mock cited-URL slugs per source kind - generates realistic-looking links for the expand view
+const MOCK_SLUGS: Record<SourceKind, string[]> = {
+  Publication: ["/wiki/Equestrian_facility", "/articles/horse-care-2024", "/guide/riding-schools-israel", "/topics/animal-therapy"],
+  Social:      ["/r/Equestrian/best-riding-camps", "/r/IsraelTravel/horse-ranches", "/groups/horse-lovers-il/posts/482", "/share/horse-camp-summer"],
+  News:        ["/articles/2024-09/horse-tourism-rises", "/sport/equestrian-camp-opens", "/travel/north-galilee-horses", "/lifestyle/family-horse-rides"],
+  Blog:        ["/posts/horse-camp-review", "/best-of/horse-experiences-2024", "/guides/intro-to-riding", "/expert-tips/horse-care-for-kids"],
+  Review:      ["/reviews/all4horses", "/places/galilee-ranch", "/reviews/horse-therapy-best", "/listings/equestrian-il"],
+  Forum:       ["/threads/29481-best-horse-ranch", "/threads/12849-riding-camp-rec", "/threads/7261-horse-therapy-experience", "/discussions/29-equestrian-tour"],
+};
+
+function buildMockUrls(domain: string, kind: SourceKind, count: number): string[] {
+  const slugs = MOCK_SLUGS[kind];
+  const out: string[] = [];
+  for (let i = 0; i < Math.min(count, 4); i++) out.push(`https://${domain}${slugs[i % slugs.length]}`);
+  return out;
+}
+
+function VsYouBadge({ diff, theme }: { diff: number; theme: Theme }) {
+  if (diff === 0) return <span style={{ fontSize: 13, color: theme.textMuted }}>same</span>;
+  const positive = diff > 0; // competitor has more = gap (bad for you)
+  const color = positive ? "#B45309" : "#10A37F";
+  const bg = positive ? "#FEF3C7" : "#D1FAE5";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 999, background: bg, color, fontSize: 13, fontWeight: 600 }}>
+      {positive ? "+" : ""}{diff}
+      <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.8 }}>{positive ? "gap" : "ahead"}</span>
+    </span>
+  );
+}
+
+const TYPE_OPTIONS: (SourceKind | "All")[] = ["All", "Publication", "Social", "News", "Blog", "Review", "Forum"];
+
 function CitationSources({ theme, card, thinBorder, isMobile }: { theme: Theme; card: React.CSSProperties; thinBorder: string; isMobile: boolean }) {
   const [activeKey, setActiveKey] = useState(CITATION_SOURCES[0].key);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<SourceKind | "All">("All");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"urls" | "gap">("urls");
+
   const active = CITATION_SOURCES.find((s) => s.key === activeKey) || CITATION_SOURCES[0];
-  const sortedRows = [...active.rows].sort((a, b) => b.urls - a.urls);
-  const totalUrls = sortedRows.reduce((s, r) => s + r.urls, 0);
+  const yourBrand = CITATION_SOURCES.find((s) => s.brand) || CITATION_SOURCES[0];
+  const isYou = !!active.brand;
+  const myMap = new Map(yourBrand.rows.map((r) => [r.domain, r.urls]));
+
+  // Build enriched rows with comparison data
+  let rows = active.rows.map((r) => {
+    const myUrls = myMap.get(r.domain) ?? 0;
+    return { ...r, myUrls, gap: r.urls - myUrls };
+  });
+
+  // Filters
+  if (typeFilter !== "All") rows = rows.filter((r) => r.kind === typeFilter);
+  if (search.trim()) rows = rows.filter((r) => r.domain.toLowerCase().includes(search.toLowerCase().trim()));
+
+  // Sort
+  if (sortBy === "gap" && !isYou) rows.sort((a, b) => b.gap - a.gap);
+  else rows.sort((a, b) => b.urls - a.urls);
+
+  const totalUrls = active.rows.reduce((s, r) => s + r.urls, 0);
+
+  // Insight: top opportunity = largest positive gap (competitor cites X more than you)
+  let insight: { domain: string; theirs: number; mine: number } | null = null;
+  if (!isYou) {
+    const gaps = active.rows
+      .map((r) => ({ domain: r.domain, theirs: r.urls, mine: myMap.get(r.domain) ?? 0 }))
+      .filter((g) => g.theirs - g.mine > 0)
+      .sort((a, b) => (b.theirs - b.mine) - (a.theirs - a.mine));
+    insight = gaps[0] || null;
+  }
+
   return (
     <div style={{ ...card, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
@@ -709,18 +774,19 @@ function CitationSources({ theme, card, thinBorder, isMobile }: { theme: Theme; 
         <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 500, color: "#10A37F", textDecoration: "underline", whiteSpace: "nowrap" }}>Plan article placement &rarr;</a>
       </div>
 
-      {/* Brand / competitor tab bar */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap", borderBottom: `1px solid ${theme.border}`, paddingBottom: 0 }}>
+      {/* Tab bar with URL totals */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 12, flexWrap: "wrap", borderBottom: `1px solid ${theme.border}` }}>
         {CITATION_SOURCES.map((s) => {
           const isActive = s.key === activeKey;
+          const total = s.rows.reduce((x, r) => x + r.urls, 0);
           return (
             <button
               key={s.key}
-              onClick={() => setActiveKey(s.key)}
+              onClick={() => { setActiveKey(s.key); setExpanded(null); setSearch(""); setTypeFilter("All"); setSortBy("urls"); }}
               style={{
                 padding: "8px 14px",
                 fontSize: 14,
-                fontWeight: 500,
+                fontWeight: isActive ? 600 : 500,
                 background: "transparent",
                 color: isActive ? theme.text : theme.textMuted,
                 border: "none",
@@ -734,41 +800,157 @@ function CitationSources({ theme, card, thinBorder, isMobile }: { theme: Theme; 
             >
               {s.label}
               {s.brand && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#10A37F1A", color: "#047857", fontWeight: 600 }}>YOU</span>}
+              <span style={{ fontSize: 12, padding: "1px 7px", borderRadius: 999, background: isActive ? "#10A37F" : theme.barTrack, color: isActive ? "#fff" : theme.textMuted, fontWeight: 500 }}>{total}</span>
             </button>
           );
         })}
       </div>
 
+      {/* Insight banner — only for competitors */}
+      {insight && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 8, background: "#FFFBEB", border: "1px solid #FDE68A", marginBottom: 12, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 18 }}>&#127919;</span>
+          <div style={{ flex: 1, minWidth: 200, fontSize: 14, color: "#78350F", lineHeight: 1.5 }}>
+            <strong style={{ fontWeight: 600 }}>{insight.domain}</strong> cites <strong>{active.label}</strong> {insight.theirs}× but you {insight.mine === 0 ? <>only <strong>0</strong> times</> : <>only <strong>{insight.mine}×</strong></>} - biggest opportunity to close the gap
+          </div>
+          <a href="/scale-publish" style={{ fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 6, background: "#B45309", color: "#fff", textDecoration: "none", whiteSpace: "nowrap" }}>Order placement &rarr;</a>
+        </div>
+      )}
+
+      {/* Filter row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Filter by domain..."
+          style={{ flex: "1 1 200px", minWidth: 160, padding: "7px 12px", fontSize: 14, borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.cardBg, color: theme.text, outline: "none" }}
+        />
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+          {TYPE_OPTIONS.map((t) => {
+            const isOn = t === typeFilter;
+            return (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                style={{
+                  padding: "5px 10px",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  borderRadius: 999,
+                  background: isOn ? "#10A37F" : "transparent",
+                  color: isOn ? "#fff" : theme.textSecondary,
+                  border: `1px solid ${isOn ? "#10A37F" : theme.border}`,
+                  cursor: "pointer",
+                }}
+              >{t}</button>
+            );
+          })}
+        </div>
+      </div>
+
       <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 10 }}>
-        {sortedRows.length} sources &bull; {totalUrls} cited URLs &bull; data from last 30 days
+        Showing <strong style={{ color: theme.text, fontWeight: 600 }}>{rows.length}</strong> of {active.rows.length} sources &bull; {totalUrls} total cited URLs &bull; last 30 days
       </div>
 
       <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
-        <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 560 : "auto" }}>
+        <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 580 : "auto" }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px", width: 22 }}></th>
               <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Source</th>
               <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Type</th>
-              <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>URLs cited</th>
+              <th
+                onClick={() => setSortBy("urls")}
+                style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: sortBy === "urls" ? theme.text : theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", userSelect: "none" }}
+              >URLs cited {sortBy === "urls" ? "↓" : ""}</th>
+              {!isYou && (
+                <th
+                  onClick={() => setSortBy("gap")}
+                  style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: sortBy === "gap" ? theme.text : theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", userSelect: "none" }}
+                >vs you {sortBy === "gap" ? "↓" : ""}</th>
+              )}
               <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Cited by <Tooltip text="Which AI engines pull from this source. Greyed = no citations detected." /></span></th>
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((r) => (
-              <tr key={r.domain} style={{ borderBottom: thinBorder }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}>
-                <td style={{ padding: "10px 12px" }}>
-                  <a href={`https://${r.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.text, fontWeight: 500, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    {r.domain}
-                    <span style={{ fontSize: 11, color: theme.textMuted }}>&#x2197;</span>
-                  </a>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={isYou ? 5 : 6} style={{ padding: "32px 12px", textAlign: "center", color: theme.textMuted, fontSize: 14 }}>
+                  No sources match your filters. <button onClick={() => { setSearch(""); setTypeFilter("All"); }} style={{ background: "transparent", border: "none", color: "#10A37F", textDecoration: "underline", cursor: "pointer", fontSize: 14 }}>Clear filters</button>
                 </td>
-                <td style={{ padding: "10px 12px" }}><KindPill kind={r.kind} /></td>
-                <td style={{ padding: "10px 12px" }}>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: r.urls > 0 ? "#10A37F" : theme.textMuted }}>{r.urls > 0 ? `${r.urls} URLs` : "0"}</span>
-                </td>
-                <td style={{ padding: "10px 12px" }}><EngineRow row={r} /></td>
               </tr>
-            ))}
+            ) : rows.map((r) => {
+              const isOpen = expanded === r.domain;
+              const urls = buildMockUrls(r.domain, r.kind, r.urls);
+              return (
+                <React.Fragment key={r.domain}>
+                  <tr
+                    style={{ borderBottom: thinBorder, cursor: "pointer", background: isOpen ? theme.hoverBg : theme.cardBg }}
+                    onClick={() => setExpanded(isOpen ? null : r.domain)}
+                    onMouseEnter={(e) => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }}
+                    onMouseLeave={(e) => { if (!isOpen) (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}
+                  >
+                    <td style={{ padding: "10px 12px", color: theme.textMuted, fontSize: 12, transition: "transform 0.15s", transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}>&#9656;</td>
+                    <td style={{ padding: "10px 12px" }}>
+                      <a
+                        href={`https://${r.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: theme.text, fontWeight: 500, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                      >
+                        {r.domain}
+                        <span style={{ fontSize: 11, color: theme.textMuted }}>&#x2197;</span>
+                      </a>
+                    </td>
+                    <td style={{ padding: "10px 12px" }}><KindPill kind={r.kind} /></td>
+                    <td style={{ padding: "10px 12px" }}>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: r.urls > 0 ? "#10A37F" : theme.textMuted }}>{r.urls > 0 ? `${r.urls} URLs` : "0"}</span>
+                    </td>
+                    {!isYou && (
+                      <td style={{ padding: "10px 12px" }}><VsYouBadge diff={r.gap} theme={theme} /></td>
+                    )}
+                    <td style={{ padding: "10px 12px" }}><EngineRow row={r} /></td>
+                  </tr>
+                  {isOpen && (
+                    <tr style={{ background: theme.hoverBg, borderBottom: thinBorder }}>
+                      <td colSpan={isYou ? 5 : 6} style={{ padding: "0 12px 14px 36px" }}>
+                        <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 8 }}>
+                          {r.urls > 0 ? <>Top cited URLs from <strong style={{ color: theme.text, fontWeight: 600 }}>{r.domain}</strong>:</> : <>No URLs cited yet from this source.</>}
+                        </div>
+                        {urls.length > 0 && (
+                          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+                            {urls.map((u) => (
+                              <li key={u} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10A37F", flexShrink: 0 }} />
+                                <a href={u} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: theme.text, textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u}</a>
+                              </li>
+                            ))}
+                            {r.urls > urls.length && (
+                              <li style={{ fontSize: 13, color: theme.textMuted, paddingLeft: 13 }}>+ {r.urls - urls.length} more</li>
+                            )}
+                          </ul>
+                        )}
+                        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <a
+                            href={`/scale-publish?source=${encodeURIComponent(r.domain)}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 6, background: "#10A37F", color: "#fff", textDecoration: "none" }}
+                          >Order placement on {r.domain}</a>
+                          <a
+                            href={`https://${r.domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ fontSize: 13, fontWeight: 500, padding: "7px 14px", borderRadius: 6, background: "transparent", color: theme.text, textDecoration: "none", border: `1px solid ${theme.border}` }}
+                          >Visit site &rarr;</a>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
