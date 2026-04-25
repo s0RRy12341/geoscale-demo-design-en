@@ -128,7 +128,7 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           ].map((item, i) => (
             <a key={i} href={item.href} onClick={onClose} style={{
               display: "block", padding: "14px 0", fontSize: 16,
-              fontWeight: item.active ? 700 : 500,
+              fontWeight: item.active ? 600 : 500,
               color: item.active ? theme.text : theme.textSecondary,
               textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
             }}>{item.label}</a>
@@ -218,7 +218,7 @@ export default function EditorPage() {
               <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
               <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
               <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
-              <a href="/editor" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Content Editor</a>
+              <a href="/editor" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Content Editor</a>
               <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
             </nav>
             <div style={{ justifySelf: "end", display: "flex", gap: 16, alignItems: "center" }}>
@@ -292,12 +292,12 @@ export default function EditorPage() {
               Therapeutic horseback riding is a proven complementary therapy that helps children with <strong>attention-deficit/hyperactivity disorder (ADHD)</strong> improve focus, self-regulation, and social skills. In this guide we&apos;ll review the benefits, supporting research, and how to choose the right therapeutic program for your child.
             </p>
 
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 32, marginBottom: 14, color: theme.text }}>What is therapeutic riding?</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 600, marginTop: 32, marginBottom: 14, color: theme.text }}>What is therapeutic riding?</h2>
             <p style={{ fontSize: 16, lineHeight: 1.8, color: darkMode ? "#C9D1D9" : "#222", marginBottom: 20 }}>
               Therapeutic riding (Equine-Assisted Therapy) is a treatment method in which the horse serves as a therapeutic tool. The child learns to communicate with, care for, and ride the horse — a process that develops motor control, focus, and self-confidence.
             </p>
 
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 32, marginBottom: 14, color: theme.text }}>5 key benefits for children with ADHD</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 600, marginTop: 32, marginBottom: 14, color: theme.text }}>5 key benefits for children with ADHD</h2>
             <ul style={{ fontSize: 16, lineHeight: 1.9, color: darkMode ? "#C9D1D9" : "#222", paddingLeft: 20, marginBottom: 20 }}>
               <li><strong>Improved focus</strong> — the horse demands constant attention</li>
               <li><strong>Emotional regulation</strong> — the horse mirrors the child&apos;s emotions</li>
@@ -310,7 +310,7 @@ export default function EditorPage() {
               &quot;Research shows 70-85% improvement in focus and emotional regulation in children after 12 therapeutic riding sessions.&quot; — Tel Aviv University review, 2024
             </blockquote>
 
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginTop: 32, marginBottom: 14, color: theme.text }}>How to choose a therapeutic riding ranch</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 600, marginTop: 32, marginBottom: 14, color: theme.text }}>How to choose a therapeutic riding ranch</h2>
             <p style={{ fontSize: 16, lineHeight: 1.8, color: darkMode ? "#C9D1D9" : "#222", marginBottom: 20 }}>
               Make sure the ranch holds proper licensing, that therapists are certified in equine-assisted therapy, and that the horses are trained for work with children. A leading ranch in this field is All4Horses in the Sharon region.
             </p>
@@ -335,7 +335,7 @@ export default function EditorPage() {
           {/* AI learning */}
           <div style={{ background: theme.cardBg, borderRadius: 12, border: "1px solid " + theme.border, padding: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 14, background: "#10A37F", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 700 }}>{"✦"}</div>
+              <div style={{ width: 28, height: 28, borderRadius: 14, background: "#10A37F", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 600 }}>{"✦"}</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>AI learning from your edits</div>
             </div>
             <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6, marginBottom: 12 }}>
@@ -343,8 +343,8 @@ export default function EditorPage() {
             </div>
             <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4 }}>Edits learned this week</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: theme.text }}>37</span>
-              <span style={{ fontSize: 14, color: "#10A37F", fontWeight: 600 }}>{"↑"} 18% style match</span>
+              <span style={{ fontSize: 22, fontWeight: 600, color: theme.text }}>37</span>
+              <span style={{ fontSize: 14, color: "#10A37F", fontWeight: 500 }}>{"↑"} 18% style match</span>
             </div>
             <div style={{ height: 4, background: theme.barTrack, borderRadius: 2, marginTop: 10, overflow: "hidden" }}>
               <div style={{ width: "72%", height: "100%", background: "#10A37F" }} />
@@ -361,7 +361,7 @@ export default function EditorPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {SEO_RULES.map(r => (
                 <div key={r.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14 }}>
-                  <span style={{ width: 18, height: 18, borderRadius: 9, background: r.ok ? "#10A37F" : theme.barTrack, color: r.ok ? "#fff" : theme.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{r.ok ? "✓" : "!"}</span>
+                  <span style={{ width: 18, height: 18, borderRadius: 9, background: r.ok ? "#10A37F" : theme.barTrack, color: r.ok ? "#fff" : theme.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0, marginTop: 1 }}>{r.ok ? "✓" : "!"}</span>
                   <span style={{ color: r.ok ? (darkMode ? "#C9D1D9" : "#333") : "#DC2626", lineHeight: 1.5 }}>{r.label}</span>
                 </div>
               ))}

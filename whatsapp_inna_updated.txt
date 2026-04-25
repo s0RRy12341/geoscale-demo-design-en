@@ -1,0 +1,32 @@
+היי אינה,
+
+סיכום עדכון דמו - geoscale-demo-design-en.vercel.app
+
+*למה אנגלית?*
+אלכסיי ביקש שהדמו יהיה באנגלית - זה נראה יותר מקצועי ומתאים יותר לפגישה עם שיי מגל. הגרסה הזו היא הרפרנס הויזואלי שלך - כל פיצ'ר שצריך לבנות בפרודקשן (scale.geoscale.ai) אפשר לראות איך הוא אמור להיראות בדמו.
+
+*מה בוצע:*
+
+1. צבעים - פלטה אחידה בכל הדפים: ירוק לחיובי, אדום לשלילי, אפור לניטרלי
+2. פונטים - הגדלה בכל הדפים לקריאות טובה יותר
+3. מובייל - התאמה מלאה לכל הדפים + תפריט המבורגר
+4. Header אחיד - לוגו שמאל, ניווט באמצע, New Scan מימין - זהה בכל הדפים
+5. Tooltips - אייקון (i) ליד כל מדד עם הסבר, נוח גם במובייל (לחיצה לפתיחה, לחיצה בחוץ לסגירה)
+6. Reputation Risk - הפרדה ל-Brand queries ו-Non-brand queries
+7. SEO-GEO Connection - דיאגרמה עם חיבורים בין מילות מפתח ושאילתות AI
+8. Overview - סידור מחדש: טבלאות נתונים למעלה, insights למטה
+9. Site SEO Metrics - שורת נתונים חדשה בסגנון Ahrefs: Domain Rating, Organic Traffic, Keywords, Backlinks, Ref Domains, Indexed Pages
+10. ScalePublish - מחירים ניתנים לעריכה, לוגואי AI, תגי Recommended
+11. Roadmap - 90 פיצ'רים מסודרים לפי עדיפות לבניה בפרודקשן
+
+*מה עדיין צריך (לפי סדר עדיפות לפגישה עם שיי מגל):*
+
+*עדיפות קריטית:*
+- Plan Builder Demo Flow - הflow המרכזי: בחירת scope (SEO/GEO/שניהם) -> בחירת publishers -> מחיר per article -> הצעת מחיר עם לוגואים של ynet/כלכליסט
+
+*עדיפות גבוהה:*
+- Keywords - עוד עמודות נתונים (Volume, Difficulty, CPC, Trend), סינון לפי תאריך, שמירת היסטוריה
+- Competitors - עיצוב מחדש בסגנון SimilarWeb/Semrush עם הפרדת SEO/GEO
+- Products & Services - להביא תמונות מהאתרים, התאמת מובייל
+
+הקישור: https://geoscale-demo-design-en.vercel.app

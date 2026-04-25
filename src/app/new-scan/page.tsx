@@ -228,7 +228,7 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           ].map((item, i) => (
             <a key={i} href={item.href} onClick={onClose} style={{
               display: "block", padding: "14px 0", fontSize: 16,
-              fontWeight: item.active ? 700 : 500,
+              fontWeight: item.active ? 600 : 500,
               color: item.active ? theme.text : theme.textSecondary,
               textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
             }}>{item.label}</a>

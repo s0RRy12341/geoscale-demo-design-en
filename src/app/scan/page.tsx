@@ -680,7 +680,7 @@ export default function ScanPage() {
   };
 
   const card: React.CSSProperties = { background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 };
-  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 };
+  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 };
   const bodyText: React.CSSProperties = { fontSize: 15, color: theme.text, fontWeight: 500 };
   const thinBorder = `1px solid ${theme.border}`;
 
@@ -730,7 +730,7 @@ export default function ScanPage() {
               {/* CENTER = Nav */}
               <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
                 <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-                <a href="/scan" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Scans</a>
+                <a href="/scan" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Scans</a>
                 <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
                 <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
                 <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
@@ -858,7 +858,7 @@ export default function ScanPage() {
                     <Tooltip text={METRIC_TOOLTIPS[stat.label] || ""} />
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
+                    <span style={{ fontSize: 28, fontWeight: 600, color: theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
                     {stat.change !== 0 && <ChangeIndicator value={stat.change} unit={stat.unit} invertColor={stat.invertColor} />}
                   </div>
                 </div>
@@ -870,7 +870,7 @@ export default function ScanPage() {
                   <Tooltip text={METRIC_TOOLTIPS["Reputation risk"] || ""} />
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", letterSpacing: "-1px" }}>{reputationValue}%</span>
+                  <span style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", letterSpacing: "-1px" }}>{reputationValue}%</span>
                 </div>
               </div>
             </div>
@@ -884,21 +884,36 @@ export default function ScanPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(6, 1fr)" }}>
                 {[
-                  { label: "Domain Rating", value: "42", icon: "DR", color: "#10A37F", tooltip: "Ahrefs Domain Rating (0-100). Measures the strength of the website's backlink profile relative to other sites." },
-                  { label: "Organic Traffic", value: "8,240", icon: "OT", color: "#10A37F", tooltip: "Estimated monthly organic visitors from Google search. Source: Google Search Console + Ahrefs estimate." },
-                  { label: "Ranking Keywords", value: "347", icon: "KW", color: theme.text, tooltip: "Total keywords this domain ranks for in Google's top 100 results. Source: Ahrefs keyword tracking." },
-                  { label: "Backlinks", value: "1,892", icon: "BL", color: theme.text, tooltip: "Total external backlinks pointing to this domain from other websites. Source: Ahrefs backlink index." },
-                  { label: "Ref. Domains", value: "156", icon: "RD", color: theme.text, tooltip: "Number of unique referring domains linking to this site. More diverse domains = stronger authority signal." },
-                  { label: "Indexed Pages", value: "89", icon: "IX", color: theme.text, tooltip: "Pages from this domain currently indexed in Google. Source: Google Search Console index coverage report." },
-                ].map((m, i) => (
-                  <div key={i} style={{ padding: isMobile ? "10px 10px" : "12px 14px", borderRight: isMobile ? (i % 2 === 0 ? `1px solid ${theme.border}` : "none") : (i < 5 ? `1px solid ${theme.border}` : "none"), borderBottom: isMobile && i < 4 ? `1px solid ${theme.border}` : "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, color: theme.textSecondary, fontWeight: 500, letterSpacing: "0.3px" }}>{m.label}</span>
-                      <Tooltip text={m.tooltip} />
+                  { label: "Domain Rating", value: "42", icon: "DR", color: "#10A37F", tooltip: "Ahrefs Domain Rating (0-100). Measures the strength of the website's backlink profile relative to other sites.", href: null },
+                  { label: "Organic Traffic", value: "8,240", icon: "OT", color: "#10A37F", tooltip: "Estimated monthly organic visitors from Google search. Source: Google Search Console + Ahrefs estimate.", href: "/traffic-detail" },
+                  { label: "Ranking Keywords", value: "347", icon: "KW", color: theme.text, tooltip: "Total keywords this domain ranks for in Google's top 100 results. Source: Ahrefs keyword tracking.", href: "/keywords-detail" },
+                  { label: "Backlinks", value: "1,892", icon: "BL", color: theme.text, tooltip: "Total external backlinks pointing to this domain from other websites. Source: Ahrefs backlink index.", href: "/backlinks-detail" },
+                  { label: "Ref. Domains", value: "156", icon: "RD", color: theme.text, tooltip: "Number of unique referring domains linking to this site. More diverse domains = stronger authority signal.", href: null },
+                  { label: "Indexed Pages", value: "89", icon: "IX", color: theme.text, tooltip: "Pages from this domain currently indexed in Google. Source: Google Search Console index coverage report.", href: null },
+                ].map((m, i) => {
+                  const inner = (
+                    <div key={i} style={{ padding: isMobile ? "10px 10px" : "12px 14px", borderRight: isMobile ? (i % 2 === 0 ? `1px solid ${theme.border}` : "none") : (i < 5 ? `1px solid ${theme.border}` : "none"), borderBottom: isMobile && i < 4 ? `1px solid ${theme.border}` : "none", position: "relative", cursor: m.href ? "pointer" : "default", transition: "background 150ms" }}
+                      onMouseEnter={(e) => { if (m.href) (e.currentTarget as HTMLDivElement).style.background = theme.hoverBg; }}
+                      onMouseLeave={(e) => { if (m.href) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: theme.textSecondary, fontWeight: 500, letterSpacing: "0.3px" }}>{m.label}</span>
+                        <Tooltip text={m.tooltip} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                        <span style={{ fontSize: 20, fontWeight: 500, color: m.color, letterSpacing: "-0.5px" }}>{m.value}</span>
+                        {m.href && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="2" style={{ flexShrink: 0 }}>
+                            <path d="M9 18l6-6-6-6" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: m.color, letterSpacing: "-0.5px" }}>{m.value}</span>
-                  </div>
-                ))}
+                  );
+                  return m.href ? (
+                    <a key={i} href={m.href} style={{ textDecoration: "none", color: "inherit", display: "contents" }}>{inner}</a>
+                  ) : inner;
+                })}
               </div>
             </div>
 
@@ -906,7 +921,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16, border: "1px solid #DC262640" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#DC2626", margin: 0 }}>Reputation Risk - Brand vs Non-Brand Split</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0 }}>Reputation Risk - Brand vs Non-Brand Split</h3>
                 <Tooltip text="The overall mention rate includes brand-name queries (e.g. 'All4Horses reviews'), which are expected to be high. The non-branded rate is the real GEO performance metric. Source: ChatGPT and Gemini query analysis" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
@@ -915,19 +930,19 @@ export default function ScanPage() {
                     <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Branded queries mention rate</span>
                     <Tooltip text={METRIC_TOOLTIPS["Branded mention rate"]} />
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>95%</div>
+                  <div style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", marginBottom: 4 }}>95%</div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "95%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
                   </div>
                   <p style={{ fontSize: 14, color: "#DC2626", margin: 0, opacity: 0.8 }}>12 branded queries (expected high)</p>
                 </div>
                 <div style={{ border: "2px solid #DC2626", borderRadius: 10, padding: 14, position: "relative" }}>
-                  <div style={{ position: "absolute", top: -10, right: 12, background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
+                  <div style={{ position: "absolute", top: -10, right: 12, background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Non-branded queries mention rate</span>
                     <Tooltip text={METRIC_TOOLTIPS["Non-branded mention rate"]} />
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: "#DC2626", marginBottom: 4 }}>68%</div>
+                  <div style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", marginBottom: 4 }}>68%</div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "68%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
                   </div>
@@ -940,7 +955,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Mention rate over time</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Mention rate over time</h3>
                   <Tooltip text="Tracks your brand's mention rate across AI engines over time. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
@@ -961,7 +976,7 @@ export default function ScanPage() {
             {/* GPT vs Gemini */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI engine comparison</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI engine comparison</h3>
                 <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini. Source: ChatGPT and Gemini query analysis" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
@@ -971,7 +986,7 @@ export default function ScanPage() {
                       <img src="/logos/chatgpt.svg" width={18} height={18} alt="ChatGPT" style={{ display: "inline-block" }} />
                       <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>ChatGPT (GPT-4o)</span>
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: "#10A37F" }}>57%</span>
+                    <span style={{ fontSize: 28, fontWeight: 600, color: "#10A37F" }}>57%</span>
                   </div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
                     <div style={{ width: "57%", height: "100%", borderRadius: 3, background: "#10A37F", transition: "width 1s ease" }} />
@@ -984,7 +999,7 @@ export default function ScanPage() {
                       <img src="/logos/gemini.svg" width={18} height={18} alt="Gemini" style={{ display: "inline-block" }} />
                       <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Google Gemini</span>
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: "#727272" }}>73%</span>
+                    <span style={{ fontSize: 28, fontWeight: 600, color: "#727272" }}>73%</span>
                   </div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
                     <div style={{ width: "73%", height: "100%", borderRadius: 3, background: "#727272", transition: "width 1s ease" }} />
@@ -1006,7 +1021,7 @@ export default function ScanPage() {
                 };
                 return (
                   <div key={i} style={{ ...card, padding: 14, textAlign: "center" }}>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: stage.percent >= 80 ? "#10A37F" : theme.text, marginBottom: 2 }}>{stage.percent}%</div>
+                    <div style={{ fontSize: 28, fontWeight: 600, color: stage.percent >= 80 ? "#10A37F" : theme.text, marginBottom: 2 }}>{stage.percent}%</div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 2 }}>
                       {stage.name}
                       <Tooltip text={journeyTooltips[stage.name] || "Customer journey stage"} />
@@ -1021,7 +1036,7 @@ export default function ScanPage() {
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Identified persona</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Identified persona</h3>
                   <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses. Source: AI response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -1043,7 +1058,7 @@ export default function ScanPage() {
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Competitors</h3>
                   <Tooltip text="Presence scores of leading competitors compared to your brand. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1058,7 +1073,7 @@ export default function ScanPage() {
                       <div style={{ width: 80, height: 6, borderRadius: 3, overflow: "hidden", background: theme.barTrack }}>
                         <div style={{ width: `${comp.score}%`, height: "100%", borderRadius: 3, background: "#10A37F" }} />
                       </div>
-                      <span style={{ fontSize: 15, fontWeight: 700, width: 36, textAlign: "right", color: theme.text }}>{comp.score}%</span>
+                      <span style={{ fontSize: 15, fontWeight: 500, width: 36, textAlign: "right", color: theme.text }}>{comp.score}%</span>
                     </div>
                   ))}
                 </div>
@@ -1069,30 +1084,30 @@ export default function ScanPage() {
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Sentiment</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Sentiment</h3>
                   <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How AI talks about you</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
                   <DonutChart size={110} strokeWidth={16} theme={theme} data={[{ label: "Positive", value: 80, color: "#10A37F" }, { label: "Neutral", value: 20, color: theme.textMuted }]} />
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>Positive</span><span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>80%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Neutral</span><span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>20%</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>Positive</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>80%</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Neutral</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>20%</span></div>
                   </div>
                 </div>
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Citation quality</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Citation quality</h3>
                   <Tooltip text="How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How well AI links back to you</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
                   <DonutChart size={110} strokeWidth={16} theme={theme} data={[{ label: "High", value: 35, color: "#10A37F" }, { label: "Medium", value: 30, color: theme.textMuted }, { label: "Low", value: 35, color: theme.text }]} />
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>High</span><span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>35%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Medium</span><span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>30%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.text }} /><span style={{ fontSize: 15, color: theme.text }}>Low</span><span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>35%</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>High</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>35%</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Medium</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>30%</span></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.text }} /><span style={{ fontSize: 15, color: theme.text }}>Low</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>35%</span></div>
                   </div>
                 </div>
               </div>
@@ -1101,7 +1116,7 @@ export default function ScanPage() {
             {/* Top 5 Keywords */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Top 5 Keywords</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Top 5 Keywords</h3>
                 <Tooltip text="Keyword data powered by DataForSEO API. Source: DataForSEO API" />
               </div>
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
@@ -1118,8 +1133,8 @@ export default function ScanPage() {
                   <tbody>
                     {KEYWORD_DATA.map((kw, i) => (
                       <tr key={i} style={{ borderBottom: thinBorder }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.cardBg; }}>
-                        <td style={{ padding: "8px 10px", fontWeight: 500, color: theme.text }}>{kw.keyword}</td>
-                        <td style={{ padding: "8px 10px", textAlign: "right", fontWeight: 500, color: theme.text }}>{kw.volume.toLocaleString()}</td>
+                        <td style={{ padding: "8px 10px", fontWeight: 400, color: theme.text }}>{kw.keyword}</td>
+                        <td style={{ padding: "8px 10px", textAlign: "right", fontWeight: 400, color: theme.text }}>{kw.volume.toLocaleString()}</td>
                         <td style={{ padding: "8px 10px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <div style={{ width: 36, height: 4, borderRadius: 2, overflow: "hidden", background: theme.barTrack }}>
@@ -1130,9 +1145,9 @@ export default function ScanPage() {
                         </td>
                         <td style={{ padding: "8px 10px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: kw.position <= 3 ? "#10A37F" : kw.position <= 10 ? theme.text : "#DC2626" }}>{kw.position}</span>
-                            {kw.trend > 0 && <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F" }}>{"↑"}{kw.trend}</span>}
-                            {kw.trend < 0 && <span style={{ fontSize: 15, fontWeight: 600, color: "#DC2626" }}>{"↓"}{Math.abs(kw.trend)}</span>}
+                            <span style={{ fontSize: 15, fontWeight: 500, color: kw.position <= 3 ? "#10A37F" : kw.position <= 10 ? theme.text : "#DC2626" }}>{kw.position}</span>
+                            {kw.trend > 0 && <span style={{ fontSize: 15, fontWeight: 500, color: "#10A37F" }}>{"↑"}{kw.trend}</span>}
+                            {kw.trend < 0 && <span style={{ fontSize: 15, fontWeight: 500, color: "#DC2626" }}>{"↓"}{Math.abs(kw.trend)}</span>}
                             {kw.trend === 0 && <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>{"—"}</span>}
                           </div>
                         </td>
@@ -1154,7 +1169,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>SEO Performance</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>SEO Performance</h3>
                   <Tooltip text="Organic traffic and keyword growth over the past 6 months. Source: Ahrefs API" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1176,7 +1191,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>SEO {"<>"} GEO Connection</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>SEO {"<>"} GEO Connection</h3>
                   <Tooltip text="How traditional SEO keywords connect to AI-generated query answers (GEO). Source: DataForSEO API + ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -1246,7 +1261,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Competitors</h3>
                   <Tooltip text="Key competitors identified by query overlap and AI engine presence. Source: ChatGPT and Gemini query analysis" />
                 </div>
               </div>
@@ -1275,7 +1290,7 @@ export default function ScanPage() {
                           <span style={{ display: "block", fontSize: 15, color: theme.textMuted }}>{c.domain}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "10px 12px" }}><span style={{ fontSize: 15, fontWeight: 700, color: c.geo >= 60 ? "#10A37F" : theme.text }}>{c.geo}%</span></td>
+                      <td style={{ padding: "10px 12px" }}><span style={{ fontSize: 15, fontWeight: 500, color: c.geo >= 60 ? "#10A37F" : theme.text }}>{c.geo}%</span></td>
                       <td style={{ padding: "10px 12px" }}><span style={{ fontSize: 15, color: theme.text }}>{c.overlap} queries</span></td>
                       <td style={{ padding: "10px 12px", textAlign: "center" }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
@@ -1295,7 +1310,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>Top 5 queries</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Top 5 queries</h3>
                   <Tooltip text="Queries with the highest brand presence across AI engines. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <HoverButton onClick={() => setActiveTab("queries")} theme={theme} style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>
@@ -1315,7 +1330,7 @@ export default function ScanPage() {
                 <tbody>
                   {TOP_5_QUERIES.map((q) => (
                     <tr key={q.id} style={{ borderBottom: thinBorder }}>
-                      <td style={{ padding: "10px 10px", fontWeight: 500, color: theme.text }}>{q.text}</td>
+                      <td style={{ padding: "10px 10px", fontWeight: 400, color: theme.text }}>{q.text}</td>
                       <td style={{ padding: "10px 10px" }}><PersonaBadge personaId={q.persona} theme={theme} /></td>
                       <td style={{ padding: "10px 10px" }}><StageBadge stage={q.stage} theme={theme} /></td>
                       <td style={{ padding: "10px 10px", textAlign: "center" }}>
@@ -1339,7 +1354,7 @@ export default function ScanPage() {
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>What worked</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>What worked</h3>
                   <Tooltip text="Strengths - areas where the brand receives positive mentions in AI engines. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1354,7 +1369,7 @@ export default function ScanPage() {
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
                   <Tooltip text="Risk alerts - areas with missing mentions and reputation risk. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1371,7 +1386,7 @@ export default function ScanPage() {
             {/* AI Summary */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI Summary - What engines say about you</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI Summary - What engines say about you</h3>
                 <Tooltip text="Summary of answers AI engines return when asked about your brand. Source: ChatGPT and Gemini direct query" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
@@ -1400,7 +1415,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16, borderLeft: "4px solid #10A37F" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>AI Insights</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI Insights</h3>
                 <Tooltip text="Insights automatically generated from the latest scan analysis. Source: GeoScale analysis engine" />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1478,8 +1493,8 @@ export default function ScanPage() {
                   {filteredQueries.map((q) => (
                     <React.Fragment key={q.id}>
                       <tr onClick={() => setExpandedQuery(expandedQuery === q.id ? null : q.id)} style={{ borderBottom: expandedQuery === q.id ? "none" : thinBorder, cursor: "pointer", transition: "all 150ms", background: theme.tableBg }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.tableBg; }}>
-                        <td style={{ padding: "10px 14px", fontWeight: 500, color: theme.textMuted }}>{q.id}</td>
-                        <td style={{ padding: "10px 14px", fontWeight: 500, color: theme.text, maxWidth: 320 }}>{q.text}</td>
+                        <td style={{ padding: "10px 14px", fontWeight: 400, color: theme.textMuted }}>{q.id}</td>
+                        <td style={{ padding: "10px 14px", fontWeight: 400, color: theme.text, maxWidth: 320 }}>{q.text}</td>
                         <td style={{ padding: "10px 14px" }}><PersonaBadge personaId={q.persona} theme={theme} /></td>
                         <td style={{ padding: "10px 14px" }}><StageBadge stage={q.stage} theme={theme} /></td>
                         <td style={{ padding: "10px 14px", textAlign: "center" }}>
@@ -1620,12 +1635,12 @@ export default function ScanPage() {
                     { kw: "all4horses reviews", rank: 1, change: 0, vol: 110, diff: 8, gpt: true, gemini: true },
                   ].map((kw, i) => (
                     <tr key={i} style={{ borderBottom: thinBorder, background: theme.tableBg }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.tableBg; }}>
-                      <td style={{ padding: "10px 14px", fontWeight: 500, color: theme.textMuted }}>{i + 1}</td>
-                      <td style={{ padding: "10px 14px", fontWeight: 500, color: theme.text }}>{kw.kw}</td>
-                      <td style={{ padding: "10px 14px" }}><span style={{ fontSize: 15, fontWeight: 700, color: kw.rank <= 3 ? "#10A37F" : kw.rank <= 10 ? theme.text : "#DC2626" }}>{kw.rank}</span></td>
+                      <td style={{ padding: "10px 14px", fontWeight: 400, color: theme.textMuted }}>{i + 1}</td>
+                      <td style={{ padding: "10px 14px", fontWeight: 400, color: theme.text }}>{kw.kw}</td>
+                      <td style={{ padding: "10px 14px" }}><span style={{ fontSize: 15, fontWeight: 500, color: kw.rank <= 3 ? "#10A37F" : kw.rank <= 10 ? theme.text : "#DC2626" }}>{kw.rank}</span></td>
                       <td style={{ padding: "10px 14px" }}>
                         {kw.change !== 0 ? (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 15, fontWeight: 600, color: kw.change > 0 ? "#10A37F" : "#DC2626" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 15, fontWeight: 500, color: kw.change > 0 ? "#10A37F" : "#DC2626" }}>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d={kw.change > 0 ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} /></svg>
                             {Math.abs(kw.change)}
                           </span>
@@ -1666,7 +1681,7 @@ export default function ScanPage() {
           <div>
             <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 20, flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0 }}>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis. Source: AI response analysis" /></h2>
+                <h2 style={{ fontSize: 20, fontWeight: 600, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis. Source: AI response analysis" /></h2>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: 0 }}>{PERSONAS.length} personas identified in the latest scan</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1728,7 +1743,7 @@ export default function ScanPage() {
                         <p style={{ fontSize: 15, color: theme.textSecondary, margin: "2px 0 0" }}>{p.role}</p>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: theme.text }}>{p.score}%</div>
+                        <div style={{ fontSize: 24, fontWeight: 600, color: theme.text }}>{p.score}%</div>
                         <div style={{ fontSize: 15, color: theme.textMuted }}>Relevance</div>
                       </div>
                     </div>
@@ -1804,20 +1819,20 @@ export default function ScanPage() {
                         </div>
                       </div>
                       <div style={{ width: 44, height: 44, borderRadius: 10, background: theme.hoverBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <span style={{ fontSize: 20, fontWeight: 700, color: p.score >= 70 ? "#10A37F" : theme.text }}>{p.score}%</span>
+                        <span style={{ fontSize: 20, fontWeight: 500, color: p.score >= 70 ? "#10A37F" : theme.text }}>{p.score}%</span>
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
                       <div style={{ textAlign: "center", padding: "6px 0", background: theme.hoverBg, borderRadius: 8 }}>
-                        <div style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>{p.queries}</div>
+                        <div style={{ fontSize: 18, fontWeight: 500, color: theme.text }}>{p.queries}</div>
                         <div style={{ fontSize: 15, color: theme.textSecondary }}>Queries</div>
                       </div>
                       <div style={{ textAlign: "center", padding: "6px 0", background: theme.hoverBg, borderRadius: 8 }}>
-                        <div style={{ fontSize: 18, fontWeight: 700, color: "#10A37F" }}>{p.mentioned}</div>
+                        <div style={{ fontSize: 18, fontWeight: 500, color: "#10A37F" }}>{p.mentioned}</div>
                         <div style={{ fontSize: 15, color: theme.textSecondary }}>Mentioned</div>
                       </div>
                       <div style={{ textAlign: "center", padding: "6px 0", background: theme.hoverBg, borderRadius: 8 }}>
-                        <div style={{ fontSize: 18, fontWeight: 700, color: (p.queries - p.mentioned) > 3 ? "#727272" : theme.text }}>{p.queries - p.mentioned}</div>
+                        <div style={{ fontSize: 18, fontWeight: 500, color: (p.queries - p.mentioned) > 3 ? "#727272" : theme.text }}>{p.queries - p.mentioned}</div>
                         <div style={{ fontSize: 15, color: theme.textSecondary }}>Missing</div>
                       </div>
                     </div>

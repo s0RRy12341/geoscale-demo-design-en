@@ -468,7 +468,7 @@ export default function BestLinksPage() {
               <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
                 <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
                 <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
-                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
+                <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
                 <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
                 <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
               </nav>
@@ -492,7 +492,7 @@ export default function BestLinksPage() {
           }}>
             <a href="/" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
             <a href="/scan" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
-            <a href="/scale-publish" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
+            <a href="/scale-publish" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
             <a href="/editor" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Content Editor</a>
             <a href="/roadmap" onClick={() => setMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Roadmap</a>
             <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 12, marginTop: 4, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -614,7 +614,7 @@ export default function BestLinksPage() {
               }}
             >
               <IconCart size={20} />
-              <span style={{ position: "absolute", top: -4, left: -4, width: 22, height: 22, borderRadius: 11, background: "#10A37F", color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{cart.length}</span>
+              <span style={{ position: "absolute", top: -4, left: -4, width: 22, height: 22, borderRadius: 11, background: "#10A37F", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>{cart.length}</span>
             </button>
           )}
 
@@ -700,7 +700,7 @@ export default function BestLinksPage() {
                 />
                 <span style={{
                   fontSize: 15,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: "#10A37F",
                   background: "#10A37F15",
                   padding: "4px 12px",
@@ -730,7 +730,7 @@ export default function BestLinksPage() {
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, fontSize: 15, paddingTop: 8, borderTop: `1px solid ${theme.border}` }}>
                 <span style={{ fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>Client total <Tooltip text="Amount the client pays — base price + Agency margin" /></span>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>{fmtCurrency(clientTotal)}</span>
+                <span style={{ fontWeight: 600, fontSize: 16 }}>{fmtCurrency(clientTotal)}</span>
               </div>
               <button style={{ width: "100%", padding: "12px 0", background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", fontSize: 15, fontWeight: 600, borderRadius: 9, border: "none", cursor: "pointer" }}>
                 Generate quote
@@ -999,7 +999,7 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
         <Favicon domain={pub.domain} size={36} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>{pub.name}</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: theme.text }}>{pub.name}</span>
             <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.textMuted, display: "inline-flex" }}>
               <IconExternalLink size={13} />
             </a>
@@ -1070,7 +1070,7 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
               onChange={e => setPriceOverrides(prev => ({ ...prev, [pub.id]: Number(e.target.value) }))}
               onClick={e => e.stopPropagation()}
               style={{
-                width: 80, fontSize: 20, fontWeight: 700, color: theme.text,
+                width: 80, fontSize: 20, fontWeight: 600, color: theme.text,
                 border: "none", borderBottom: `1px dashed ${theme.textMuted}`,
                 background: "transparent", outline: "none", padding: "0 0 2px",
               }}
@@ -1114,7 +1114,7 @@ function MetricBox({ label, value, color, tooltip, theme }: { label: string; val
   return (
     <div style={{ background: theme.badgeBg, borderRadius: 8, padding: "10px 12px", border: `1px solid ${theme.border}` }}>
       <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>{label} {tooltip && <Tooltip text={tooltip} />}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 600, color, lineHeight: 1 }}>{value}</div>
     </div>
   );
 }
@@ -1203,7 +1203,7 @@ function ProjectionPanel({
             <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10A37F" }} />
             Vision forecast
           </div>
-          <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, margin: "0 0 4px" }}>What this plan will deliver</h3>
+          <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 600, color: theme.text, margin: "0 0 4px" }}>What this plan will deliver</h3>
           <p style={{ fontSize: isMobile ? 14 : 15, color: theme.textSecondary, margin: 0 }}>Projected appearances in AI queries and growth over {duration} months</p>
         </div>
         {/* KPIs */}
@@ -1211,7 +1211,7 @@ function ProjectionPanel({
           <div style={{ padding: "12px 18px", borderRadius: 10, background: theme.badgeBg, border: `1px solid ${theme.border}`, minWidth: 140 }}>
             <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 4, fontWeight: 500 }}>Query appearances - end of period</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 26, fontWeight: 700, color: theme.text }}>~{endQ}</span>
+              <span style={{ fontSize: 26, fontWeight: 600, color: theme.text }}>~{endQ}</span>
               <span style={{ fontSize: 15, color: theme.textSecondary }}>queries/month</span>
             </div>
             <div style={{ fontSize: 14, color: "#10A37F", fontWeight: 600, marginTop: 2 }}>from {startQ} → {endQ}</div>
@@ -1219,7 +1219,7 @@ function ProjectionPanel({
           <div style={{ padding: "12px 18px", borderRadius: 10, background: "#10A37F08", border: "1px solid #10A37F30", minWidth: 140 }}>
             <div style={{ fontSize: 14, color: "#10A37F", marginBottom: 4, fontWeight: 500 }}>Projected exposure growth</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ fontSize: 26, fontWeight: 700, color: "#10A37F" }}>+{totalGrowth}%</span>
+              <span style={{ fontSize: 26, fontWeight: 600, color: "#10A37F" }}>+{totalGrowth}%</span>
             </div>
             <div style={{ fontSize: 14, color: theme.textSecondary, marginTop: 2 }}>in AI engine presence</div>
           </div>
@@ -1453,7 +1453,7 @@ function PlannerTab({
               >
                 <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 4 }}>SEO Only</div>
                 <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 10 }}>Focused articles for organic ranking</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: theme.text }}>{fmtCurrency(seoPrice)}</div>
+                <div style={{ fontSize: 22, fontWeight: 600, color: theme.text }}>{fmtCurrency(seoPrice)}</div>
                 <div style={{ fontSize: 14, color: theme.textMuted }}>{fmtCurrency(seoPrice)} / month</div>
               </button>
 
@@ -1473,7 +1473,7 @@ function PlannerTab({
               >
                 <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 4 }}>GEO Only</div>
                 <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 10 }}>Content optimized for AI engines</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: theme.text }}>{fmtCurrency(geoPrice)}</div>
+                <div style={{ fontSize: 22, fontWeight: 600, color: theme.text }}>{fmtCurrency(geoPrice)}</div>
                 <div style={{ fontSize: 14, color: theme.textMuted }}>{fmtCurrency(geoPrice)} / month</div>
               </button>
             </>
@@ -1504,7 +1504,7 @@ function PlannerTab({
             background: "#10A37F",
             color: "#fff",
             fontSize: 14,
-            fontWeight: 700,
+            fontWeight: 600,
           }}>
             Save {discount.savingsPercent}%
           </div>
@@ -1514,7 +1514,7 @@ function PlannerTab({
           </div>
           <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 10 }}>Combined bundle - organic ranking + AI presence</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#10A37F" }}>{fmtCurrency(discount.combinedMonthly)}</span>
+            <span style={{ fontSize: 22, fontWeight: 600, color: "#10A37F" }}>{fmtCurrency(discount.combinedMonthly)}</span>
             <span style={{ fontSize: 15, color: "#A2A9B0", textDecoration: "line-through" }}>{fmtCurrency(discount.separateMonthly)}</span>
           </div>
           <div style={{ fontSize: 14, color: "#10A37F", fontWeight: 500 }}>
@@ -1569,7 +1569,7 @@ function PlannerTab({
             ))}
           </tbody>
           <tfoot>
-            <tr style={{ background: theme.tableHeaderBg, fontWeight: 700 }}>
+            <tr style={{ background: theme.tableHeaderBg, fontWeight: 600 }}>
               <td style={{ padding: "14px 16px", borderTop: `1px solid ${theme.border}` }}>Total</td>
               <td style={{ padding: "14px 16px", textAlign: "center", borderTop: `1px solid ${theme.border}`, color: planType === "geo" ? theme.textMuted : undefined }}>{planType === "geo" ? "—" : planData.reduce((s, r) => s + r.seoArticles, 0)}</td>
               <td style={{ padding: "14px 16px", textAlign: "center", borderTop: `1px solid ${theme.border}`, color: planType === "seo" ? theme.textMuted : undefined }}>{planType === "seo" ? "—" : planData.reduce((s, r) => s + r.geoArticles, 0)}</td>
@@ -1592,7 +1592,7 @@ function PlannerTab({
         {planType === "combined" ? (
           <div style={{ border: "1px solid #10A37F30", borderRadius: 10, padding: 20, background: "#10A37F08" }}>
             <div style={{ fontSize: 14, color: "#10A37F", marginBottom: 8, fontWeight: 500 }}>Total savings</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#10A37F" }}>{fmtCurrency(discount.savingsTotal)}</div>
+            <div style={{ fontSize: 24, fontWeight: 600, color: "#10A37F" }}>{fmtCurrency(discount.savingsTotal)}</div>
           </div>
         ) : (
           <SummaryCard label="Projected traffic growth" value={planSpeed === "fast" ? "+180%" : planSpeed === "medium" ? "+120%" : "+65%"} accent={true} theme={theme} />
@@ -1605,7 +1605,7 @@ function PlannerTab({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, marginBottom: 18, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 600, marginBottom: 4, letterSpacing: 0.3 }}>Full quote</div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: theme.text, margin: 0 }}>What&apos;s included in the quote</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>What&apos;s included in the quote</h3>
             <p style={{ fontSize: 14, color: theme.textSecondary, margin: "4px 0 0" }}>The plan splits the quote into two components that connect automatically</p>
           </div>
         </div>
@@ -1615,7 +1615,7 @@ function PlannerTab({
           {/* Left: content plan */}
           <div style={{ padding: 18, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.badgeBg }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ width: 28, height: 28, borderRadius: 6, background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>1</span>
+              <span style={{ width: 28, height: 28, borderRadius: 6, background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600 }}>1</span>
               <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>
                 {planType === "seo" ? "SEO" : planType === "geo" ? "GEO" : "SEO + GEO"} content plan
               </div>
@@ -1625,14 +1625,14 @@ function PlannerTab({
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10, borderTop: `1px solid ${theme.border}`, fontSize: 14 }}>
               <span style={{ color: theme.text }}>Total</span>
-              <span style={{ fontWeight: 700, color: theme.text }}>{fmtCurrency(planTotals.budget)}</span>
+              <span style={{ fontWeight: 500, color: theme.text }}>{fmtCurrency(planTotals.budget)}</span>
             </div>
           </div>
 
           {/* Right: external publishers from cart */}
           <div style={{ padding: 18, borderRadius: 10, border: cartSiteCount > 0 ? "1px solid #10A37F30" : `1px dashed ${theme.border}`, background: cartSiteCount > 0 ? "#10A37F08" : theme.hoverBg }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ width: 28, height: 28, borderRadius: 6, background: cartSiteCount > 0 ? "#10A37F" : theme.textMuted, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>2</span>
+              <span style={{ width: 28, height: 28, borderRadius: 6, background: cartSiteCount > 0 ? "#10A37F" : theme.textMuted, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600 }}>2</span>
               <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>External amplification - placements on publisher sites</div>
             </div>
             {cartSiteCount > 0 ? (
@@ -1642,7 +1642,7 @@ function PlannerTab({
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid #10A37F30", fontSize: 14 }}>
                   <span style={{ color: theme.text }}>Total</span>
-                  <span style={{ fontWeight: 700, color: "#10A37F" }}>{fmtCurrency(cartTotal)}</span>
+                  <span style={{ fontWeight: 500, color: "#10A37F" }}>{fmtCurrency(cartTotal)}</span>
                 </div>
               </>
             ) : (
@@ -1665,7 +1665,7 @@ function PlannerTab({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderRadius: 10, background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div style={{ fontSize: 13, color: darkMode ? "#484F58" : "#A2A9B0", marginBottom: 2, fontWeight: 500 }}>Total client quote</div>
-            <div style={{ fontSize: 26, fontWeight: 700 }}>{fmtCurrency(planTotals.budget + cartTotal)}</div>
+            <div style={{ fontSize: 26, fontWeight: 600 }}>{fmtCurrency(planTotals.budget + cartTotal)}</div>
             <div style={{ fontSize: 13, color: darkMode ? "#484F58" : "#A2A9B0", marginTop: 2 }}>
               Content {fmtCurrency(planTotals.budget)} + external placements {fmtCurrency(cartTotal)}
             </div>
@@ -1683,7 +1683,7 @@ function SummaryCard({ label, value, accent, theme }: { label: string; value: st
   return (
     <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: 20 }}>
       <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: accent ? "#10A37F" : theme.text }}>{value}</div>
+      <div style={{ fontSize: 24, fontWeight: 600, color: accent ? "#10A37F" : theme.text }}>{value}</div>
     </div>
   );
 }
@@ -1727,7 +1727,7 @@ function PublishersTab({ theme, darkMode, isMobile, isTablet }: { theme: Theme; 
         {stats.map((stat, i) => (
           <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "12px 14px" : "16px 20px" }}>
             <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 6 }}>{stat.label}</div>
-            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 600, color: stat.color }}>{stat.value}</div>
           </div>
         ))}
       </div>
@@ -1948,7 +1948,7 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTa
         {stats.map((stat, i) => (
           <div key={i} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "12px 14px" : "16px 20px" }}>
             <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 6 }}>{stat.label}</div>
-            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: stat.color }}>{stat.value}</div>
+            <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 600, color: stat.color }}>{stat.value}</div>
           </div>
         ))}
       </div>
@@ -1959,7 +1959,7 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTa
           <div key={pub.id} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: isMobile ? "14px 14px" : "18px 24px", display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 12 : 24, background: theme.cardBg }}>
             {/* Info */}
             <div style={{ flex: isMobile ? undefined : "0 0 180px" }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 2 }}>{pub.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 2 }}>{pub.name}</div>
               <div style={{ fontSize: 14, color: theme.textSecondary }}>{pub.domain}</div>
             </div>
 
@@ -1973,15 +1973,15 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTa
             <div style={{ display: "flex", gap: 12 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>SEO</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#DC2626" }}>{pub.seoScore}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.seoScore}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>GIO</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#DC2626" }}>{pub.gioScore}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.gioScore}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>DR</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#DC2626" }}>{pub.dr}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.dr}</div>
               </div>
             </div>
 

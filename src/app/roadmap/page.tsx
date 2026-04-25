@@ -174,7 +174,7 @@ function MobileMenu({ open, onClose, theme, darkMode, setDarkMode }: { open: boo
           ].map((item, i) => (
             <a key={i} href={item.href} onClick={onClose} style={{
               display: "block", padding: "14px 0", fontSize: 16,
-              fontWeight: item.active ? 700 : 500,
+              fontWeight: item.active ? 600 : 500,
               color: item.active ? theme.text : theme.textSecondary,
               textDecoration: "none", borderBottom: `1px solid ${theme.border}`,
             }}>{item.label}</a>
@@ -463,7 +463,7 @@ function StatCard({ label, value, subtext, theme, accent }: { label: string; val
       padding: "16px 20px", display: "flex", flexDirection: "column", gap: 4, minWidth: 0,
     }}>
       <span style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 26, fontWeight: 700, color: accent ? "#10A37F" : theme.text, lineHeight: 1.2 }}>{value}</span>
+      <span style={{ fontSize: 26, fontWeight: 600, color: accent ? "#10A37F" : theme.text, lineHeight: 1.2 }}>{value}</span>
       {subtext && <span style={{ fontSize: 13, color: theme.textMuted }}>{subtext}</span>}
     </div>
   );
@@ -506,7 +506,7 @@ function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: 
         {/* Title + progress */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: theme.text }}>
+            <span style={{ fontSize: 18, fontWeight: 600, color: theme.text }}>
               Level {phase.id}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>
@@ -680,7 +680,7 @@ export default function RoadmapPage() {
               <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
               <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>ScalePublish</a>
               <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
-              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 700, color: theme.text, textDecoration: "none" }}>Roadmap</a>
+              <a href="/roadmap" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>Roadmap</a>
             </nav>
             {/* RIGHT = Actions */}
             <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
@@ -739,7 +739,7 @@ export default function RoadmapPage() {
                 <line x1="16" y1="17" x2="8" y2="17" />
               </svg>
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt</h3>
           </div>
           <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
             This prompt needs to be added to Geoscale&apos;s content writing engine. Every article targets one primary query + 5-10 sub-queries. Each H2 answers a separate search intent, and the FAQ captures additional long-tail queries. One URL captures traffic from 8-15 different queries.
@@ -761,7 +761,7 @@ export default function RoadmapPage() {
 
         {/* Dependencies & Risks */}
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, padding: 24, direction: "ltr" }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, marginBottom: 14 }}>Dependencies & Risks</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 14 }}>Dependencies & Risks</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               { text: "Multi-Query prompt requires Alexei's approval before integration into production system", critical: true },

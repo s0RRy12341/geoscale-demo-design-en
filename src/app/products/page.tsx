@@ -262,7 +262,7 @@ export default function ProductsPage() {
               { label: "Average score", value: `${avgProductScore}%` },
             ].map((m, i) => (
               <div key={i} style={{ ...card, padding: 20, textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#000", marginBottom: 2 }}>{m.value}</div>
+                <div style={{ fontSize: 28, fontWeight: 600, color: "#000", marginBottom: 2 }}>{m.value}</div>
                 <div style={{ fontSize: 13, color: "#727272" }}>{m.label}</div>
               </div>
             ))}
@@ -303,22 +303,22 @@ export default function ProductsPage() {
                       <p style={{ fontSize: 12, color: "#727272", margin: 0 }}>{p.description}</p>
                     </div>
                     <div style={{ width: 48, height: 48, borderRadius: 10, background: p.score >= 70 ? "#10A37F12" : "#F9F9F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: p.score >= 70 ? "#10A37F" : "#000" }}>{p.score}%</span>
+                      <span style={{ fontSize: 16, fontWeight: 500, color: p.score >= 70 ? "#10A37F" : "#000" }}>{p.score}%</span>
                     </div>
                   </div>
 
                   {/* Stats */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
                     <div style={{ textAlign: "center", padding: "8px 0", background: "#F9F9F9", borderRadius: 8 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "#000" }}>{p.queries}</div>
+                      <div style={{ fontSize: 16, fontWeight: 500, color: "#000" }}>{p.queries}</div>
                       <div style={{ fontSize: 11, color: "#727272" }}>Queries</div>
                     </div>
                     <div style={{ textAlign: "center", padding: "8px 0", background: "#F9F9F9", borderRadius: 8 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "#10A37F" }}>{p.mentioned}</div>
+                      <div style={{ fontSize: 16, fontWeight: 500, color: "#10A37F" }}>{p.mentioned}</div>
                       <div style={{ fontSize: 11, color: "#727272" }}>Mentioned</div>
                     </div>
                     <div style={{ textAlign: "center", padding: "8px 0", background: p.queries - p.mentioned > 3 ? "#FFF8F0" : "#F9F9F9", borderRadius: 8 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: p.queries - p.mentioned > 3 ? "#E07800" : "#000" }}>{p.queries - p.mentioned}</div>
+                      <div style={{ fontSize: 16, fontWeight: 500, color: p.queries - p.mentioned > 3 ? "#E07800" : "#000" }}>{p.queries - p.mentioned}</div>
                       <div style={{ fontSize: 11, color: "#727272" }}>Missing</div>
                     </div>
                   </div>
@@ -373,8 +373,8 @@ export default function ProductsPage() {
                           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F9F9F9"; }}
                           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#FFFFFF"; }}
                         >
-                          <td style={{ padding: "10px 14px", fontWeight: 500, color: "#A2A9B0" }}>{idx + 1}</td>
-                          <td style={{ padding: "10px 14px", fontWeight: 500, color: "#333" }}>{q.text}</td>
+                          <td style={{ padding: "10px 14px", fontWeight: 400, color: "#A2A9B0" }}>{idx + 1}</td>
+                          <td style={{ padding: "10px 14px", fontWeight: 400, color: "#333" }}>{q.text}</td>
                           <td style={{ padding: "10px 14px" }}>
                             <span style={{ display: "inline-flex", fontSize: 12, fontWeight: 500, padding: "2px 8px", borderRadius: 10, border: thinBorder, background: "#F9F9F9", color: "#333" }}>{q.stage}</span>
                           </td>
