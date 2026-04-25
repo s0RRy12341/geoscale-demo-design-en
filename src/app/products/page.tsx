@@ -1,6 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
 
 // ============================================================
 // GEOSCALE — Products & Services Page
@@ -169,6 +180,8 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "product" | "service">("all");
   const [expandedQuery, setExpandedQuery] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const filteredProducts = PRODUCTS.filter(p => typeFilter === "all" || p.type === typeFilter);
   const selectedQueries = selectedProduct ? (PRODUCT_QUERIES[selectedProduct] || []) : [];
@@ -185,38 +198,73 @@ export default function ProductsPage() {
 
       {/* ── Header — 3-column grid: logo | nav | actions ── */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,0.96)", borderBottom: "1px solid #BFBFBF" }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "0 24px", height: 72, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
-          {/* LEFT (grid col 1) = Logo */}
-          <div style={{ justifySelf: "start" }}>
-            <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
-              <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
-              <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
-              <g fill="#141414"><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
-            </svg>
-          </div>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: isMobile ? 56 : 72, display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr", alignItems: "center", justifyContent: isMobile ? "space-between" : undefined }}>
+          {isMobile ? (
+            <>
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2">
+                  {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></>}
+                </svg>
+              </button>
+              <svg width={32} height={32} viewBox="0 0 102 102" fill="none">
+                <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="10" fill="none" />
+                <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+              </svg>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#727272" }}>
+                <span style={{ width: 7, height: 7, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                <span>Live</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* LEFT (grid col 1) = Logo */}
+              <div style={{ justifySelf: "start" }}>
+                <svg width={150} height={30} viewBox="0 0 510 102" fill="none">
+                  <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="13" fill="none" />
+                  <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="13" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
+                  <g fill="#141414"><text x="120" y="66" fontFamily="'Inter', sans-serif" fontSize="52" fontWeight="600" letterSpacing="-2">Geoscale</text></g>
+                </svg>
+              </div>
 
-          {/* CENTER (grid col 2) = Nav */}
-          <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
-            <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
-            <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
-          </nav>
+              {/* CENTER (grid col 2) = Nav */}
+              <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                <a href="/" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Dashboard</a>
+                <a href="/scan" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Scans</a>
+                <a href="/scale-publish" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>ScalePublish</a>
+                <a href="/roadmap" style={{ fontSize: 14, fontWeight: 400, color: "#727272", textDecoration: "none" }}>Roadmap</a>
+              </nav>
 
-          {/* RIGHT (grid col 3) = Actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
-              <span>Connected</span>
-            </div>
-          </div>
+              {/* RIGHT (grid col 3) = Actions */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
+                <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 13, fontWeight: 600, borderRadius: 9, border: "1px solid #000", textDecoration: "none" }}>New scan</a>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#727272" }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
+                  <span>Connected</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
+        {isMobile && mobileMenuOpen && (
+          <nav style={{ display: "flex", flexDirection: "column", padding: "8px 12px 16px", borderTop: "1px solid #BFBFBF", background: "rgba(255,255,255,0.96)" }}>
+            {[
+              { href: "/", label: "Dashboard" },
+              { href: "/scan", label: "Scans" },
+              { href: "/scale-publish", label: "ScalePublish" },
+              { href: "/roadmap", label: "Roadmap" },
+            ].map((item) => (
+              <a key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 15, fontWeight: 500, color: "#727272", textDecoration: "none", padding: "10px 8px", borderBottom: "1px solid #DDDDDD" }}>{item.label}</a>
+            ))}
+            <div style={{ display: "flex", padding: "10px 8px" }}>
+              <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", padding: "8px 20px", background: "#000", color: "#fff", fontSize: 14, fontWeight: 600, borderRadius: 9, textDecoration: "none" }}>New scan</a>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* ── Main Content ── */}
       <main style={{ flex: 1 }}>
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "32px 24px" }}>
+        <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px" : "32px 24px" }}>
 
           {/* ── Intro banner ── */}
           <div style={{ ...card, padding: 24, marginBottom: 32, borderLeft: "4px solid #10A37F" }}>
@@ -254,7 +302,7 @@ export default function ProductsPage() {
           </div>
 
           {/* ── Top Metrics ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 10 : 16, marginBottom: 24 }}>
             {[
               { label: "Products & services", value: PRODUCTS.length },
               { label: "Total queries", value: totalProductQueries },
@@ -269,7 +317,7 @@ export default function ProductsPage() {
           </div>
 
           {/* ── Type Filter ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
             {([
               { key: "all" as const, label: "All", count: PRODUCTS.length },
               { key: "product" as const, label: "Products", count: PRODUCTS.filter(p => p.type === "product").length },
@@ -282,7 +330,7 @@ export default function ProductsPage() {
           </div>
 
           {/* ── Products/Services Grid ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
             {filteredProducts.map(p => (
               <div
                 key={p.id}
@@ -353,7 +401,8 @@ export default function ProductsPage() {
               </div>
 
               <div style={{ ...card, overflow: "hidden" }}>
-                <table style={{ width: "100%", fontSize: 14, borderCollapse: "collapse" }}>
+                <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                <table style={{ width: "100%", minWidth: isMobile ? 720 : undefined, fontSize: 14, borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#F9F9F9", borderBottom: "1px solid #BFBFBF" }}>
                       <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>#</th>
@@ -424,7 +473,8 @@ export default function ProductsPage() {
                     ))}
                   </tbody>
                 </table>
-                <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #BFBFBF", background: "#F9F9F9" }}>
+                </div>
+                <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid #BFBFBF", background: "#F9F9F9", flexWrap: "wrap", gap: 8 }}>
                   <span style={{ fontSize: 12, color: "#727272" }}>Showing {selectedQueries.length} queries for {PRODUCTS.find(p => p.id === selectedProduct)?.name}</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 12 }}>
                     <span style={{ color: "#10A37F" }}>Mentioned: {selectedQueries.filter(q => q.gpt || q.gemini).length}</span>
@@ -436,7 +486,7 @@ export default function ProductsPage() {
           )}
 
           {/* ── Competitors ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 32 }}>
             <div style={{ ...card, padding: 24 }}>
               <h3 style={{ fontSize: 15, fontWeight: 500, color: "#000", margin: "0 0 16px" }}>Competitors — products & services</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -499,24 +549,26 @@ export default function ProductsPage() {
 
       {/* ── Footer ── */}
       <footer style={{ borderTop: "1px solid #BFBFBF", marginTop: "auto" }}>
-        <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div dir="ltr" style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px" : "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <svg width={28} height={28} viewBox="0 0 102 102" fill="none">
               <circle cx="51" cy="51" r="41" stroke="#ABABAB" strokeWidth="10" fill="none" />
               <circle cx="51" cy="51" r="41" stroke="#141414" strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
             </svg>
-            <span style={{ fontSize: 14, color: "#727272" }}>Powered by advanced AI to analyze your search presence</span>
+            {!isMobile && <span style={{ fontSize: 14, color: "#727272" }}>Powered by advanced AI to analyze your search presence</span>}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {[
-              { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
-              { label: "Report a bug", color: "#E07800", bg: "#E0780015" },
-              { label: "Improvement ideas", color: "#4285F4", bg: "#4285F415" },
-              { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
-            ].map((link, i) => (
-              <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: link.color, background: link.bg, cursor: "pointer" }}>{link.label}</span>
-            ))}
-          </div>
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {[
+                { label: "Feedback", color: "#10A37F", bg: "#10A37F15" },
+                { label: "Report a bug", color: "#E07800", bg: "#E0780015" },
+                { label: "Improvement ideas", color: "#4285F4", bg: "#4285F415" },
+                { label: "API usage", color: "#10A37F", bg: "#10A37F15" },
+              ].map((link, i) => (
+                <span key={i} style={{ fontSize: 12, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: link.color, background: link.bg, cursor: "pointer" }}>{link.label}</span>
+              ))}
+            </div>
+          )}
           <span style={{ fontSize: 12, color: "#A2A9B0" }}>&copy; GeoScale 2026</span>
         </div>
       </footer>
