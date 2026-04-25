@@ -345,7 +345,17 @@ function ChangeIndicator({ value, unit, invertColor }: { value: number; unit: st
 
 function TimeSeriesChart({ period, theme }: { period: "7" | "30" | "90"; theme: Theme }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const chartW = 1000;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartW, setChartW] = useState(1000);
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const update = () => { const w = el.getBoundingClientRect().width; if (w > 0) setChartW(Math.max(320, Math.round(w))); };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const chartH = 260;
   const padTop = 20;
   const padBottom = 30;
@@ -373,8 +383,8 @@ function TimeSeriesChart({ period, theme }: { period: "7" | "30" | "90"; theme: 
   const gridValues = Array.from({ length: gridLines }, (_, i) => minVal + (range / (gridLines - 1)) * i);
 
   return (
-    <div style={{ position: "relative" }}>
-      <svg width="100%" height={chartH} viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="xMidYMid meet">
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
+      <svg width={chartW} height={chartH} viewBox={`0 0 ${chartW} ${chartH}`} style={{ display: "block" }}>
         {gridValues.map((v, i) => (
           <g key={i}>
             <line x1={padLeft} y1={getY(v)} x2={chartW - padRight} y2={getY(v)} stroke={theme.border} strokeWidth="1" />
@@ -437,7 +447,17 @@ function TimeSeriesChart({ period, theme }: { period: "7" | "30" | "90"; theme: 
 
 function SEOPerformanceChart({ theme }: { theme: Theme }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const chartW = 1000;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartW, setChartW] = useState(1000);
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const update = () => { const w = el.getBoundingClientRect().width; if (w > 0) setChartW(Math.max(320, Math.round(w))); };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const chartH = 240;
   const padTop = 20;
   const padBottom = 30;
@@ -461,8 +481,8 @@ function SEOPerformanceChart({ theme }: { theme: Theme }) {
   const gridValues = Array.from({ length: gridLines }, (_, i) => minVal + (range / (gridLines - 1)) * i);
 
   return (
-    <div style={{ position: "relative" }}>
-      <svg width="100%" height={chartH} viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="xMidYMid meet">
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
+      <svg width={chartW} height={chartH} viewBox={`0 0 ${chartW} ${chartH}`} style={{ display: "block" }}>
         {gridValues.map((v, i) => (
           <g key={i}>
             <line x1={padLeft} y1={getY(v)} x2={chartW - padRight} y2={getY(v)} stroke={theme.border} strokeWidth="1" />
@@ -980,7 +1000,7 @@ export default function ScanPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>ChatGPT</span></div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 3, borderRadius: 2, background: "#727272" }} /><span style={{ fontSize: 15, color: theme.text }}>Gemini</span></div>
               </div>
-              <div style={{ height: isMobile ? 180 : 240, width: "100%" }}><TimeSeriesChart period={chartPeriod} theme={theme} /></div>
+              <div style={{ width: "100%" }}><TimeSeriesChart period={chartPeriod} theme={theme} /></div>
             </div>
 
             {/* GPT vs Gemini */}
@@ -1196,7 +1216,7 @@ export default function ScanPage() {
                   </span>
                 </div>
               </div>
-              <div style={{ height: isMobile ? 180 : 220, width: "100%" }}>
+              <div style={{ width: "100%" }}>
                 <SEOPerformanceChart theme={theme} />
               </div>
             </div>
