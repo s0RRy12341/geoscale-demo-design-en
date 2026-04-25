@@ -225,7 +225,7 @@ export default function ProductsPage() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
               </div>
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: "#000", margin: "0 0 8px" }}>Products & services — what and why?</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 500, color: "#000", margin: "0 0 8px" }}>Products & services — what and why?</h2>
                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#333", margin: "0 0 12px" }}>
                   In addition to personas (audiences), Geoscale lets you scan brand presence by specific <strong>products and services</strong>. Each product or service generates a dedicated query set — exactly like a persona generates queries based on audience profile.
                 </p>
@@ -262,7 +262,7 @@ export default function ProductsPage() {
               { label: "Average score", value: `${avgProductScore}%` },
             ].map((m, i) => (
               <div key={i} style={{ ...card, padding: 20, textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 600, color: "#000", marginBottom: 2 }}>{m.value}</div>
+                <div style={{ fontSize: 28, fontWeight: 500, color: "#000", marginBottom: 2 }}>{m.value}</div>
                 <div style={{ fontSize: 13, color: "#727272" }}>{m.label}</div>
               </div>
             ))}
@@ -295,7 +295,7 @@ export default function ProductsPage() {
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <h3 style={{ fontSize: 15, fontWeight: 600, color: "#000", margin: 0 }}>{p.name}</h3>
+                        <h3 style={{ fontSize: 15, fontWeight: 500, color: "#000", margin: 0 }}>{p.name}</h3>
                         <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: p.type === "product" ? "#10A37F15" : "#4285F415", color: p.type === "product" ? "#10A37F" : "#4285F4", fontWeight: 500 }}>
                           {p.type === "product" ? "Product" : "Service"}
                         </span>
@@ -325,7 +325,7 @@ export default function ProductsPage() {
 
                   {/* Top Query */}
                   <div style={{ padding: 12, background: "#F9F9F9", borderRadius: 8, border: thinBorder }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: "#10A37F", margin: "0 0 4px" }}>Top query</p>
+                    <p style={{ fontSize: 11, fontWeight: 500, color: "#10A37F", margin: "0 0 4px" }}>Top query</p>
                     <p style={{ fontSize: 13, color: "#333", margin: 0 }}>"{p.topQuery}"</p>
                   </div>
 
@@ -343,7 +343,7 @@ export default function ProductsPage() {
             <div style={{ marginBottom: 32 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 600, color: "#000", margin: 0 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 500, color: "#000", margin: 0 }}>
                     Queries for: {PRODUCTS.find(p => p.id === selectedProduct)?.name}
                   </h2>
                   <span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 10, background: "#F9F9F9", border: thinBorder, color: "#727272" }}>
@@ -356,11 +356,11 @@ export default function ProductsPage() {
                 <table style={{ width: "100%", fontSize: 14, borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#F9F9F9", borderBottom: "1px solid #BFBFBF" }}>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 13 }}>#</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 13 }}>Query</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 13 }}>Stage</th>
-                      <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 13 }}>ChatGPT</th>
-                      <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600, color: "#727272", fontSize: 13 }}>Gemini</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>#</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Query</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Stage</th>
+                      <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>ChatGPT</th>
+                      <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 500, color: "#727272", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Gemini</th>
                       <th style={{ textAlign: "center", padding: "10px 14px", width: 40 }}></th>
                     </tr>
                   </thead>
@@ -405,14 +405,14 @@ export default function ProductsPage() {
                                 <div style={{ borderRadius: 10, padding: 14, background: "#FFF", border: thinBorder }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="#10A37F"><path d="M22.282 9.821a5.985 5.985 0 00-.516-4.91 6.046 6.046 0 00-6.51-2.9A6.065 6.065 0 0011.702.418 6.004 6.004 0 005.354 2.08a5.974 5.974 0 00-3.994 2.9 6.042 6.042 0 00.743 7.097 5.98 5.98 0 00.51 4.911 6.051 6.051 0 006.515 2.9A5.985 5.985 0 0013.702 22a6.003 6.003 0 006.349-1.662 5.98 5.98 0 003.994-2.9 6.042 6.042 0 00-.743-7.097l-.02-.02z" /></svg>
-                                    <span style={{ fontSize: 12, fontWeight: 600, color: "#10A37F" }}>ChatGPT (GPT-4o)</span>
+                                    <span style={{ fontSize: 12, fontWeight: 500, color: "#10A37F" }}>ChatGPT (GPT-4o)</span>
                                   </div>
                                   <p style={{ fontSize: 13, lineHeight: 1.6, color: "#333", margin: 0 }}>{q.gptSnippet}</p>
                                 </div>
                                 <div style={{ borderRadius: 10, padding: 14, background: "#FFF", border: thinBorder }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="#4285F4"><path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm0 3.6c2.21 0 4.122.84 5.64 2.16l-2.4 2.4A5.356 5.356 0 0012 7.2c-2.652 0-4.8 2.148-4.8 4.8s2.148 4.8 4.8 4.8c2.316 0 4.128-1.488 4.56-3.6H12v-3.6h8.28c.12.6.12 1.2.12 1.8 0 4.644-3.156 8.4-8.4 8.4-4.632 0-8.4-3.768-8.4-8.4S7.368 3.6 12 3.6z" /></svg>
-                                    <span style={{ fontSize: 12, fontWeight: 600, color: "#4285F4" }}>Google Gemini</span>
+                                    <span style={{ fontSize: 12, fontWeight: 500, color: "#4285F4" }}>Google Gemini</span>
                                   </div>
                                   <p style={{ fontSize: 13, lineHeight: 1.6, color: "#333", margin: 0 }}>{q.geminiSnippet}</p>
                                 </div>
@@ -438,23 +438,23 @@ export default function ProductsPage() {
           {/* ── Competitors ── */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
             <div style={{ ...card, padding: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: "#000", margin: "0 0 16px" }}>Competitors — products & services</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 500, color: "#000", margin: "0 0 16px" }}>Competitors — products & services</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {COMPETITORS.map((comp, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 7, border: thinBorder, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "#333" }}>{i + 1}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: 7, border: thinBorder, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 500, color: "#333" }}>{i + 1}</div>
                     <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: "#333" }}>{comp.name}</span>
                     <div style={{ width: 80, height: 6, borderRadius: 3, overflow: "hidden", background: "#F9F9F9" }}>
                       <div style={{ width: `${comp.score}%`, height: "100%", borderRadius: 3, background: "#10A37F" }} />
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, width: 36, textAlign: "right", color: "#000" }}>{comp.score}%</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, width: 36, textAlign: "right", color: "#000" }}>{comp.score}%</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div style={{ ...card, padding: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: "#000", margin: "0 0 16px" }}>Gaps vs competitors</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 500, color: "#000", margin: "0 0 16px" }}>Gaps vs competitors</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
                   "Missing coverage on EV insurance queries",
@@ -474,7 +474,7 @@ export default function ProductsPage() {
 
           {/* ── Coverage by Journey Stage ── */}
           <div style={{ ...card, padding: 24, marginBottom: 32 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: "#000", margin: "0 0 20px" }}>Coverage by customer journey stage</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 500, color: "#000", margin: "0 0 20px" }}>Coverage by customer journey stage</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {[
                 { name: "Awareness", percent: 72, count: 18 },
@@ -487,7 +487,7 @@ export default function ProductsPage() {
                   <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#F9F9F9" }}>
                     <div style={{ width: `${stage.percent}%`, height: "100%", borderRadius: 4, background: "#10A37F", transition: "width 1s ease" }} />
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, width: 40, textAlign: "right", color: "#000" }}>{stage.percent}%</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, width: 40, textAlign: "right", color: "#000" }}>{stage.percent}%</span>
                   <span style={{ fontSize: 12, width: 80, textAlign: "right", color: "#727272" }}>{stage.count} queries</span>
                 </div>
               ))}

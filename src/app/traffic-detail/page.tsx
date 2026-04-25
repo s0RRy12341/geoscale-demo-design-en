@@ -283,7 +283,7 @@ export default function TrafficDetailPage() {
         {/* Traffic distribution stacked bar */}
         <div style={{ ...card, padding: "14px 16px", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, letterSpacing: "0.3px", textTransform: "uppercase" }}>Traffic distribution</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: theme.text, letterSpacing: "0.3px", textTransform: "uppercase" }}>Traffic distribution</span>
             <span style={{ fontSize: 12, color: theme.textMuted }}>by top pages</span>
           </div>
           <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", background: theme.barTrack }}>
@@ -341,7 +341,7 @@ export default function TrafficDetailPage() {
                     { label: "Top Pos.", align: "right" },
                     { label: "Trend", align: "right" },
                   ].map((h, i) => (
-                    <th key={i} style={{ padding: "10px 14px", textAlign: h.align as "left" | "right", fontSize: 12, fontWeight: 600, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h.label}</th>
+                    <th key={i} style={{ padding: "10px 14px", textAlign: h.align as "left" | "right", fontSize: 12, fontWeight: 500, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h.label}</th>
                   ))}
                 </tr>
               </thead>

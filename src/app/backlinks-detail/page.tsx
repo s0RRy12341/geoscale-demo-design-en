@@ -338,7 +338,7 @@ export default function BacklinksDetailPage() {
                     { label: "Target Page", align: "left" },
                     { label: "First Seen", align: "right" },
                   ].map((h, i) => (
-                    <th key={i} style={{ padding: "10px 14px", textAlign: h.align as "left" | "right", fontSize: 12, fontWeight: 600, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h.label}</th>
+                    <th key={i} style={{ padding: "10px 14px", textAlign: h.align as "left" | "right", fontSize: 12, fontWeight: 500, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h.label}</th>
                   ))}
                 </tr>
               </thead>

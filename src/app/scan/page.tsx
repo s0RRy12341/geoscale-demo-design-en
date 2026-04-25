@@ -304,7 +304,7 @@ function ProgressRing({ percent, size = 88, strokeWidth = 6, theme }: { percent:
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#10A37F" strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: "all 1s ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: Math.round(size * 0.26), fontWeight: 600, color: theme.text }}>{percent}%</span>
+        <span style={{ fontSize: Math.round(size * 0.26), fontWeight: 500, color: theme.text }}>{percent}%</span>
       </div>
     </div>
   );
@@ -337,7 +337,7 @@ function ChangeIndicator({ value, unit, invertColor }: { value: number; unit: st
   const color = isGood ? "#10A37F" : "#DC2626";
   const arrow = isPositive ? "↑" : "↓";
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 15, fontWeight: 600, color }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 15, fontWeight: 500, color }}>
       {arrow}{Math.abs(value)}{unit}
     </span>
   );
@@ -418,7 +418,7 @@ function TimeSeriesChart({ period, theme }: { period: "7" | "30" | "90"; theme: 
           boxShadow: "0 4px 14px rgba(0,0,0,0.2)",
           whiteSpace: "nowrap",
         }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>{data.labels[hoverIdx]}</div>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>{data.labels[hoverIdx]}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
             ChatGPT: {data.gpt[hoverIdx]}%
@@ -507,7 +507,7 @@ function SEOPerformanceChart({ theme }: { theme: Theme }) {
           boxShadow: "0 4px 14px rgba(0,0,0,0.2)",
           whiteSpace: "nowrap",
         }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>{data.labels[hoverIdx]}</div>
+          <div style={{ fontWeight: 500, marginBottom: 4 }}>{data.labels[hoverIdx]}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 8, height: 8, borderRadius: 4, background: "#10A37F", display: "inline-block" }} />
             Organic Traffic: {data.organicTraffic[hoverIdx].toLocaleString()}
@@ -680,7 +680,7 @@ export default function ScanPage() {
   };
 
   const card: React.CSSProperties = { background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 };
-  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 };
+  const sectionTitle: React.CSSProperties = { fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 };
   const bodyText: React.CSSProperties = { fontSize: 15, color: theme.text, fontWeight: 500 };
   const thinBorder = `1px solid ${theme.border}`;
 
@@ -779,7 +779,7 @@ export default function ScanPage() {
               <img src="https://www.google.com/s2/favicons?domain=all4horses.co.il&sz=64" alt="" width={36} height={36} style={{ borderRadius: 4 }} />
             </div>
             <div style={{ textAlign: "center" }}>
-              <h1 style={{ fontSize: 26, fontWeight: 700, color: theme.text, margin: 0 }}>All4Horses</h1>
+              <h1 style={{ fontSize: 26, fontWeight: 600, color: theme.text, margin: 0 }}>All4Horses</h1>
               <p style={{ fontSize: 15, color: theme.textSecondary, margin: "2px 0 0", direction: "ltr" }}>all4horses.co.il</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -858,7 +858,7 @@ export default function ScanPage() {
                     <Tooltip text={METRIC_TOOLTIPS[stat.label] || ""} />
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontSize: 28, fontWeight: 600, color: theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
+                    <span style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: "-1px" }}>{stat.value}</span>
                     {stat.change !== 0 && <ChangeIndicator value={stat.change} unit={stat.unit} invertColor={stat.invertColor} />}
                   </div>
                 </div>
@@ -870,7 +870,7 @@ export default function ScanPage() {
                   <Tooltip text={METRIC_TOOLTIPS["Reputation risk"] || ""} />
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", letterSpacing: "-1px" }}>{reputationValue}%</span>
+                  <span style={{ fontSize: 28, fontWeight: 500, color: "#DC2626", letterSpacing: "-1px" }}>{reputationValue}%</span>
                 </div>
               </div>
             </div>
@@ -878,7 +878,7 @@ export default function ScanPage() {
             {/* === SEO Metrics (Ahrefs-style) === */}
             <div style={{ ...card, padding: 0, overflow: "hidden" }}>
               <div style={{ padding: isMobile ? "10px 12px" : "10px 16px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", gap: 6 }}>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: theme.text, margin: 0 }}>Site SEO Metrics</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 500, color: theme.text, margin: 0 }}>Site SEO Metrics</h3>
                 <Tooltip text="Traditional SEO performance data for all4horses.co.il. Source: Domain authority from Ahrefs/Moz, traffic from Google Search Console estimates, keyword rankings from SERP tracking." />
                 <span style={{ marginLeft: "auto", fontSize: 12, color: theme.textMuted, fontWeight: 400 }}>Updated 2 days ago</span>
               </div>
@@ -921,7 +921,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16, border: "1px solid #DC262640" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0 }}>Reputation Risk - Brand vs Non-Brand Split</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: "#DC2626", margin: 0 }}>Reputation Risk - Brand vs Non-Brand Split</h3>
                 <Tooltip text="The overall mention rate includes brand-name queries (e.g. 'All4Horses reviews'), which are expected to be high. The non-branded rate is the real GEO performance metric. Source: ChatGPT and Gemini query analysis" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
@@ -930,19 +930,19 @@ export default function ScanPage() {
                     <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Branded queries mention rate</span>
                     <Tooltip text={METRIC_TOOLTIPS["Branded mention rate"]} />
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", marginBottom: 4 }}>95%</div>
+                  <div style={{ fontSize: 28, fontWeight: 500, color: "#DC2626", marginBottom: 4 }}>95%</div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "95%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
                   </div>
                   <p style={{ fontSize: 14, color: "#DC2626", margin: 0, opacity: 0.8 }}>12 branded queries (expected high)</p>
                 </div>
                 <div style={{ border: "2px solid #DC2626", borderRadius: 10, padding: 14, position: "relative" }}>
-                  <div style={{ position: "absolute", top: -10, right: 12, background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
+                  <div style={{ position: "absolute", top: -10, right: 12, background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 500, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626" }}>Non-branded queries mention rate</span>
                     <Tooltip text={METRIC_TOOLTIPS["Non-branded mention rate"]} />
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 600, color: "#DC2626", marginBottom: 4 }}>68%</div>
+                  <div style={{ fontSize: 28, fontWeight: 500, color: "#DC2626", marginBottom: 4 }}>68%</div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "68%", height: "100%", borderRadius: 3, background: "#DC2626", transition: "width 1s ease" }} />
                   </div>
@@ -955,7 +955,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Mention rate over time</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Mention rate over time</h3>
                   <Tooltip text="Tracks your brand's mention rate across AI engines over time. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
@@ -976,7 +976,7 @@ export default function ScanPage() {
             {/* GPT vs Gemini */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI engine comparison</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>AI engine comparison</h3>
                 <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini. Source: ChatGPT and Gemini query analysis" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
@@ -984,9 +984,9 @@ export default function ScanPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <img src="/logos/chatgpt.svg" width={18} height={18} alt="ChatGPT" style={{ display: "inline-block" }} />
-                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>ChatGPT (GPT-4o)</span>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>ChatGPT (GPT-4o)</span>
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 600, color: "#10A37F" }}>57%</span>
+                    <span style={{ fontSize: 28, fontWeight: 500, color: "#10A37F" }}>57%</span>
                   </div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
                     <div style={{ width: "57%", height: "100%", borderRadius: 3, background: "#10A37F", transition: "width 1s ease" }} />
@@ -997,9 +997,9 @@ export default function ScanPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <img src="/logos/gemini.svg" width={18} height={18} alt="Gemini" style={{ display: "inline-block" }} />
-                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Google Gemini</span>
+                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>Google Gemini</span>
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 600, color: "#727272" }}>73%</span>
+                    <span style={{ fontSize: 28, fontWeight: 500, color: "#727272" }}>73%</span>
                   </div>
                   <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
                     <div style={{ width: "73%", height: "100%", borderRadius: 3, background: "#727272", transition: "width 1s ease" }} />
@@ -1021,8 +1021,8 @@ export default function ScanPage() {
                 };
                 return (
                   <div key={i} style={{ ...card, padding: 14, textAlign: "center" }}>
-                    <div style={{ fontSize: 28, fontWeight: 600, color: stage.percent >= 80 ? "#10A37F" : theme.text, marginBottom: 2 }}>{stage.percent}%</div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 15, fontWeight: 600, color: theme.text, marginBottom: 2 }}>
+                    <div style={{ fontSize: 28, fontWeight: 500, color: stage.percent >= 80 ? "#10A37F" : theme.text, marginBottom: 2 }}>{stage.percent}%</div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontSize: 15, fontWeight: 500, color: theme.text, marginBottom: 2 }}>
                       {stage.name}
                       <Tooltip text={journeyTooltips[stage.name] || "Customer journey stage"} />
                     </div>
@@ -1036,7 +1036,7 @@ export default function ScanPage() {
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Identified persona</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Identified persona</h3>
                   <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses. Source: AI response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -1049,7 +1049,7 @@ export default function ScanPage() {
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderBottom: i < 3 ? `1px solid ${theme.border}` : "none" }}>
                       <div style={{ flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center" }}>{item.icon}</div>
                       <div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>{item.label}</div>
+                        <div style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>{item.label}</div>
                         <div style={{ ...bodyText, lineHeight: 1.5 }}>{item.value}</div>
                       </div>
                     </div>
@@ -1058,13 +1058,13 @@ export default function ScanPage() {
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Competitors</h3>
                   <Tooltip text="Presence scores of leading competitors compared to your brand. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {COMPETITORS.map((comp, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 600, color: theme.text, flexShrink: 0 }}>{i + 1}</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 500, color: theme.text, flexShrink: 0 }}>{i + 1}</div>
                       <img src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`} alt="" width={24} height={24} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : theme.cardBg, padding: darkMode ? 2 : 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{comp.name}</div>
@@ -1084,7 +1084,7 @@ export default function ScanPage() {
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Sentiment</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Sentiment</h3>
                   <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How AI talks about you</p>
@@ -1098,7 +1098,7 @@ export default function ScanPage() {
               </div>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Citation quality</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Citation quality</h3>
                   <Tooltip text="How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How well AI links back to you</p>
@@ -1116,18 +1116,18 @@ export default function ScanPage() {
             {/* Top 5 Keywords */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Top 5 Keywords</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Top 5 Keywords</h3>
                 <Tooltip text="Keyword data powered by DataForSEO API. Source: DataForSEO API" />
               </div>
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
                 <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 600 : "auto" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Keyword</th>
-                      <th style={{ textAlign: "right", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Volume</th>
-                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>KD</th>
-                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Position</th>
-                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Matching AI Queries</th>
+                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Keyword</th>
+                      <th style={{ textAlign: "right", padding: "7px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Volume</th>
+                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>KD</th>
+                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Position</th>
+                      <th style={{ textAlign: "left", padding: "7px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Matching AI Queries</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1169,7 +1169,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>SEO Performance</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>SEO Performance</h3>
                   <Tooltip text="Organic traffic and keyword growth over the past 6 months. Source: Ahrefs API" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1177,7 +1177,7 @@ export default function ScanPage() {
                     <div style={{ width: 12, height: 3, borderRadius: 2, background: "#10A37F" }} />
                     <span style={{ fontSize: 15, color: theme.text }}>Organic Traffic</span>
                   </div>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 15, fontWeight: 600, padding: "3px 10px", borderRadius: 10, background: theme.badgeBg, color: "#727272", border: `1px solid ${theme.border}` }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 15, fontWeight: 500, padding: "3px 10px", borderRadius: 10, background: theme.badgeBg, color: "#727272", border: `1px solid ${theme.border}` }}>
                     Organic Keywords: {SEO_PERFORMANCE.organicKeywords[SEO_PERFORMANCE.organicKeywords.length - 1]}
                   </span>
                 </div>
@@ -1191,7 +1191,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: isMobile ? 12 : 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>SEO {"<>"} GEO Connection</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>SEO {"<>"} GEO Connection</h3>
                   <Tooltip text="How traditional SEO keywords connect to AI-generated query answers (GEO). Source: DataForSEO API + ChatGPT and Gemini query analysis" />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -1221,7 +1221,7 @@ export default function ScanPage() {
                       {seoToggle && (
                         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: geoToggle ? 8 : 0, flexWrap: "wrap" }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="3"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-                          <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{kw.keyword}</span>
+                          <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{kw.keyword}</span>
                           <span style={{ fontSize: 14, color: theme.textSecondary, fontWeight: 500 }}>Vol: {kw.volume.toLocaleString()}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                             <div style={{ width: 30, height: 4, borderRadius: 2, overflow: "hidden", background: theme.barTrack }}>
@@ -1261,7 +1261,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Competitors</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Competitors</h3>
                   <Tooltip text="Key competitors identified by query overlap and AI engine presence. Source: ChatGPT and Gemini query analysis" />
                 </div>
               </div>
@@ -1269,11 +1269,11 @@ export default function ScanPage() {
               <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 550 : "auto" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Competitor</th>
-                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>GEO Score</th>
-                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Query overlap</th>
-                    <th style={{ textAlign: "center", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={14} /> <AIEngineLogo engine="gemini" size={14} /></span></th>
-                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>Trend</th>
+                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Competitor</th>
+                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>GEO Score</th>
+                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Query overlap</th>
+                    <th style={{ textAlign: "center", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={14} /> <AIEngineLogo engine="gemini" size={14} /></span></th>
+                    <th style={{ textAlign: "left", padding: "8px 12px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>Trend</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1310,7 +1310,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>Top 5 queries</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Top 5 queries</h3>
                   <Tooltip text="Queries with the highest brand presence across AI engines. Source: ChatGPT and Gemini query analysis" />
                 </div>
                 <HoverButton onClick={() => setActiveTab("queries")} theme={theme} style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>
@@ -1321,10 +1321,10 @@ export default function ScanPage() {
               <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 550 : "auto" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Query <Tooltip text="The query tested against AI engines" /></span></th>
-                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Persona <Tooltip text="The target-audience profile this query belongs to" /></span></th>
-                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Stage <Tooltip text="Customer journey stage: Awareness, Research, Decision, Support" /></span></th>
-                    <th style={{ textAlign: "center", padding: "8px 10px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={16} /> <AIEngineLogo engine="gemini" size={16} /> <AIEngineLogo engine="perplexity" size={16} /></span></th>
+                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Query <Tooltip text="The query tested against AI engines" /></span></th>
+                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Persona <Tooltip text="The target-audience profile this query belongs to" /></span></th>
+                    <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Stage <Tooltip text="Customer journey stage: Awareness, Research, Decision, Support" /></span></th>
+                    <th style={{ textAlign: "center", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={16} /> <AIEngineLogo engine="gemini" size={16} /> <AIEngineLogo engine="perplexity" size={16} /></span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1354,7 +1354,7 @@ export default function ScanPage() {
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>What worked</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>What worked</h3>
                   <Tooltip text="Strengths - areas where the brand receives positive mentions in AI engines. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1369,7 +1369,7 @@ export default function ScanPage() {
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
+                  <h3 style={{ fontSize: 18, fontWeight: 500, color: "#DC2626", margin: 0 }}>What&apos;s missing</h3>
                   <Tooltip text="Risk alerts - areas with missing mentions and reputation risk. Source: ChatGPT and Gemini response analysis" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1386,14 +1386,14 @@ export default function ScanPage() {
             {/* AI Summary */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI Summary - What engines say about you</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>AI Summary - What engines say about you</h3>
                 <Tooltip text="Summary of answers AI engines return when asked about your brand. Source: ChatGPT and Gemini direct query" />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
                 <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                     <AIEngineLogo engine="gpt" size={18} />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F" }}>ChatGPT Summary</span>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: "#10A37F" }}>ChatGPT Summary</span>
                   </div>
                   <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
                     &ldquo;All4Horses is a leading horse ranch in Israel, specializing in therapeutic riding for children with special needs. The ranch offers personalized programs for children with ADHD and autism, guided by a team of certified therapists. Rating 4.8/5 on Google reviews.&rdquo;
@@ -1402,7 +1402,7 @@ export default function ScanPage() {
                 <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                     <AIEngineLogo engine="gemini" size={18} />
-                    <span style={{ fontSize: 15, fontWeight: 600, color: "#727272" }}>Gemini Summary</span>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: "#727272" }}>Gemini Summary</span>
                   </div>
                   <p style={{ fontSize: 15, lineHeight: 1.7, color: theme.text, margin: 0 }}>
                     &ldquo;All4Horses provides therapeutic riding services and horse activities in the central region. The ranch is known for its professional approach and integration of scientific research into treatment programs. Offers riding lessons, tours, summer camps, and team building days.&rdquo;
@@ -1415,7 +1415,7 @@ export default function ScanPage() {
             <div style={{ ...card, padding: 16, borderLeft: "4px solid #10A37F" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                <h3 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: 0 }}>AI Insights</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>AI Insights</h3>
                 <Tooltip text="Insights automatically generated from the latest scan analysis. Source: GeoScale analysis engine" />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1481,11 +1481,11 @@ export default function ScanPage() {
               <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 650 : "auto" }}>
                 <thead>
                   <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>#</th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Query <Tooltip text="The query tested against AI engines" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Persona <Tooltip text="The target-audience profile this query belongs to" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Journey stage <Tooltip text="Customer journey stage: Awareness, Research, Decision, Support" /></span></th>
-                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><AIEngineLogo engine="gpt" size={16} /> <AIEngineLogo engine="gemini" size={16} /> <AIEngineLogo engine="perplexity" size={16} /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>#</th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Query <Tooltip text="The query tested against AI engines" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Persona <Tooltip text="The target-audience profile this query belongs to" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Journey stage <Tooltip text="Customer journey stage: Awareness, Research, Decision, Support" /></span></th>
+                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><AIEngineLogo engine="gpt" size={16} /> <AIEngineLogo engine="gemini" size={16} /> <AIEngineLogo engine="perplexity" size={16} /></span></th>
                     <th style={{ textAlign: "center", padding: "10px 14px", width: 40 }}></th>
                   </tr>
                 </thead>
@@ -1515,7 +1515,7 @@ export default function ScanPage() {
                               <div style={{ borderRadius: 10, padding: 14, background: theme.cardBg, border: thinBorder }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                                   <img src="/logos/chatgpt.svg" width={14} height={14} alt="ChatGPT" style={{ display: "inline-block" }} />
-                                  <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F" }}>ChatGPT (GPT-4o)</span>
+                                  <span style={{ fontSize: 15, fontWeight: 500, color: "#10A37F" }}>ChatGPT (GPT-4o)</span>
                                   <MentionBadge mentioned={q.gpt} />
                                 </div>
                                 {fullAnswerView?.queryId === q.id && fullAnswerView?.engine === "gpt" ? (
@@ -1533,7 +1533,7 @@ export default function ScanPage() {
                               <div style={{ borderRadius: 10, padding: 14, background: theme.cardBg, border: thinBorder }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                                   <img src="/logos/gemini.svg" width={14} height={14} alt="Gemini" style={{ display: "inline-block" }} />
-                                  <span style={{ fontSize: 15, fontWeight: 600, color: "#727272" }}>Google Gemini</span>
+                                  <span style={{ fontSize: 15, fontWeight: 500, color: "#727272" }}>Google Gemini</span>
                                   <MentionBadge mentioned={q.gemini} />
                                 </div>
                                 {fullAnswerView?.queryId === q.id && fullAnswerView?.engine === "gemini" ? (
@@ -1554,14 +1554,14 @@ export default function ScanPage() {
                                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
                                     <div>
-                                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Generate GEO content for this query</span>
+                                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>Generate GEO content for this query</span>
                                       <p style={{ fontSize: 15, color: theme.textSecondary, margin: "2px 0 0" }}>Create an optimized article with GEO format to appear in AI answers</p>
                                     </div>
                                   </div>
                                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     {contentQueue.includes(q.id) ? (
                                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                        <span style={{ fontSize: 15, fontWeight: 600, color: "#10A37F", padding: "4px 12px", background: "#10A37F15", borderRadius: 20 }}>Added to content queue</span>
+                                        <span style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", padding: "4px 12px", background: "#10A37F15", borderRadius: 20 }}>Added to content queue</span>
                                         <HoverButton filled onClick={(e) => { e.stopPropagation(); window.location.href = "/editor"; }} theme={theme} style={{ padding: "6px 14px", fontSize: 15, fontWeight: 600, ...btnFilled, borderRadius: 8, cursor: "pointer" }}>Edit in content editor</HoverButton>
                                       </div>
                                     ) : (
@@ -1601,7 +1601,7 @@ export default function ScanPage() {
           <div>
             <div style={{ ...card, padding: "12px 18px", marginBottom: 14 }}>
               <p style={{ fontSize: 15, color: theme.text, margin: 0 }}>
-                <span style={{ fontWeight: 600 }}>SEO Keywords</span> - Terms where All4Horses ranks on Google, including AI engine connection.
+                <span style={{ fontWeight: 500 }}>SEO Keywords</span> - Terms where All4Horses ranks on Google, including AI engine connection.
                 <span style={{ display: "block", fontSize: 15, color: theme.textSecondary, marginTop: 4 }}>Improving SEO rankings directly impacts AI engine presence (GEO).</span>
               </p>
             </div>
@@ -1610,13 +1610,13 @@ export default function ScanPage() {
               <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: isMobile ? 700 : "auto" }}>
                 <thead>
                   <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}>#</th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Keyword <Tooltip text="The search term being tracked" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Rank <Tooltip text="Position in Google search results" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Change <Tooltip text="Ranking change compared to previous period" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Monthly vol. <Tooltip text="Average monthly search volume for this term" /></span></th>
-                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Difficulty <Tooltip text="Ranking difficulty level for this term (0-100)" /></span></th>
-                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 14 }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={14} /> <AIEngineLogo engine="gemini" size={14} /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}>#</th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Keyword <Tooltip text="The search term being tracked" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Rank <Tooltip text="Position in Google search results" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Change <Tooltip text="Ranking change compared to previous period" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Monthly vol. <Tooltip text="Average monthly search volume for this term" /></span></th>
+                    <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Difficulty <Tooltip text="Ranking difficulty level for this term (0-100)" /></span></th>
+                    <th style={{ textAlign: "center", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={14} /> <AIEngineLogo engine="gemini" size={14} /></span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1681,7 +1681,7 @@ export default function ScanPage() {
           <div>
             <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", marginBottom: 20, flexDirection: isMobile ? "column" : "row", gap: isMobile ? 12 : 0 }}>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 600, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis. Source: AI response analysis" /></h2>
+                <h2 style={{ fontSize: 20, fontWeight: 500, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>Identified target audiences <Tooltip text="Target audience personas identified from query and AI response analysis. Source: AI response analysis" /></h2>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: 0 }}>{PERSONAS.length} personas identified in the latest scan</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1737,13 +1737,13 @@ export default function ScanPage() {
                   <div style={{ height: 3, background: "#10A37F" }} />
                   <div style={{ padding: 16 }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600, color: theme.text, flexShrink: 0 }}>{p.name.charAt(0)}</div>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 500, color: theme.text, flexShrink: 0 }}>{p.name.charAt(0)}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h3>
+                        <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h3>
                         <p style={{ fontSize: 15, color: theme.textSecondary, margin: "2px 0 0" }}>{p.role}</p>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 24, fontWeight: 600, color: theme.text }}>{p.score}%</div>
+                        <div style={{ fontSize: 24, fontWeight: 500, color: theme.text }}>{p.score}%</div>
                         <div style={{ fontSize: 15, color: theme.textMuted }}>Relevance</div>
                       </div>
                     </div>
@@ -1775,7 +1775,7 @@ export default function ScanPage() {
           <div>
             <div style={{ ...card, padding: "12px 18px", marginBottom: 14 }}>
               <p style={{ fontSize: 15, color: theme.text, margin: 0 }}>
-                <span style={{ fontWeight: 600 }}>GeoScale identified</span> <span style={{ fontWeight: 600 }}>5 services and 1 product</span> from scanning <span style={{ fontWeight: 500 }}>all4horses.co.il</span>.
+                <span style={{ fontWeight: 500 }}>GeoScale identified</span> <span style={{ fontWeight: 500 }}>5 services and 1 product</span> from scanning <span style={{ fontWeight: 500 }}>all4horses.co.il</span>.
                 <span style={{ display: "block", fontSize: 15, color: theme.textSecondary, marginTop: 4 }}><strong>Services</strong> - activities the business provides to clients (riding, therapy, tours). <strong>Products</strong> - physical items for sale (gear, accessories).</span>
               </p>
             </div>
@@ -1788,7 +1788,7 @@ export default function ScanPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 600, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
                   {productFilter === "all" ? "All4Horses products & services" : productFilter === "service" ? "All4Horses services" : "All4Horses products"}
                   <Tooltip text="Products and services identified on the site and tested against AI engines" />
                 </h2>
@@ -1813,7 +1813,7 @@ export default function ScanPage() {
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>{p.name}</h3>
+                          <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0 }}>{p.name}</h3>
                           <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: p.type === "Product" ? "#10A37F" : "#727272", fontWeight: 500, border: `1px solid ${theme.border}` }}>{p.type}</span>
                           <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, fontWeight: 500, border: `1px solid ${theme.border}` }}>{p.audience}</span>
                         </div>
@@ -1837,7 +1837,7 @@ export default function ScanPage() {
                       </div>
                     </div>
                     <div style={{ padding: 8, background: theme.hoverBg, borderRadius: 8, border: thinBorder }}>
-                      <p style={{ fontSize: 15, fontWeight: 600, color: "#10A37F", margin: "0 0 4px" }}>Top query</p>
+                      <p style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", margin: "0 0 4px" }}>Top query</p>
                       <p style={{ fontSize: 15, color: theme.text, margin: 0 }}>&quot;{p.topQuery}&quot;</p>
                     </div>
                   </div>
@@ -1847,14 +1847,14 @@ export default function ScanPage() {
                 <>
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Services</h3>
+                      <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0 }}>Services</h3>
                       <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, border: thinBorder }}>{services.length}</span>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>{services.map((p, i) => renderProductCard(p, i))}</div>
                   </div>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Products</h3>
+                      <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0 }}>Products</h3>
                       <span style={{ fontSize: 15, padding: "2px 8px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, border: thinBorder }}>{products.length}</span>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>{products.map((p, i) => renderProductCard(p, i))}</div>
@@ -1870,7 +1870,7 @@ export default function ScanPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>Content Creation <Tooltip text="GEO-Optimized article creation queue for selected queries" /></h2>
+                <h2 style={{ fontSize: 20, fontWeight: 500, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>Content Creation <Tooltip text="GEO-Optimized article creation queue for selected queries" /></h2>
                 <span style={{ fontSize: 15, padding: "2px 10px", borderRadius: 10, background: theme.badgeBg, color: theme.textSecondary, border: thinBorder }}>{contentQueue.length} items</span>
               </div>
               <HoverButton filled onClick={() => setActiveTab("queries")} theme={theme} style={{ padding: "6px 14px", fontSize: 15, fontWeight: 600, ...btnFilled, borderRadius: 8, cursor: "pointer" }}>
@@ -1883,13 +1883,13 @@ export default function ScanPage() {
             <div style={{ ...card, padding: "12px 18px", marginBottom: 16, borderLeft: "3px solid #10A37F" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={16} /><AIEngineLogo engine="gemini" size={16} /><AIEngineLogo engine="perplexity" size={16} /></div>
-                <p style={{ fontSize: 15, color: theme.text, margin: 0 }}><span style={{ fontWeight: 600 }}>GEO-Optimized format</span> - Content is built to appear in AI engine answers. Each article is optimized for a specific query.</p>
+                <p style={{ fontSize: 15, color: theme.text, margin: 0 }}><span style={{ fontWeight: 500 }}>GEO-Optimized format</span> - Content is built to appear in AI engine answers. Each article is optimized for a specific query.</p>
               </div>
             </div>
             {contentQueue.length === 0 ? (
               <div style={{ ...card, padding: 48, textAlign: "center" }}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="1.5" style={{ margin: "0 auto 16px" }}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-                <p style={{ fontSize: 15, fontWeight: 600, color: theme.text, margin: "0 0 6px" }}>No content in queue</p>
+                <p style={{ fontSize: 15, fontWeight: 500, color: theme.text, margin: "0 0 6px" }}>No content in queue</p>
                 <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 16px" }}>Go to the <strong>Queries</strong> tab, expand a query and click <strong>&quot;Create content&quot;</strong> to get started.</p>
                 <HoverButton onClick={() => setActiveTab("queries")} theme={theme} style={{ padding: "8px 20px", fontSize: 15, fontWeight: 600, color: "#10A37F", background: "transparent", border: "1px solid #10A37F", borderRadius: 8, cursor: "pointer" }}>Go to queries</HoverButton>
               </div>
@@ -1905,7 +1905,7 @@ export default function ScanPage() {
                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                              <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>{q.text}</h3>
+                              <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0 }}>{q.text}</h3>
                               <PersonaBadge personaId={q.persona} theme={theme} />
                               <StageBadge stage={q.stage} theme={theme} />
                             </div>
@@ -1928,14 +1928,14 @@ export default function ScanPage() {
                           {[{ label: "Word count", value: "1,500" }, { label: "Format", value: "GEO-Optimized" }, { label: "Language", value: "English" }, { label: "Status", value: "Pending creation" }].map((s, i) => (
                             <div key={i} style={{ textAlign: "center", padding: "8px 0", background: theme.hoverBg, borderRadius: 8 }}>
                               <div style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 2 }}>{s.label}</div>
-                              <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{s.value}</div>
+                              <div style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{s.value}</div>
                             </div>
                           ))}
                         </div>
                         <div style={{ padding: "10px 14px", background: theme.hoverBg, borderRadius: 8, border: thinBorder }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                             <AIEngineLogo engine="gpt" size={14} />
-                            <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Preview - AI answer</span>
+                            <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>Preview - AI answer</span>
                           </div>
                           <p style={{ fontSize: 15, lineHeight: 1.6, color: theme.textSecondary, margin: 0 }}>{q.gptSnippet}</p>
                         </div>

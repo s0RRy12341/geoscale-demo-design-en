@@ -463,7 +463,7 @@ function StatCard({ label, value, subtext, theme, accent }: { label: string; val
       padding: "16px 20px", display: "flex", flexDirection: "column", gap: 4, minWidth: 0,
     }}>
       <span style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: 26, fontWeight: 600, color: accent ? "#10A37F" : theme.text, lineHeight: 1.2 }}>{value}</span>
+      <span style={{ fontSize: 26, fontWeight: 500, color: accent ? "#10A37F" : theme.text, lineHeight: 1.2 }}>{value}</span>
       {subtext && <span style={{ fontSize: 13, color: theme.textMuted }}>{subtext}</span>}
     </div>
   );
@@ -506,7 +506,7 @@ function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: 
         {/* Title + progress */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 18, fontWeight: 600, color: theme.text }}>
+            <span style={{ fontSize: 18, fontWeight: 500, color: theme.text }}>
               Level {phase.id}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>
@@ -553,7 +553,7 @@ function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: 
             }}
           >
             {["Feature", "Description", "Priority", "Status", "Implementation"].map(h => (
-              <span key={h} style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              <span key={h} style={{ fontSize: 11, fontWeight: 500, color: theme.textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 {h}
               </span>
             ))}
@@ -575,7 +575,7 @@ function LevelSection({ phase, theme, defaultExpanded }: { phase: Phase; theme: 
               onMouseEnter={e => (e.currentTarget.style.background = theme.hoverBg)}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <span style={{ fontSize: 14, fontWeight: 600, color: theme.text, lineHeight: 1.4 }}>{f.name}</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: theme.text, lineHeight: 1.4 }}>{f.name}</span>
               <span style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5 }}>{truncate(f.description, 120)}</span>
               <PriorityLabel priority={f.priority} theme={theme} />
               <StatusBadge status={f.status} theme={theme} />
@@ -695,7 +695,7 @@ export default function RoadmapPage() {
       <main style={{ flex: 1, maxWidth: 1300, margin: "0 auto", padding: "32px 24px 48px", width: "100%" }} dir="ltr">
         {/* Title */}
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: theme.text, marginBottom: 6, fontFamily: "'Inter', sans-serif" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: theme.text, marginBottom: 6, fontFamily: "'Inter', sans-serif" }}>
             Feature Roadmap
           </h1>
           <p style={{ fontSize: 14, color: theme.textSecondary, margin: 0 }}>
@@ -716,7 +716,7 @@ export default function RoadmapPage() {
         <div style={{ marginBottom: 32, padding: "0 2px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 500, color: theme.textSecondary }}>Overall Progress</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#10A37F" }}>{stats.pct}%</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: "#10A37F" }}>{stats.pct}%</span>
           </div>
           <ProgressBar pct={stats.pct} theme={theme} height={8} />
         </div>
@@ -739,7 +739,7 @@ export default function RoadmapPage() {
                 <line x1="16" y1="17" x2="8" y2="17" />
               </svg>
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, margin: 0 }}>Multi-Query Content Writing Prompt</h3>
           </div>
           <p style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.6 }}>
             This prompt needs to be added to Geoscale&apos;s content writing engine. Every article targets one primary query + 5-10 sub-queries. Each H2 answers a separate search intent, and the FAQ captures additional long-tail queries. One URL captures traffic from 8-15 different queries.
@@ -748,7 +748,7 @@ export default function RoadmapPage() {
             <strong>Live example:</strong> See how adsgpt.io structures their articles -- <span style={{ color: "#10A37F" }}>adsgpt.io/blog/social-media-marketing-strategy</span>
           </p>
           <details style={{ cursor: "pointer" }}>
-            <summary style={{ fontSize: 14, fontWeight: 600, color: "#10A37F", marginBottom: 10, userSelect: "none" }}>
+            <summary style={{ fontSize: 14, fontWeight: 500, color: "#10A37F", marginBottom: 10, userSelect: "none" }}>
               Show full prompt
             </summary>
             <div style={{ background: darkMode ? "#0D1117" : "#1a1a2e", borderRadius: 8, padding: 20, overflow: "auto", maxHeight: 400 }}>
@@ -761,7 +761,7 @@ export default function RoadmapPage() {
 
         {/* Dependencies & Risks */}
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, padding: 24, direction: "ltr" }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: theme.text, marginBottom: 14 }}>Dependencies & Risks</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 500, color: theme.text, marginBottom: 14 }}>Dependencies & Risks</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               { text: "Multi-Query prompt requires Alexei's approval before integration into production system", critical: true },

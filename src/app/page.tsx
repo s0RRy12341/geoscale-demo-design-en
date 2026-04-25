@@ -545,7 +545,7 @@ export default function Dashboard() {
           <div style={{ marginBottom: 16, textAlign: isMobile ? "center" : "left" }}>
             <h1 style={{
               fontSize: isMobile ? 18 : 20,
-              fontWeight: 700,
+              fontWeight: 600,
               color: theme.text,
               letterSpacing: "-0.5px",
               margin: 0,
@@ -578,7 +578,7 @@ export default function Dashboard() {
                   {m.label} <Tooltip text={m.tooltip} />
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 28, fontWeight: 600, color: m.color || theme.text, letterSpacing: "-0.5px" }}>{m.value}</span>
+                  <span style={{ fontSize: 28, fontWeight: 500, color: m.color || theme.text, letterSpacing: "-0.5px" }}>{m.value}</span>
                   {m.change && <span style={{ fontSize: 14, fontWeight: 500, color: "#10A37F", display: "inline-flex", alignItems: "center", gap: 2 }}><IconArrowUp /> {m.change}</span>}
                 </div>
               </div>
@@ -596,7 +596,7 @@ export default function Dashboard() {
             <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 600, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Trending Up <Tooltip text="Brands with the largest improvement in visibility score over the last 30 days. Score change is calculated from the previous scan." /></h3>
+                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 500, color: theme.text, margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Trending Up <Tooltip text="Brands with the largest improvement in visibility score over the last 30 days. Score change is calculated from the previous scan." /></h3>
               </div>
               {[
                 { name: "Calcalist", domain: "calcalist.co.il", score: 88, change: "+6.2%" },
@@ -623,7 +623,7 @@ export default function Dashboard() {
             <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 600, color: "#DC2626", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining visibility scores that require content intervention. Negative changes indicate reduced AI engine mentions." /></h3>
+                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 500, color: "#DC2626", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining visibility scores that require content intervention. Negative changes indicate reduced AI engine mentions." /></h3>
               </div>
               {[
                 { name: "Just In Time", domain: "justintime.co.il", score: 52, change: "-5.1%" },
@@ -662,7 +662,7 @@ export default function Dashboard() {
               gap: isMobile ? 8 : 0,
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <h2 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 600, color: theme.text, margin: 0 }}>Your Brands</h2>
+                <h2 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 500, color: theme.text, margin: 0 }}>Your Brands</h2>
                 <Tooltip text="All brands you are managing. Click any row to view detailed scan results, query breakdown, and pending actions." />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -716,10 +716,10 @@ export default function Dashboard() {
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                         <img src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`} alt="" width={24} height={24} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{brand.name}</div>
+                          <div style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{brand.name}</div>
                           <div style={{ fontSize: 13, color: theme.textMuted, fontWeight: 400 }}>{brand.domain}</div>
                         </div>
-                        <span style={{ fontSize: 22, fontWeight: 600, color: scoreColor }}>{brand.score}%</span>
+                        <span style={{ fontSize: 22, fontWeight: 500, color: scoreColor }}>{brand.score}%</span>
                       </div>
                       {/* Metrics row */}
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
@@ -751,12 +751,12 @@ export default function Dashboard() {
                   <table style={{ width: "100%", fontSize: 15, borderCollapse: "collapse", minWidth: 700 }}>
                     <thead>
                       <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Brand</th>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>GEO Score</th>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Scans</th>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Queries</th>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Pending</th>
-                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 600, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Top Query</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Brand</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>GEO Score</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Scans</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Queries</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Pending</th>
+                        <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: theme.textSecondary, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.5px" }}>Top Query</th>
                         <th style={{ width: 40 }}></th>
                       </tr>
                     </thead>

@@ -323,7 +323,7 @@ export default function KeywordsDetailPage() {
               <thead>
                 <tr style={{ background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}` }}>
                   {["Keyword", "Position", "Volume", "KD", "CPC", "Traffic", "URL", "Trend"].map((h, i) => (
-                    <th key={i} style={{ padding: "10px 14px", textAlign: i === 0 || i === 6 ? "left" : "right", fontSize: 12, fontWeight: 600, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
+                    <th key={i} style={{ padding: "10px 14px", textAlign: i === 0 || i === 6 ? "left" : "right", fontSize: 12, fontWeight: 500, color: theme.textSecondary, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>

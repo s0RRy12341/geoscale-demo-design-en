@@ -354,7 +354,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, s
           }}
         />
         <div className="relative max-w-2xl mx-auto text-center">
-          <h1 className="font-bold mb-4" style={{ color: theme.text, fontSize: isMobile ? 28 : undefined }}>
+          <h1 className="font-semibold mb-4" style={{ color: theme.text, fontSize: isMobile ? 28 : undefined }}>
             {!isMobile && <span className="text-4xl md:text-5xl">AI Presence Check</span>}
             {isMobile && "AI Presence Check"}
           </h1>
@@ -378,7 +378,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, s
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
               <line x1="7" y1="7" x2="7.01" y2="7" />
             </svg>
-            <span className="font-semibold text-xl" style={{ color: theme.text }}>Brand details</span>
+            <span className="font-medium text-xl" style={{ color: theme.text }}>Brand details</span>
           </div>
 
           {/* Domain Field */}
@@ -445,7 +445,7 @@ function Screen1({ onSubmit, theme, darkMode, setDarkMode, isMobile, menuOpen, s
 
         {/* What's New Box */}
         <div className="mt-6 rounded-[10px] p-6" style={{ background: theme.cardBg, border: `1px solid ${theme.border}` }}>
-          <h3 className="font-semibold text-xl mb-3" style={{ color: BRAND.teal }}>
+          <h3 className="font-medium text-xl mb-3" style={{ color: BRAND.teal }}>
             What&apos;s new?
           </h3>
           <ul className="space-y-2 text-[15px]" style={{ color: theme.textSecondary }}>
@@ -636,7 +636,7 @@ function Screen2({ domain, brandName, onComplete, theme, darkMode, setDarkMode, 
         </div>
 
         {/* Status Text */}
-        <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>
+        <h2 className="text-2xl font-medium mb-2" style={{ color: theme.text }}>
           Analyzing the site{dots}
         </h2>
         <p className="text-base mb-8" style={{ color: BRAND.teal }}>
@@ -745,7 +745,7 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
         </div>
       </div>
 
-      <h3 className="text-xl font-bold mb-1" style={{ color: theme.text }}>
+      <h3 className="text-xl font-medium mb-1" style={{ color: theme.text }}>
         {persona.name} — {persona.title}
       </h3>
       <p className="text-[15px] mb-4" style={{ color: theme.textSecondary }}>
@@ -764,7 +764,7 @@ function PersonaCard({ persona, index, theme }: { persona: typeof MOCK_PERSONAS[
           />
         </div>
         <span
-          className="text-base font-bold"
+          className="text-base font-medium"
           style={{ color: persona.match >= 90 ? BRAND.teal : theme.textSecondary, fontSize: 24 }}
         >
           {persona.match}%
@@ -837,7 +837,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
         }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-bold mb-2" style={{ color: theme.text, fontSize: isMobile ? 24 : undefined }}>
+          <h1 className="font-semibold mb-2" style={{ color: theme.text, fontSize: isMobile ? 24 : undefined }}>
             {!isMobile && <span className="text-3xl md:text-4xl">AI Presence Check</span>}
             {isMobile && "AI Presence Check"}
           </h1>
@@ -862,7 +862,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
               <path d="M23 21v-2a4 4 0 00-3-3.87" />
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
-            <span className="font-semibold" style={{ color: theme.text, fontSize: isMobile ? 18 : 20 }}>Audience selection</span>
+            <span className="font-medium" style={{ color: theme.text, fontSize: isMobile ? 18 : 20 }}>Audience selection</span>
           </div>
           <span className="flex items-center gap-1 text-sm cursor-pointer" style={{ color: theme.textSecondary }}>
             <ArrowLeft size={14} color={theme.textSecondary} />
@@ -872,7 +872,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
 
         {/* Info box */}
         <div className="rounded-xl p-4 mb-4" style={{ background: theme.hoverBg, border: `1px solid ${theme.border}` }}>
-          <h4 className="font-semibold text-[20px] mb-1" style={{ color: BRAND.teal }}>
+          <h4 className="font-medium text-[20px] mb-1" style={{ color: BRAND.teal }}>
             Why it matters
           </h4>
           <p className="text-[15px]" style={{ color: theme.textSecondary }}>
@@ -886,7 +886,7 @@ function Screen3({ onStartScan, theme, darkMode, setDarkMode, isMobile, menuOpen
             ~ 35 queries will be tested
           </span>
           <span
-            className="text-sm font-semibold px-3 py-1 rounded-full"
+            className="text-sm font-medium px-3 py-1 rounded-full"
             style={{ background: theme.badgeBg, color: BRAND.tealDark }}
           >
             5 / 5 selected
@@ -1124,7 +1124,7 @@ function AIEngineCard({
               {icon}
             </div>
             <div>
-              <h3 className="font-bold text-lg" style={{ color: theme?.text }}>{name}</h3>
+              <h3 className="font-medium text-lg" style={{ color: theme?.text }}>{name}</h3>
               <p className="text-[15px]" style={{ color: active ? color : (theme?.textMuted ?? BRAND.gray400) }}>
                 {active ? "Scanning..." : progress >= 100 ? <span className="flex items-center gap-1">Done <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg></span> : "Waiting"}
               </p>
@@ -1318,7 +1318,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
         }}
       >
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-bold mb-1" style={{ color: theme.text, fontSize: isMobile ? 22 : 30 }}>
+          <h1 className="font-semibold mb-1" style={{ color: theme.text, fontSize: isMobile ? 22 : 30 }}>
             AI Presence Check
           </h1>
           <p style={{ color: theme.textSecondary, fontSize: isMobile ? 14 : 16 }}>
@@ -1389,7 +1389,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
             </div>
 
             {/* Status Text */}
-            <h2 className="text-2xl font-bold mb-1" style={{ color: theme.text }}>
+            <h2 className="text-2xl font-medium mb-1" style={{ color: theme.text }}>
               {statusMessage}
             </h2>
             <p className="text-base font-medium" style={{ color: theme.textSecondary }}>
@@ -1466,7 +1466,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
             {/* QUERIES PHASE */}
             {phase === "queries" && (
               <div className="animate-fade-in-up">
-                <h3 className="text-[20px] font-semibold mb-3" style={{ color: theme.textSecondary }}>
+                <h3 className="text-[20px] font-medium mb-3" style={{ color: theme.textSecondary }}>
                   Generating queries ({queryIndex + 1}/{MOCK_QUERIES.length})
                 </h3>
                 <QueryStream queries={MOCK_QUERIES} currentIndex={queryIndex} theme={theme} />
@@ -1569,7 +1569,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-bold text-[20px]" style={{ color: theme.text }}>Analyzing results</h4>
+                      <h4 className="font-medium text-[20px]" style={{ color: theme.text }}>Analyzing results</h4>
                       <p className="text-[15px]" style={{ color: theme.textSecondary }}>
                         Comparing models and computing presence scores
                       </p>
@@ -1628,7 +1628,7 @@ function Screen4({ brandName, theme, darkMode, setDarkMode, isMobile, menuOpen, 
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>
+                <h3 className="text-2xl font-medium mb-2" style={{ color: theme.text }}>
                   Scan complete!
                 </h3>
                 <p className="text-base mb-6" style={{ color: theme.textSecondary }}>
@@ -1689,7 +1689,7 @@ export default function Home() {
           <button
             key={s}
             onClick={() => setScreen(s as 1 | 2 | 3 | 4)}
-            className="w-10 h-10 rounded-full text-sm font-bold transition-all hover:scale-110"
+            className="w-10 h-10 rounded-full text-sm font-medium transition-all hover:scale-110"
             style={{
               background: screen === s ? BRAND.teal : theme.cardBg,
               color: screen === s ? "white" : theme.textSecondary,
