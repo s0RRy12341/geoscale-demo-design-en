@@ -772,7 +772,7 @@ export default function RoadmapPage() {
               { text: "Expanding AI engines (Perplexity, Claude, Bing) depends on API access and pricing", critical: false },
             ].map((item, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <span style={{ width: 6, height: 6, borderRadius: 3, background: item.critical ? "#DC2626" : "#10A37F", display: "inline-block", marginTop: 6, flexShrink: 0 }} />
+                <span style={{ width: 6, height: 6, borderRadius: 3, background: item.critical ? "#B45309" : "#10A37F", display: "inline-block", marginTop: 6, flexShrink: 0 }} />
                 <span style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.6 }}>{item.text}</span>
               </div>
             ))}

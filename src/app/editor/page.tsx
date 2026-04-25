@@ -363,7 +363,7 @@ export default function EditorPage() {
               {SEO_RULES.map(r => (
                 <div key={r.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14 }}>
                   <span style={{ width: 18, height: 18, borderRadius: 9, background: r.ok ? "#10A37F" : theme.barTrack, color: r.ok ? "#fff" : theme.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500, flexShrink: 0, marginTop: 1 }}>{r.ok ? "✓" : "!"}</span>
-                  <span style={{ color: r.ok ? (darkMode ? "#C9D1D9" : "#333") : "#DC2626", lineHeight: 1.5 }}>{r.label}</span>
+                  <span style={{ color: r.ok ? (darkMode ? "#C9D1D9" : "#333") : "#B45309", lineHeight: 1.5 }}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -381,7 +381,7 @@ export default function EditorPage() {
             ].map(s => (
               <div key={s.k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid " + (darkMode ? "#21262D" : "#F5F5F5"), fontSize: 14 }}>
                 <span style={{ color: theme.textSecondary }}>{s.k}</span>
-                <span style={{ fontWeight: 500, color: s.good ? "#10A37F" : "#DC2626" }}>{s.v}</span>
+                <span style={{ fontWeight: 500, color: s.good ? "#10A37F" : "#B45309" }}>{s.v}</span>
               </div>
             ))}
           </div>

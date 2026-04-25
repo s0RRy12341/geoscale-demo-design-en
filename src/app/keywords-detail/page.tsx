@@ -135,14 +135,14 @@ function kdColor(kd: number): string {
   if (kd <= 14) return "#10A37F";
   if (kd <= 29) return "#F59E0B";
   if (kd <= 49) return "#EA580C";
-  return "#DC2626";
+  return "#B45309";
 }
 
 function trendArrow(curr: number, prev: number) {
   const diff = prev - curr; // positive = improved (lower position is better)
   if (diff === 0) return { text: "—", color: "#A2A9B0" };
   if (diff > 0) return { text: `↑${diff}`, color: "#10A37F" };
-  return { text: `↓${Math.abs(diff)}`, color: "#DC2626" };
+  return { text: `↓${Math.abs(diff)}`, color: "#B45309" };
 }
 
 export default function KeywordsDetailPage() {

@@ -623,8 +623,8 @@ export default function Dashboard() {
             {/* Needs Attention */}
             <div style={{ padding: isMobile ? "14px 12px" : "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 500, color: "#DC2626", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining visibility scores that require content intervention. Negative changes indicate reduced AI engine mentions." /></h3>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
+                <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 500, color: "#B45309", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>Top 5 Needs Attention <Tooltip text="Brands with declining visibility scores that require content intervention. Negative changes indicate reduced AI engine mentions." /></h3>
               </div>
               {[
                 { name: "Just In Time", domain: "justintime.co.il", score: 52, change: "-5.1%" },
@@ -639,8 +639,8 @@ export default function Dashboard() {
                   <span style={{ fontSize: 12, fontWeight: 500, color: theme.textMuted, width: 20, textAlign: "center", flexShrink: 0 }}>{i + 1}</span>
                   <img src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=64`} alt="" width={20} height={20} style={{ borderRadius: 4, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : "transparent", padding: darkMode ? 1 : 0 }} />
                   <span style={{ fontSize: 14, fontWeight: 500, color: theme.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.name}</span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626", flexShrink: 0 }}>{b.score}%</span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: "#DC2626", flexShrink: 0 }}>{b.change}</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "#B45309", flexShrink: 0 }}>{b.score}%</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "#B45309", flexShrink: 0 }}>{b.change}</span>
                 </a>
               ))}
               {Array.from({ length: 2 }).map((_, i) => (
@@ -708,7 +708,7 @@ export default function Dashboard() {
               /* ── Mobile: Card layout for brands ── */
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {displayedBrands.sort((a, b) => a.score - b.score).map((brand) => {
-                  const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#727272" : "#DC2626";
+                  const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#727272" : "#B45309";
                   return (
                     <div key={brand.domain} onClick={() => window.location.href = "/scan"} style={{
                       padding: "14px 16px", border: `1px solid ${theme.border}`, borderRadius: 10, background: theme.cardBg, cursor: "pointer",
@@ -763,7 +763,7 @@ export default function Dashboard() {
                     </thead>
                     <tbody>
                       {displayedBrands.sort((a, b) => a.score - b.score).map((brand) => {
-                        const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#727272" : "#DC2626";
+                        const scoreColor = brand.score >= 80 ? "#10A37F" : brand.score >= 65 ? "#727272" : "#B45309";
                         return (
                           <tr key={brand.domain} onClick={() => window.location.href = "/scan"} style={{ borderBottom: `1px solid ${theme.border}`, background: theme.tableBg, cursor: "pointer", transition: "background 150ms" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.hoverBg; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.tableBg; }}>
                             <td style={{ padding: "10px 14px" }}>

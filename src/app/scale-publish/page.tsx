@@ -285,10 +285,10 @@ function fmtCurrency(n: number): string {
 
 // ── Score color ──
 function scoreColor(score: number, isRejected = false): string {
-  if (isRejected) return "#DC2626";
+  if (isRejected) return "#B45309";
   if (score >= 70) return "#10A37F";
   if (score >= 50) return "#727272";
-  return "#DC2626";
+  return "#B45309";
 }
 
 // ── Publisher Portal Data ──
@@ -540,7 +540,7 @@ export default function BestLinksPage() {
             >
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{tab.label} {!isMobile && <Tooltip text={tab.tooltip} />}</span>
               {tab.key === "rejected" && rejectedPublishers.length > 0 && (
-                <span style={{ marginLeft: 6, background: "#DC262615", color: "#DC2626", fontSize: 14, fontWeight: 500, padding: "2px 8px", borderRadius: 20 }}>{rejectedPublishers.length}</span>
+                <span style={{ marginLeft: 6, background: "#B4530915", color: "#B45309", fontSize: 14, fontWeight: 500, padding: "2px 8px", borderRadius: 20 }}>{rejectedPublishers.length}</span>
               )}
             </button>
           ))}
@@ -1051,7 +1051,7 @@ function PublisherCard({ publisher: pub, inCart, isFlashing, onToggleCart, getPr
           theme={theme}
           value={
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: pub.googleIndex ? "#10A37F" : "#DC2626", display: "inline-block" }} />
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: pub.googleIndex ? "#10A37F" : "#B45309", display: "inline-block" }} />
               <span style={{ fontSize: 14 }}>{pub.googleIndex ? "Active" : "No"}</span>
             </span>
           }
@@ -1149,9 +1149,9 @@ function AiBadge({ engine, present }: { engine: string; present: boolean }) {
       fontWeight: 500,
       padding: "4px 10px",
       borderRadius: 20,
-      border: `1px solid ${present ? "#10A37F40" : "#DC262630"}`,
-      color: present ? "#10A37F" : "#DC2626",
-      background: present ? "#10A37F08" : "#DC262608",
+      border: `1px solid ${present ? "#10A37F40" : "#B4530930"}`,
+      color: present ? "#10A37F" : "#B45309",
+      background: present ? "#10A37F08" : "#B4530908",
     }}>
       <AILogo engine={engine} size={14} />
       {present ? "\u2713" : "\u2717"}
@@ -1710,7 +1710,7 @@ function PublishersTab({ theme, darkMode, isMobile, isTablet }: { theme: Theme; 
   ];
 
   const statusDot = (status: "approved" | "pending" | "rejected") => {
-    const colors = { approved: "#10A37F", pending: "#727272", rejected: "#DC2626" };
+    const colors = { approved: "#10A37F", pending: "#727272", rejected: "#B45309" };
     const labels = { approved: "Approved", pending: "Pending review", rejected: "Rejected" };
     return (
       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1937,7 +1937,7 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTa
   const stats = [
     { label: "Total in system", value: totalPublishers, color: theme.text },
     { label: "Approved", value: approvedCount, color: "#10A37F" },
-    { label: "Rejected", value: rejectedCount, color: "#DC2626" },
+    { label: "Rejected", value: rejectedCount, color: "#B45309" },
     { label: "Pending review", value: pendingCount, color: "#727272" },
   ];
 
@@ -1972,22 +1972,22 @@ function RejectedTab({ publishers, pendingCount, theme, darkMode, isMobile, isTa
             {/* Rejection reason */}
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>Rejection reason</div>
-              <div style={{ fontSize: 14, color: "#DC2626", fontWeight: 500 }}>{pub.rejectionReason}</div>
+              <div style={{ fontSize: 14, color: "#B45309", fontWeight: 500 }}>{pub.rejectionReason}</div>
             </div>
 
             {/* Scores */}
             <div style={{ display: "flex", gap: 12 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>SEO</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.seoScore}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#B45309" }}>{pub.seoScore}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>GIO</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.gioScore}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#B45309" }}>{pub.gioScore}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 2 }}>DR</div>
-                <div style={{ fontSize: 18, fontWeight: 500, color: "#DC2626" }}>{pub.dr}</div>
+                <div style={{ fontSize: 18, fontWeight: 500, color: "#B45309" }}>{pub.dr}</div>
               </div>
             </div>
 

@@ -362,7 +362,7 @@ export default function TrafficDetailPage() {
                       <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 28, padding: "2px 8px", borderRadius: 6, background: positionColor(row.topPosition) + "15", color: positionColor(row.topPosition), fontWeight: 500, fontSize: 13 }}>{row.topPosition}</span>
                     </td>
                     <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: row.trendPct > 0 ? "#10A37F" : row.trendPct < 0 ? "#DC2626" : theme.textMuted }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: row.trendPct > 0 ? "#10A37F" : row.trendPct < 0 ? "#B45309" : theme.textMuted }}>
                         {row.trendPct > 0 ? "↑" : row.trendPct < 0 ? "↓" : "—"} {row.trendPct !== 0 ? `${Math.abs(row.trendPct)}%` : ""}
                       </span>
                     </td>
