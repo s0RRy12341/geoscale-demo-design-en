@@ -989,7 +989,7 @@ export default function ScanPage() {
                 <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>AI engine comparison</h3>
                 <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini. Source: ChatGPT and Gemini query analysis" />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
                 <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1043,7 +1043,7 @@ export default function ScanPage() {
             </div>
 
             {/* Persona + Competitors */}
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                   <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Identified persona</h3>
@@ -1091,19 +1091,21 @@ export default function ScanPage() {
             </div>
 
             {/* Sentiment + Citation Quality */}
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ ...card, padding: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                   <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Sentiment</h3>
                   <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis" />
                 </div>
-                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How AI talks about you</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                  <DonutChart size={110} strokeWidth={16} theme={theme} data={[{ label: "Positive", value: 80, color: "#10A37F" }, { label: "Neutral", value: 20, color: theme.textMuted }]} />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>Positive</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>80%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Neutral</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>20%</span></div>
-                  </div>
+                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 16px" }}>How AI talks about you</p>
+                <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", background: theme.barTrack, marginBottom: 12 }}>
+                  <div style={{ width: "80%", background: "#10A37F", transition: "width 1s ease" }} />
+                  <div style={{ width: "20%", background: theme.textMuted, transition: "width 1s ease" }} />
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ color: theme.textSecondary }}>Positive</span><span style={{ fontWeight: 600, color: theme.text }}>80%</span></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ color: theme.textSecondary }}>Neutral</span><span style={{ fontWeight: 600, color: theme.text }}>20%</span></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#B45309" }} /><span style={{ color: theme.textSecondary }}>Negative</span><span style={{ fontWeight: 600, color: theme.text }}>0%</span></div>
                 </div>
               </div>
               <div style={{ ...card, padding: 16 }}>
@@ -1111,14 +1113,16 @@ export default function ScanPage() {
                   <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Citation quality</h3>
                   <Tooltip text="How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis" />
                 </div>
-                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 14px" }}>How well AI links back to you</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                  <DonutChart size={110} strokeWidth={16} theme={theme} data={[{ label: "High", value: 35, color: "#10A37F" }, { label: "Medium", value: 30, color: theme.textMuted }, { label: "Low", value: 35, color: theme.text }]} />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ fontSize: 15, color: theme.text }}>High</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>35%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ fontSize: 15, color: theme.text }}>Medium</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>30%</span></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.text }} /><span style={{ fontSize: 15, color: theme.text }}>Low</span><span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>35%</span></div>
-                  </div>
+                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 16px" }}>How well AI links back to you</p>
+                <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", background: theme.barTrack, marginBottom: 12 }}>
+                  <div style={{ width: "35%", background: "#10A37F", transition: "width 1s ease" }} />
+                  <div style={{ width: "30%", background: theme.textMuted, transition: "width 1s ease" }} />
+                  <div style={{ width: "35%", background: theme.text, transition: "width 1s ease" }} />
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ color: theme.textSecondary }}>High</span><span style={{ fontWeight: 600, color: theme.text }}>35%</span></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ color: theme.textSecondary }}>Medium</span><span style={{ fontWeight: 600, color: theme.text }}>30%</span></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.text }} /><span style={{ color: theme.textSecondary }}>Low</span><span style={{ fontWeight: 600, color: theme.text }}>35%</span></div>
                 </div>
               </div>
             </div>
