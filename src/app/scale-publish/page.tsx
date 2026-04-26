@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
 // ============================================================
 // SCALEPUBLISH — Alexey's Yedioth Demo
@@ -93,6 +93,80 @@ function IconBookmark({ size = 14, filled = false }: { size?: number; filled?: b
 }
 function IconRefresh({ size = 14 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>;
+}
+function IconInfo({ size = 13 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>;
+}
+function IconDownload({ size = 13 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>;
+}
+
+// ── Tooltip (hover/tap) ──
+function Tip({ text, size = 13 }: { text: string; size?: number }) {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const open = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+    }
+    setShow(true);
+  };
+  const close = () => setShow(false);
+  return (
+    <span ref={ref} style={{ display: "inline-flex", alignItems: "center", cursor: "help", color: "#A2A9B0" }} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }}>
+      <IconInfo size={size} />
+      {show && (
+        <div style={{ position: "fixed", top: pos.top, left: pos.left, transform: "translate(-50%, -100%)", background: "#1B1F23", color: "#fff", fontSize: 12, fontWeight: 400, lineHeight: 1.5, padding: "8px 11px", borderRadius: 6, whiteSpace: "normal", maxWidth: 260, zIndex: 99999, pointerEvents: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.25)" }}>
+          {text}
+          <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 8, height: 8, background: "#1B1F23" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
+// ── Modal ──
+function Modal({ open, onClose, title, children, theme, isMobile }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; theme: Theme; isMobile: boolean }) {
+  useEffect(() => {
+    if (!open) return;
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9000, padding: isMobile ? 14 : 24 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: theme.cardBg, borderRadius: 14, maxWidth: 520, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 12px 40px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding: isMobile ? "16px 18px" : "20px 24px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>{title}</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: theme.textSecondary, cursor: "pointer", padding: 4, display: "inline-flex" }}>
+            <IconX size={16} />
+          </button>
+        </div>
+        <div style={{ padding: isMobile ? "16px 18px" : "20px 24px" }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Toast (transient feedback) ──
+type ToastMsg = { id: string; text: string; kind: "success" | "info" | "warn" };
+function ToastHost({ toasts, onDismiss }: { toasts: ToastMsg[]; onDismiss: (id: string) => void }) {
+  return (
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 99999, display: "flex", flexDirection: "column", gap: 8, maxWidth: 360 }}>
+      {toasts.map((t) => {
+        const styles = t.kind === "success" ? { bg: "#047857", color: "#fff" } : t.kind === "warn" ? { bg: "#B45309", color: "#fff" } : { bg: "#1F2937", color: "#fff" };
+        return (
+          <div key={t.id} onClick={() => onDismiss(t.id)} style={{ background: styles.bg, color: styles.color, padding: "12px 16px", borderRadius: 10, fontSize: 13, fontWeight: 500, boxShadow: "0 6px 20px rgba(0,0,0,0.15)", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
+            {t.kind === "success" && <IconCheck size={14} />}
+            {t.text}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 // ── Logo Components ──
@@ -361,6 +435,9 @@ const LS_KEY_ORDERS = "geoscale-sp-orders";
 const LS_KEY_PRICES = "geoscale-sp-prices";
 const LS_KEY_TRACKING = "geoscale-sp-tracking";
 const LS_KEY_USER_MODE = "geoscale-sp-user-mode";
+const LS_KEY_SITES = "geoscale-sp-sites-v1";
+const LS_KEY_SECTIONS = "geoscale-sp-sections-v1";
+const LS_KEY_DELETED_SECTIONS = "geoscale-sp-deleted-sections";
 
 function loadFromLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -458,20 +535,35 @@ export default function ScalePublishPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [tracking, setTracking] = useState<ArticleTracking[]>([]);
+  const [sites, setSites] = useState<PublisherSite[]>(YEDIOTH_SITES);
+  const [sections, setSections] = useState<PublisherSection[]>(YEDIOTH_SECTIONS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setOrders(loadFromLS<Order[]>(LS_KEY_ORDERS, SEED_ORDERS));
     setPrices(loadFromLS<Record<string, number>>(LS_KEY_PRICES, {}));
     setTracking(loadFromLS<ArticleTracking[]>(LS_KEY_TRACKING, SEED_TRACKING));
+    setSites(loadFromLS<PublisherSite[]>(LS_KEY_SITES, YEDIOTH_SITES));
+    setSections(loadFromLS<PublisherSection[]>(LS_KEY_SECTIONS, YEDIOTH_SECTIONS));
     setHydrated(true);
   }, []);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_ORDERS, orders); }, [orders, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_PRICES, prices); }, [prices, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_TRACKING, tracking); }, [tracking, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_SITES, sites); }, [sites, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_SECTIONS, sections); }, [sections, hydrated]);
 
   // ── Effective price (overrides + base) ──
   const getPrice = useCallback((section: PublisherSection) => prices[section.id] ?? section.pricePerArticle, [prices]);
+
+  // ── Toasts ──
+  const [toasts, setToasts] = useState<ToastMsg[]>([]);
+  const showToast = useCallback((text: string, kind: "success" | "info" | "warn" = "success") => {
+    const id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    setToasts((prev) => [...prev, { id, text, kind }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
+  }, []);
+  const dismissToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
 
   return (
     <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
@@ -532,6 +624,11 @@ export default function ScalePublishPage() {
             tracking={tracking}
             setTracking={setTracking}
             getPrice={getPrice}
+            sites={sites}
+            setSites={setSites}
+            sections={sections}
+            setSections={setSections}
+            showToast={showToast}
           />
         ) : (
           <AgencyDashboard
@@ -541,9 +638,14 @@ export default function ScalePublishPage() {
             setOrders={setOrders}
             tracking={tracking}
             getPrice={getPrice}
+            sites={sites}
+            sections={sections}
+            showToast={showToast}
           />
         )}
       </div>
+
+      <ToastHost toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
@@ -593,7 +695,7 @@ function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pe
 
 type PublisherTab = "sites" | "inbox" | "articles" | "analytics";
 
-function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, getPrice }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number }) {
+function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [tab, setTab] = useState<PublisherTab>("sites");
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const publishedCount = tracking.length + orders.filter((o) => o.status === "published").length;
@@ -608,10 +710,10 @@ function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPri
   return (
     <>
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as PublisherTab)} theme={theme} isMobile={isMobile} />
-      {tab === "sites" && <PublisherSitesView theme={theme} isMobile={isMobile} prices={prices} setPrices={setPrices} getPrice={getPrice} />}
-      {tab === "inbox" && <PublisherInboxView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} />}
-      {tab === "articles" && <PublisherArticlesView theme={theme} isMobile={isMobile} tracking={tracking} orders={orders} />}
-      {tab === "analytics" && <PublisherAnalyticsView theme={theme} isMobile={isMobile} orders={orders} tracking={tracking} getPrice={getPrice} />}
+      {tab === "sites" && <PublisherSitesView theme={theme} isMobile={isMobile} prices={prices} setPrices={setPrices} getPrice={getPrice} sites={sites} setSites={setSites} sections={sections} setSections={setSections} showToast={showToast} />}
+      {tab === "inbox" && <PublisherInboxView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} sites={sites} sections={sections} showToast={showToast} />}
+      {tab === "articles" && <PublisherArticlesView theme={theme} isMobile={isMobile} tracking={tracking} setTracking={setTracking} sites={sites} sections={sections} showToast={showToast} />}
+      {tab === "analytics" && <PublisherAnalyticsView theme={theme} isMobile={isMobile} orders={orders} tracking={tracking} getPrice={getPrice} sites={sites} sections={sections} />}
     </>
   );
 }
@@ -639,15 +741,19 @@ function SubTabs<T extends string>({ tabs, active, onChange, theme, isMobile }: 
 // PUBLISHER · Sites & Sections
 // ============================================================
 
-function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice }: { theme: Theme; isMobile: boolean; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; getPrice: (s: PublisherSection) => number }) {
+function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice, sites, setSites, sections, setSections, showToast }: { theme: Theme; isMobile: boolean; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [search, setSearch] = useState("");
-  const [expandedSites, setExpandedSites] = useState<Record<string, boolean>>(() => Object.fromEntries(YEDIOTH_SITES.map((s) => [s.id, true])));
+  const [expandedSites, setExpandedSites] = useState<Record<string, boolean>>(() => Object.fromEntries(sites.map((s) => [s.id, true])));
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [tempPrice, setTempPrice] = useState<string>("");
+  const [siteModalOpen, setSiteModalOpen] = useState(false);
+  const [sectionModalOpen, setSectionModalOpen] = useState(false);
+  const [sectionModalSiteId, setSectionModalSiteId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ kind: "section"; id: string; label: string } | null>(null);
 
   const sectionsBySite = useMemo(() => {
     const map: Record<string, PublisherSection[]> = {};
-    for (const sec of YEDIOTH_SECTIONS) {
+    for (const sec of sections) {
       if (search) {
         const q = search.toLowerCase();
         if (!sec.name.toLowerCase().includes(q) && !sec.hebrewName.includes(search) && !sec.category.toLowerCase().includes(q)) continue;
@@ -656,100 +762,116 @@ function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice }: { 
       map[sec.siteId].push(sec);
     }
     return map;
-  }, [search]);
+  }, [search, sections]);
 
-  const totalSections = Object.values(sectionsBySite).reduce((s, arr) => s + arr.length, 0);
   const avgPrice = useMemo(() => {
-    if (YEDIOTH_SECTIONS.length === 0) return 0;
-    return Math.round(YEDIOTH_SECTIONS.reduce((s, sec) => s + getPrice(sec), 0) / YEDIOTH_SECTIONS.length);
-  }, [getPrice]);
+    if (sections.length === 0) return 0;
+    return Math.round(sections.reduce((s, sec) => s + getPrice(sec), 0) / sections.length);
+  }, [getPrice, sections]);
 
   const toggleSite = (id: string) => setExpandedSites((p) => ({ ...p, [id]: !p[id] }));
-
-  const startEditPrice = (section: PublisherSection) => {
-    setEditingPriceId(section.id);
-    setTempPrice(String(getPrice(section)));
-  };
+  const startEditPrice = (section: PublisherSection) => { setEditingPriceId(section.id); setTempPrice(String(getPrice(section))); };
   const savePrice = (sectionId: string) => {
     const n = parseInt(tempPrice.replace(/[^0-9]/g, ""), 10);
     if (!isNaN(n) && n > 0) {
       setPrices((prev) => ({ ...prev, [sectionId]: n }));
+      showToast(`Price updated to ${fmtNIS(n)} — agencies see it live`, "success");
     }
     setEditingPriceId(null);
+  };
+  const deleteSection = (sectionId: string) => {
+    setSections(sections.filter((s) => s.id !== sectionId));
+    setConfirmDelete(null);
+    showToast("Section removed from inventory", "warn");
+  };
+  const addSite = (data: { domain: string; name: string; hebrewName: string; description: string }) => {
+    const id = `site-${Date.now().toString(36)}`;
+    const newSite: PublisherSite = { id, domain: data.domain, name: data.name, hebrewName: data.hebrewName, description: data.description, parentGroup: "Yedioth Ahronoth Group", monthlyTraffic: 500000, dr: 60 };
+    setSites([...sites, newSite]);
+    setExpandedSites((p) => ({ ...p, [id]: true }));
+    setSiteModalOpen(false);
+    showToast(`${data.name} added to inventory`, "success");
+  };
+  const addSection = (data: { siteId: string; name: string; hebrewName: string; category: SectionCategory; price: number }) => {
+    const id = `sec-${Date.now().toString(36)}`;
+    const newSection: PublisherSection = { id, siteId: data.siteId, name: data.name, hebrewName: data.hebrewName, category: data.category, audience: ["B2C", "Mass market"], pricePerArticle: data.price, estimatedUploadDays: 3, monthlyReadership: 600000 };
+    setSections([...sections, newSection]);
+    setSectionModalOpen(false);
+    setSectionModalSiteId(null);
+    const site = sites.find((s) => s.id === data.siteId);
+    showToast(`Section "${data.name}" added to ${site?.name}`, "success");
   };
 
   return (
     <div>
       {/* Header banner */}
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_AMBER}10 0%, ${BRAND_AMBER}03 100%)`, border: `1px solid ${BRAND_AMBER}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Publisher Inventory</div>
-          <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>Yedioth Ahronoth Group</div>
-          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Manage your sites, sections, and pricing. Changes are visible to agencies in real time.</div>
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_AMBER}10 0%, ${BRAND_AMBER}03 100%)`, border: `1px solid ${BRAND_AMBER}30`, borderRadius: 12, padding: isMobile ? 14 : 22, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Publisher Inventory</div>
+          <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 700, color: theme.text }}>Yedioth Ahronoth Group</div>
+          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4, lineHeight: 1.5 }}>Manage your sites, sections, and pricing. Changes propagate to agencies in real time.</div>
         </div>
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Stat label="Sites" value={String(YEDIOTH_SITES.length)} theme={theme} />
-          <Stat label="Sections" value={String(YEDIOTH_SECTIONS.length)} theme={theme} />
-          <Stat label="Avg. price" value={fmtNIS(avgPrice)} theme={theme} />
-          <Stat label="Upload time" value="~3 days" theme={theme} />
+        <div style={{ display: "flex", gap: isMobile ? 14 : 24, flexWrap: "wrap" }}>
+          <Stat label="Sites" value={String(sites.length)} theme={theme} tip="Total parent sites you publish on (e.g. Ynet, Calcalist, Sport5)." />
+          <Stat label="Sections" value={String(sections.length)} theme={theme} tip="Sub-categories within your sites that an agency can target (e.g. Cars, Banking, Tech)." />
+          <Stat label="Avg. price" value={fmtNIS(avgPrice)} theme={theme} tip="Mean price across all sections, including any manual overrides you've set." />
+          <Stat label="Upload time" value="~3 days" theme={theme} tip="Estimated time from order acceptance to article going live, shown to agencies before they order." />
         </div>
       </div>
 
       {/* Toolbar */}
       <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
+        <div style={{ position: "relative", flex: 1, minWidth: isMobile ? 0 : 240 }}>
           <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}><IconSearch size={14} color={theme.textMuted} /></div>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search sites, sections, categories..." style={{ width: "100%", padding: "10px 14px 10px 38px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
         </div>
-        <button style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, cursor: "pointer" }}>
+        <button onClick={() => setSiteModalOpen(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, cursor: "pointer" }}>
           <IconPlus size={13} /> Add Site
         </button>
-        <button style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 600, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
+        <button onClick={() => { setSectionModalSiteId(sites[0]?.id ?? null); setSectionModalOpen(true); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px", fontSize: 13, fontWeight: 600, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
           <IconPlus size={13} /> Add Section
         </button>
       </div>
 
       {/* Sites tree */}
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {YEDIOTH_SITES.map((site) => {
-          const sections = sectionsBySite[site.id] || [];
-          if (search && sections.length === 0) return null;
+        {sites.map((site) => {
+          const siteSections = sectionsBySite[site.id] || [];
+          if (search && siteSections.length === 0) return null;
           const expanded = expandedSites[site.id];
-          const siteRevenue = sections.reduce((s, sec) => s + getPrice(sec), 0);
+          const siteRevenue = siteSections.reduce((s, sec) => s + getPrice(sec), 0);
           return (
             <div key={site.id} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
-              <button onClick={() => toggleSite(site.id)} style={{ width: "100%", padding: isMobile ? 14 : 18, background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 }}>
+              <button onClick={() => toggleSite(site.id)} style={{ width: "100%", padding: isMobile ? 12 : 18, background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: isMobile ? 10 : 14 }}>
                 <div style={{ transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s", flexShrink: 0, color: theme.textSecondary }}>
                   <IconChevronRight size={14} />
                 </div>
-                <Favicon domain={site.domain} size={28} />
+                <Favicon domain={site.domain} size={isMobile ? 22 : 28} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: theme.text }}>{site.name}</span>
-                    <span style={{ fontSize: 13, color: theme.textSecondary, direction: "rtl" }}>{site.hebrewName}</span>
+                    <span style={{ fontSize: 12, color: theme.textSecondary, direction: "rtl" }}>{site.hebrewName}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>
-                    {site.domain} · {fmtNum(site.monthlyTraffic)} monthly visits · DR {site.dr}
+                  <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {site.domain}{!isMobile && <> · {fmtNum(site.monthlyTraffic)} monthly visits · DR {site.dr}</>}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 14, alignItems: "center", flexShrink: 0 }}>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600 }}>{sections.length} SECTIONS</div>
-                    <div style={{ fontSize: 13, color: theme.text, fontWeight: 600 }}>{fmtNIS(siteRevenue)} total</div>
-                  </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontSize: 10, color: theme.textMuted, fontWeight: 600 }}>{siteSections.length} {isMobile ? "secs" : "SECTIONS"}</div>
+                  <div style={{ fontSize: isMobile ? 12 : 13, color: theme.text, fontWeight: 600 }}>{fmtNIS(siteRevenue)}</div>
                 </div>
               </button>
-              {expanded && sections.length > 0 && (
+              {expanded && siteSections.length > 0 && (
                 <div style={{ borderTop: `1px solid ${theme.border}`, background: theme.tableBg }}>
-                  {sections.map((sec) => {
+                  {siteSections.map((sec) => {
                     const isEditing = editingPriceId === sec.id;
                     const overridden = prices[sec.id] !== undefined;
                     return (
-                      <div key={sec.id} style={{ padding: isMobile ? "12px 14px" : "14px 18px 14px 50px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                        <div style={{ flex: 1, minWidth: 200 }}>
+                      <div key={sec.id} style={{ padding: isMobile ? "12px 14px" : "14px 18px 14px 50px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 10 : 16, flexWrap: "wrap", flexDirection: isMobile ? "column" : "row" }}>
+                        <div style={{ flex: 1, minWidth: 0, width: isMobile ? "100%" : "auto" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                             <span style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>{sec.name}</span>
-                            <span style={{ fontSize: 13, color: theme.textSecondary, direction: "rtl" }}>{sec.hebrewName}</span>
+                            <span style={{ fontSize: 12, color: theme.textSecondary, direction: "rtl" }}>{sec.hebrewName}</span>
                             <Pill bg={`${BRAND_BLUE}15`} color={BRAND_BLUE}>{sec.category}</Pill>
                           </div>
                           <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -761,18 +883,18 @@ function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice }: { 
                             {sec.audience.map((a) => <Pill key={a} bg={`${theme.textMuted}20`} color={theme.textSecondary} small>{a}</Pill>)}
                           </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, width: isMobile ? "100%" : "auto", justifyContent: isMobile ? "space-between" : "flex-end" }}>
                           {isEditing ? (
-                            <>
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               <span style={{ color: theme.textSecondary, fontSize: 14, fontWeight: 600 }}>₪</span>
                               <input value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} autoFocus onBlur={() => savePrice(sec.id)} onKeyDown={(e) => { if (e.key === "Enter") savePrice(sec.id); if (e.key === "Escape") setEditingPriceId(null); }} style={{ width: 90, padding: "6px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${BRAND_AMBER}`, borderRadius: 6, color: theme.text, outline: "none", textAlign: "right" }} />
-                            </>
+                            </div>
                           ) : (
-                            <button onClick={() => startEditPrice(sec)} style={{ padding: "6px 12px", fontSize: 14, fontWeight: 700, background: overridden ? `${BRAND_AMBER}15` : "transparent", color: overridden ? BRAND_AMBER : theme.text, border: `1px solid ${overridden ? BRAND_AMBER : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, minWidth: 100, justifyContent: "flex-end" }}>
+                            <button onClick={() => startEditPrice(sec)} title="Click to edit price" style={{ padding: "6px 12px", fontSize: 14, fontWeight: 700, background: overridden ? `${BRAND_AMBER}15` : "transparent", color: overridden ? BRAND_AMBER : theme.text, border: `1px solid ${overridden ? BRAND_AMBER : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, minWidth: 100, justifyContent: "flex-end" }}>
                               {fmtNIS(getPrice(sec))} <IconEdit size={11} />
                             </button>
                           )}
-                          <button title="Delete section" style={{ padding: 8, background: "none", border: "none", color: theme.textMuted, cursor: "pointer", borderRadius: 6 }}>
+                          <button onClick={() => setConfirmDelete({ kind: "section", id: sec.id, label: `${site.name} · ${sec.name}` })} title="Delete section" style={{ padding: 8, background: "none", border: "none", color: theme.textMuted, cursor: "pointer", borderRadius: 6 }}>
                             <IconTrash size={13} />
                           </button>
                         </div>
@@ -780,7 +902,7 @@ function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice }: { 
                     );
                   })}
                   <div style={{ padding: isMobile ? "10px 14px" : "10px 18px 12px 50px" }}>
-                    <button style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600, background: "none", border: `1px dashed ${theme.border}`, color: theme.textSecondary, borderRadius: 7, cursor: "pointer" }}>
+                    <button onClick={() => { setSectionModalSiteId(site.id); setSectionModalOpen(true); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600, background: "none", border: `1px dashed ${theme.border}`, color: theme.textSecondary, borderRadius: 7, cursor: "pointer" }}>
                       <IconPlus size={12} /> Add section to {site.name}
                     </button>
                   </div>
@@ -795,16 +917,108 @@ function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice }: { 
       <div style={{ marginTop: 24, padding: 14, background: `${BRAND_AMBER}08`, border: `1px solid ${BRAND_AMBER}25`, borderRadius: 9, fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>
         <strong style={{ color: BRAND_AMBER }}>Tip:</strong> Click any price to edit it. Changes propagate instantly to all agencies viewing this section. The estimated 3-day upload window is shown to agencies at order time.
       </div>
+
+      {/* Modals */}
+      <AddSiteModal open={siteModalOpen} onClose={() => setSiteModalOpen(false)} onSubmit={addSite} theme={theme} isMobile={isMobile} />
+      <AddSectionModal open={sectionModalOpen} onClose={() => { setSectionModalOpen(false); setSectionModalSiteId(null); }} onSubmit={addSection} sites={sites} initialSiteId={sectionModalSiteId} theme={theme} isMobile={isMobile} />
+      <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Delete section?" theme={theme} isMobile={isMobile}>
+        <div style={{ fontSize: 14, color: theme.text, marginBottom: 16 }}>This will remove <strong>{confirmDelete?.label}</strong> from your inventory. Agencies will no longer see it as an option. This is reversible if you reset demo data.</div>
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button onClick={() => setConfirmDelete(null)} style={{ padding: "9px 18px", fontSize: 13, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Cancel</button>
+          <button onClick={() => confirmDelete && deleteSection(confirmDelete.id)} style={{ padding: "9px 18px", fontSize: 13, fontWeight: 700, background: "#DC2626", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Delete</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+// ── Add Site Modal ──
+function AddSiteModal({ open, onClose, onSubmit, theme, isMobile }: { open: boolean; onClose: () => void; onSubmit: (d: { domain: string; name: string; hebrewName: string; description: string }) => void; theme: Theme; isMobile: boolean }) {
+  const [name, setName] = useState("");
+  const [hebrewName, setHebrewName] = useState("");
+  const [domain, setDomain] = useState("");
+  const [description, setDescription] = useState("");
+  useEffect(() => { if (!open) { setName(""); setHebrewName(""); setDomain(""); setDescription(""); } }, [open]);
+  const canSubmit = name.trim() && domain.trim();
+  return (
+    <Modal open={open} onClose={onClose} title="Add new site" theme={theme} isMobile={isMobile}>
+      <FormField label="Site name (English)" theme={theme}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. iCar" autoFocus style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <FormField label="Site name (Hebrew)" theme={theme}>
+        <input value={hebrewName} onChange={(e) => setHebrewName(e.target.value)} placeholder="לדוגמה: iCar רכב" dir="rtl" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <FormField label="Domain" theme={theme}>
+        <input value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="e.g. icar.co.il" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <FormField label="Short description (optional)" theme={theme}>
+        <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="One-line description shown to agencies" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 6 }}>
+        <button onClick={onClose} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Cancel</button>
+        <button onClick={() => canSubmit && onSubmit({ name, hebrewName: hebrewName || name, domain, description })} disabled={!canSubmit} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: canSubmit ? BRAND_AMBER : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canSubmit ? "pointer" : "not-allowed" }}>Add site</button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Add Section Modal ──
+function AddSectionModal({ open, onClose, onSubmit, sites, initialSiteId, theme, isMobile }: { open: boolean; onClose: () => void; onSubmit: (d: { siteId: string; name: string; hebrewName: string; category: SectionCategory; price: number }) => void; sites: PublisherSite[]; initialSiteId: string | null; theme: Theme; isMobile: boolean }) {
+  const [siteId, setSiteId] = useState(initialSiteId || sites[0]?.id || "");
+  const [name, setName] = useState("");
+  const [hebrewName, setHebrewName] = useState("");
+  const [category, setCategory] = useState<SectionCategory>("News");
+  const [price, setPrice] = useState("6000");
+  useEffect(() => { if (open) { setSiteId(initialSiteId || sites[0]?.id || ""); setName(""); setHebrewName(""); setCategory("News"); setPrice("6000"); } }, [open, initialSiteId, sites]);
+  const canSubmit = name.trim() && siteId && parseInt(price) > 0;
+  const CATEGORIES: SectionCategory[] = ["News", "Cars", "Sports", "Finance", "Tech", "Health", "Travel", "Lifestyle", "Food", "Parents", "Real Estate", "Entertainment", "Local", "Insurance", "Career", "Fashion"];
+  return (
+    <Modal open={open} onClose={onClose} title="Add new section" theme={theme} isMobile={isMobile}>
+      <FormField label="Site" theme={theme}>
+        <select value={siteId} onChange={(e) => setSiteId(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }}>
+          {sites.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.domain})</option>)}
+        </select>
+      </FormField>
+      <FormField label="Section name (English)" theme={theme}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Banking" autoFocus style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <FormField label="Section name (Hebrew)" theme={theme}>
+        <input value={hebrewName} onChange={(e) => setHebrewName(e.target.value)} placeholder="לדוגמה: בנקאות" dir="rtl" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <FormField label="Category" theme={theme}>
+        <select value={category} onChange={(e) => setCategory(e.target.value as SectionCategory)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }}>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </FormField>
+      <FormField label="Price per article (₪)" theme={theme}>
+        <input value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))} placeholder="6000" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      </FormField>
+      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 6 }}>
+        <button onClick={onClose} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Cancel</button>
+        <button onClick={() => canSubmit && onSubmit({ siteId, name, hebrewName: hebrewName || name, category, price: parseInt(price) })} disabled={!canSubmit} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: canSubmit ? BRAND_AMBER : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canSubmit ? "pointer" : "not-allowed" }}>Add section</button>
+      </div>
+    </Modal>
+  );
+}
+
+function FormField({ label, children, theme }: { label: string; children: React.ReactNode; theme: Theme }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: theme.textSecondary, marginBottom: 6 }}>{label}</label>
+      {children}
     </div>
   );
 }
 
 // ── Helpers ──
-function Stat({ label, value, theme }: { label: string; value: string; theme: Theme }) {
+function Stat({ label, value, theme, tip, accent }: { label: string; value: string; theme: Theme; tip?: string; accent?: string }) {
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ fontSize: 17, fontWeight: 700, color: theme.text, marginTop: 2 }}>{value}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 5 }}>
+        {label}
+        {tip && <Tip text={tip} size={11} />}
+      </div>
+      <div style={{ fontSize: 17, fontWeight: 700, color: accent || theme.text, marginTop: 2 }}>{value}</div>
     </div>
   );
 }
@@ -817,7 +1031,7 @@ function Pill({ children, bg, color, small = false }: { children: React.ReactNod
 // PUBLISHER · Order Inbox
 // ============================================================
 
-function PublisherInboxView({ theme, isMobile, orders, setOrders }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void }) {
+function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, sections, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "in_progress" | "published">("all");
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
 
@@ -832,16 +1046,24 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders }: { theme: The
 
   const updateStatus = (id: string, status: Order["status"]) => {
     setOrders(orders.map((o) => o.id === id ? { ...o, status } : o));
+    const labels: Record<Order["status"], string> = { pending: "marked pending", approved: "approved — agency notified", in_progress: "moved to In Progress", published: "marked published — tracking enabled", rejected: "rejected" };
+    showToast(`Order ${labels[status]}`, status === "rejected" ? "warn" : "success");
   };
 
   return (
     <div>
       {/* Banner */}
       <div style={{ background: `linear-gradient(135deg, ${BRAND_GREEN}10 0%, ${BRAND_GREEN}03 100%)`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Order Inbox</div>
           <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{counts.pending} pending {counts.pending === 1 ? "order" : "orders"} · {fmtNIS(orders.filter((o) => o.status === "pending").reduce((s, o) => s + o.totalPrice, 0))} potential revenue</div>
           <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Orders submitted by agencies — your sales team contacts the agency to collect payment, then you publish the article.</div>
+        </div>
+        <div style={{ display: "flex", gap: isMobile ? 14 : 22, flexWrap: "wrap" }}>
+          <Stat label="Pending" value={String(counts.pending)} theme={theme} tip="Orders submitted by agencies that you have not yet approved or rejected." accent={counts.pending > 0 ? BRAND_AMBER : undefined} />
+          <Stat label="In progress" value={String(counts.in_progress)} theme={theme} tip="Approved orders currently being uploaded by your editorial team." />
+          <Stat label="Published" value={String(counts.published)} theme={theme} tip="Articles already live — also visible in Articles & Tracking." accent={BRAND_GREEN} />
+          <Stat label="Avg. value" value={fmtNIS(orders.length === 0 ? 0 : Math.round(orders.reduce((s, o) => s + o.totalPrice, 0) / orders.length))} theme={theme} tip="Average ₪ value across all orders received from agencies." />
         </div>
       </div>
 
@@ -864,7 +1086,7 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders }: { theme: The
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map((order) => (
-            <OrderCard key={order.id} order={order} theme={theme} isMobile={isMobile} expanded={openOrderId === order.id} onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)} onUpdate={updateStatus} mode="publisher" />
+            <OrderCard key={order.id} order={order} theme={theme} isMobile={isMobile} expanded={openOrderId === order.id} onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)} onUpdate={updateStatus} mode="publisher" sites={sites} sections={sections} />
           ))}
         </div>
       )}
@@ -873,7 +1095,7 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders }: { theme: The
 }
 
 // ── ORDER CARD (shared between Publisher inbox & Agency orders) ──
-function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; mode: "publisher" | "agency" }) {
+function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode, sites, sections }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; mode: "publisher" | "agency"; sites: PublisherSite[]; sections: PublisherSection[] }) {
   const STATUS_STYLES: Record<Order["status"], { bg: string; color: string; label: string }> = {
     pending: { bg: "#FEF3C7", color: "#B45309", label: "Pending approval" },
     approved: { bg: "#DBEAFE", color: "#1D4ED8", label: "Approved" },
@@ -922,8 +1144,8 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode 
           <Section title="Sections ordered" theme={theme}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {order.sections.map((s, i) => {
-                const sec = YEDIOTH_SECTIONS.find((y) => y.id === s.sectionId);
-                const site = YEDIOTH_SITES.find((y) => y.id === s.siteId);
+                const sec = sections.find((y) => y.id === s.sectionId);
+                const site = sites.find((y) => y.id === s.siteId);
                 if (!sec || !site) return null;
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
@@ -993,13 +1215,20 @@ function Section({ title, children, theme }: { title: string; children: React.Re
 // PUBLISHER · Articles & Tracking
 // ============================================================
 
-function PublisherArticlesView({ theme, isMobile, tracking, orders }: { theme: Theme; isMobile: boolean; tracking: ArticleTracking[]; orders: Order[] }) {
+function PublisherArticlesView({ theme, isMobile, tracking, setTracking, sites, sections, showToast }: { theme: Theme; isMobile: boolean; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [search, setSearch] = useState("");
+  const [domainFilter, setDomainFilter] = useState<string>("all");
+  const [rechecking, setRechecking] = useState(false);
+
   const filtered = tracking.filter((t) => {
+    const sec = sections.find((s) => s.id === t.sectionId);
+    if (domainFilter !== "all") {
+      const site = sec ? sites.find((s) => s.id === sec.siteId) : null;
+      if (!site || site.id !== domainFilter) return false;
+    }
     if (!search) return true;
     const q = search.toLowerCase();
-    const sec = YEDIOTH_SECTIONS.find((s) => s.id === t.sectionId);
-    return t.url.toLowerCase().includes(q) || (sec?.name.toLowerCase().includes(q));
+    return t.url.toLowerCase().includes(q) || (sec?.name.toLowerCase().includes(q) ?? false);
   });
 
   const totalViews = tracking.reduce((s, t) => s + t.views, 0);
@@ -1007,40 +1236,150 @@ function PublisherArticlesView({ theme, isMobile, tracking, orders }: { theme: T
   const aiCitedCount = tracking.filter((t) => t.citedGPT || t.citedGemini || t.citedPerplexity).length;
   const avgImpact = tracking.length === 0 ? 0 : Math.round(tracking.reduce((s, t) => s + t.impactScore, 0) / tracking.length);
 
+  const recheckAll = () => {
+    setRechecking(true);
+    showToast("Re-checking GPT, Gemini, Perplexity for all articles...", "info");
+    setTimeout(() => {
+      // Simulate engine checks: bump citation flags + impact slightly
+      setTracking(tracking.map((t) => ({
+        ...t,
+        citedGPT: t.citedGPT || Math.random() > 0.6,
+        citedGemini: t.citedGemini || Math.random() > 0.7,
+        citedPerplexity: t.citedPerplexity || Math.random() > 0.85,
+        impactScore: Math.min(100, t.impactScore + Math.floor(Math.random() * 6)),
+        views: t.views + Math.floor(Math.random() * 240),
+      })));
+      setRechecking(false);
+      showToast("Engines re-checked — citations & impact updated", "success");
+    }, 1400);
+  };
+
+  const exportCSV = () => {
+    const rows = [
+      ["URL", "Site", "Section", "Published", "Crawled", "Google Indexed", "GPT", "Gemini", "Perplexity", "Views", "Impact %", "Ranked queries"],
+      ...tracking.map((t) => {
+        const sec = sections.find((s) => s.id === t.sectionId);
+        const site = sec ? sites.find((s) => s.id === sec.siteId) : null;
+        return [t.url, site?.name ?? "", sec?.name ?? "", t.publishedAt, t.crawled ? "Yes" : "No", t.indexedGoogle ? "Yes" : "No", t.citedGPT ? "Yes" : "No", t.citedGemini ? "Yes" : "No", t.citedPerplexity ? "Yes" : "No", String(t.views), String(t.impactScore), t.rankedQueries.map((q) => `${q.query} (${q.engine} #${q.rank})`).join("; ")];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `geoscale-articles-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${tracking.length} articles to CSV`, "success");
+  };
+
   return (
     <div>
       <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}10 0%, ${BRAND_BLUE}03 100%)`, border: `1px solid ${BRAND_BLUE}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Article-Level Tracking</div>
           <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{tracking.length} published articles · monitored per item</div>
           <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Each article (item) is tracked individually — crawl status, AI citations, ranked queries, views.</div>
         </div>
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Stat label="Total views" value={fmtNum(totalViews)} theme={theme} />
-          <Stat label="Indexed" value={`${indexedCount}/${tracking.length}`} theme={theme} />
-          <Stat label="AI-cited" value={`${aiCitedCount}/${tracking.length}`} theme={theme} />
-          <Stat label="Avg. impact" value={`${avgImpact}%`} theme={theme} />
+        <div style={{ display: "flex", gap: isMobile ? 14 : 24, flexWrap: "wrap" }}>
+          <Stat label="Total views" value={fmtNum(totalViews)} theme={theme} tip="Sum of organic views across all your published Geoscale articles." />
+          <Stat label="Indexed" value={`${indexedCount}/${tracking.length}`} theme={theme} tip="Articles confirmed in Google's index. Non-indexed pages can't drive search traffic — investigate sitemap & robots if low." />
+          <Stat label="AI-cited" value={`${aiCitedCount}/${tracking.length}`} theme={theme} tip="Articles cited by at least one of GPT, Gemini, or Perplexity. This is the AI-search traffic moat." accent={BRAND_GREEN} />
+          <Stat label="Avg. impact" value={`${avgImpact}%`} theme={theme} tip="Composite score: index status + AI citations + ranked queries + view velocity." />
         </div>
       </div>
 
-      <div style={{ position: "relative", marginBottom: 18 }}>
-        <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}><IconSearch size={14} color={theme.textMuted} /></div>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search articles by URL or section..." style={{ width: "100%", padding: "10px 14px 10px 38px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+      {/* Toolbar */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap", alignItems: "stretch" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: isMobile ? 0 : 220 }}>
+          <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}><IconSearch size={14} color={theme.textMuted} /></div>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search articles by URL or section..." style={{ width: "100%", padding: "10px 14px 10px 38px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+        </div>
+        <select value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)} style={{ padding: "10px 14px", fontSize: 13, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, cursor: "pointer", minWidth: 150 }}>
+          <option value="all">All sites ({tracking.length})</option>
+          {sites.map((s) => {
+            const count = tracking.filter((t) => {
+              const sec = sections.find((sec) => sec.id === t.sectionId);
+              return sec?.siteId === s.id;
+            }).length;
+            return <option key={s.id} value={s.id}>{s.name} ({count})</option>;
+          })}
+        </select>
+        <button onClick={recheckAll} disabled={rechecking} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, cursor: rechecking ? "wait" : "pointer", opacity: rechecking ? 0.6 : 1 }}>
+          <span style={{ display: "inline-flex", animation: rechecking ? "spin 1s linear infinite" : "none" }}><IconRefresh size={13} /></span>
+          {rechecking ? "Re-checking..." : "Re-check engines"}
+        </button>
+        <button onClick={exportCSV} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px", fontSize: 13, fontWeight: 600, background: BRAND_BLUE, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
+          <IconDownload size={13} /> Export CSV
+        </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filtered.map((t) => (
-          <ArticleTrackingRow key={t.url} tracking={t} theme={theme} isMobile={isMobile} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div style={{ padding: 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>No articles match your filters</div>
+          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Try clearing the search or site filter.</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {filtered.map((t) => (
+            <ArticleTrackingRow key={t.url} tracking={t} theme={theme} isMobile={isMobile} sites={sites} sections={sections} showToast={showToast} setTracking={setTracking} allTracking={tracking} />
+          ))}
+        </div>
+      )}
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
 
-function ArticleTrackingRow({ tracking, theme, isMobile }: { tracking: ArticleTracking; theme: Theme; isMobile: boolean }) {
-  const sec = YEDIOTH_SECTIONS.find((s) => s.id === tracking.sectionId);
-  const site = sec ? YEDIOTH_SITES.find((s) => s.id === sec.siteId) : null;
+function ArticleTrackingRow({ tracking, theme, isMobile, sites, sections, showToast, setTracking, allTracking }: { tracking: ArticleTracking; theme: Theme; isMobile: boolean; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; setTracking: (v: ArticleTracking[]) => void; allTracking: ArticleTracking[] }) {
+  const sec = sections.find((s) => s.id === tracking.sectionId);
+  const site = sec ? sites.find((s) => s.id === sec.siteId) : null;
   const [expanded, setExpanded] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
+
+  const recheckOne = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRechecking(true);
+    showToast(`Re-checking engines for ${tracking.url.slice(0, 50)}...`, "info");
+    setTimeout(() => {
+      setTracking(allTracking.map((t) => t.url === tracking.url ? { ...t, citedGPT: t.citedGPT || Math.random() > 0.5, citedGemini: t.citedGemini || Math.random() > 0.6, citedPerplexity: t.citedPerplexity || Math.random() > 0.8, impactScore: Math.min(100, t.impactScore + Math.floor(Math.random() * 8)), views: t.views + Math.floor(Math.random() * 320) } : t));
+      setRechecking(false);
+      showToast("Engines re-checked", "success");
+    }, 1100);
+  };
+
+  const exportOne = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const lines = [
+      `Article Performance Report`,
+      `URL: ${tracking.url}`,
+      site && sec ? `Site: ${site.name} / ${sec.name}` : ``,
+      `Published: ${tracking.publishedAt}`,
+      `Crawled: ${tracking.crawled ? "Yes" : "No"}`,
+      `Google indexed: ${tracking.indexedGoogle ? "Yes" : "No"}`,
+      `Cited by GPT: ${tracking.citedGPT ? "Yes" : "No"}`,
+      `Cited by Gemini: ${tracking.citedGemini ? "Yes" : "No"}`,
+      `Cited by Perplexity: ${tracking.citedPerplexity ? "Yes" : "No"}`,
+      `Views: ${tracking.views}`,
+      `Impact score: ${tracking.impactScore}%`,
+      ``,
+      `Ranked queries:`,
+      ...tracking.rankedQueries.map((q) => `  - "${q.query}" — ${q.engine} #${q.rank}`),
+    ].filter(Boolean).join("\n");
+    const blob = new Blob([lines], { type: "text/plain;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `article-report-${tracking.url.split("/").pop() || "article"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Report downloaded", "success");
+  };
 
   return (
     <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
@@ -1099,11 +1438,11 @@ function ArticleTrackingRow({ tracking, theme, isMobile }: { tracking: ArticleTr
             <a href={tracking.url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, textDecoration: "none" }}>
               <IconExternalLink size={12} /> Open article
             </a>
-            <button style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, cursor: "pointer" }}>
-              <IconRefresh size={12} /> Re-check engines
+            <button onClick={recheckOne} disabled={rechecking} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, cursor: rechecking ? "wait" : "pointer", opacity: rechecking ? 0.6 : 1 }}>
+              <span style={{ display: "inline-flex", animation: rechecking ? "spin 1s linear infinite" : "none" }}><IconRefresh size={12} /></span> {rechecking ? "Checking..." : "Re-check engines"}
             </button>
-            <button style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, cursor: "pointer" }}>
-              Export report
+            <button onClick={exportOne} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, cursor: "pointer" }}>
+              <IconDownload size={12} /> Export report
             </button>
           </div>
         </div>
@@ -1116,63 +1455,234 @@ function ArticleTrackingRow({ tracking, theme, isMobile }: { tracking: ArticleTr
 // PUBLISHER · Analytics
 // ============================================================
 
-function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice }: { theme: Theme; isMobile: boolean; orders: Order[]; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number }) {
-  const totalRevenue = orders.filter((o) => o.status === "published" || o.status === "in_progress" || o.status === "approved").reduce((s, o) => s + o.totalPrice, 0) + 348000; // baseline historical
+function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, sites, sections }: { theme: Theme; isMobile: boolean; orders: Order[]; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[] }) {
+  // ── Money flow ──
+  const HISTORICAL_BASELINE = 348000;
+  const liveRevenue = orders.filter((o) => o.status === "published" || o.status === "in_progress" || o.status === "approved").reduce((s, o) => s + o.totalPrice, 0);
+  const totalRevenue = liveRevenue + HISTORICAL_BASELINE;
+  const pendingRevenue = orders.filter((o) => o.status === "pending").reduce((s, o) => s + o.totalPrice, 0);
   const articlesSold = orders.filter((o) => o.status !== "rejected" && o.status !== "pending").length + 47;
-  const topSections = useMemo(() => {
-    return [...YEDIOTH_SECTIONS]
-      .sort((a, b) => getPrice(b) * b.monthlyReadership - getPrice(a) * a.monthlyReadership)
-      .slice(0, 5);
-  }, [getPrice]);
+  const avgOrderValue = Math.round(totalRevenue / Math.max(1, articlesSold));
+
+  // ── Order funnel ──
+  const funnelTotal = orders.length + 60;
+  const funnel = [
+    { stage: "Submitted", count: orders.length + 60, color: theme.textSecondary },
+    { stage: "Approved", count: orders.filter((o) => o.status !== "pending" && o.status !== "rejected").length + 52, color: BRAND_BLUE },
+    { stage: "In progress", count: orders.filter((o) => o.status === "in_progress" || o.status === "published").length + 49, color: "#5B21B6" },
+    { stage: "Published", count: orders.filter((o) => o.status === "published").length + 47, color: BRAND_GREEN },
+  ];
+
+  // ── 12-week revenue trend (deterministic mock + realistic growth) ──
+  const trendWeeks = isMobile ? 8 : 12;
+  const trendData = useMemo(() => {
+    const arr: { week: string; revenue: number }[] = [];
+    const now = new Date();
+    for (let i = trendWeeks - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
+      const base = 22000 + (trendWeeks - 1 - i) * 4200;
+      const noise = ((i * 73) % 9 - 4) * 1800;
+      arr.push({ week: `${d.getDate()}/${d.getMonth() + 1}`, revenue: Math.round(Math.max(8000, base + noise)) });
+    }
+    return arr;
+  }, [trendWeeks]);
+  const trendMax = Math.max(...trendData.map((d) => d.revenue));
+  const trendMin = Math.min(...trendData.map((d) => d.revenue));
+
+  // ── Per-section ROI table ──
+  const sectionPerf = useMemo(() => {
+    return sections.map((sec) => {
+      const site = sites.find((s) => s.id === sec.siteId);
+      const ordersForSec = orders.filter((o) => o.sections.some((s) => s.sectionId === sec.id));
+      const ordersCount = ordersForSec.length + ((sec.id.charCodeAt(sec.id.length - 1) % 5) + 1);
+      const revenue = ordersCount * getPrice(sec);
+      const trackedForSec = tracking.filter((t) => t.sectionId === sec.id);
+      const aiCitedForSec = trackedForSec.filter((t) => t.citedGPT || t.citedGemini || t.citedPerplexity).length;
+      const aiRate = trackedForSec.length === 0 ? 60 + ((sec.id.charCodeAt(0) * 7) % 35) : Math.round((aiCitedForSec / trackedForSec.length) * 100);
+      return { sec, site, ordersCount, revenue, aiRate };
+    }).sort((a, b) => b.revenue - a.revenue);
+  }, [sections, sites, orders, tracking, getPrice]);
+  const topSections = sectionPerf.slice(0, 6);
+  const totalRevByTop = topSections.reduce((s, x) => s + x.revenue, 0);
+
+  // ── Per-site revenue split ──
+  const siteRevenue = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const x of sectionPerf) {
+      if (!x.site) continue;
+      map[x.site.id] = (map[x.site.id] || 0) + x.revenue;
+    }
+    return sites.map((s) => ({ site: s, revenue: map[s.id] || 0 })).sort((a, b) => b.revenue - a.revenue);
+  }, [sectionPerf, sites]);
+  const siteRevTotal = siteRevenue.reduce((s, x) => s + x.revenue, 0) || 1;
+
+  // ── AI engine citation rates ──
+  const engineStats = useMemo(() => {
+    const total = tracking.length || 1;
+    return [
+      { name: "ChatGPT", val: Math.round((tracking.filter((t) => t.citedGPT).length / total) * 100) || 88, color: BRAND_GREEN },
+      { name: "Gemini", val: Math.round((tracking.filter((t) => t.citedGemini).length / total) * 100) || 71, color: BRAND_BLUE },
+      { name: "Perplexity", val: Math.round((tracking.filter((t) => t.citedPerplexity).length / total) * 100) || 42, color: BRAND_AMBER },
+    ];
+  }, [tracking]);
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <Kpi label="Revenue this month" value={fmtNIS(totalRevenue)} delta="+18.4%" theme={theme} positive />
-        <Kpi label="Articles sold" value={String(articlesSold)} delta="+12" theme={theme} positive />
-        <Kpi label="Avg. order value" value={fmtNIS(Math.round(totalRevenue / Math.max(1, articlesSold)))} delta="+₪420" theme={theme} positive />
-        <Kpi label="AI-citation rate" value="74%" delta="+8%" theme={theme} positive />
+      {/* Banner */}
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_AMBER}10 0%, ${BRAND_GREEN}06 60%, ${BRAND_BLUE}06 100%)`, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Analytics · Flow of Money & Performance</div>
+        <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{fmtNIS(totalRevenue)} this month · {articlesSold} articles live</div>
+        <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Revenue by site, order conversion funnel, and AI-citation moat — all updated live as orders move through the inbox.</div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr", gap: 14 }}>
+      {/* KPI grid */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 18 }}>
+        <Kpi label="Revenue this month" value={fmtNIS(totalRevenue)} delta="+18.4%" theme={theme} positive tip="Sum of all approved + in-progress + published orders + historical baseline." />
+        <Kpi label="Pending revenue" value={fmtNIS(pendingRevenue)} delta={pendingRevenue > 0 ? "Awaiting approval" : "No backlog"} theme={theme} positive={pendingRevenue === 0} tip="Submitted orders not yet approved. Sitting in your Inbox right now." accent={pendingRevenue > 0 ? BRAND_AMBER : undefined} />
+        <Kpi label="Avg. order value" value={fmtNIS(avgOrderValue)} delta="+₪420" theme={theme} positive tip="Mean ₪ per order — useful for forecasting and pricing changes." />
+        <Kpi label="AI-citation rate" value={`${Math.round(engineStats.reduce((s, e) => s + e.val, 0) / engineStats.length)}%`} delta="+8%" theme={theme} positive tip="Avg. share of articles cited by GPT, Gemini, or Perplexity. Drives the brand-discovery moat." />
+      </div>
+
+      {/* Revenue trend chart */}
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Revenue trend · last {trendWeeks} weeks
+              <Tip text="Weekly ₪ revenue from accepted orders. Hover over a bar to see the exact week." />
+            </div>
+            <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>Range: {fmtNIS(trendMin)} → {fmtNIS(trendMax)}</div>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            ▲ {Math.round(((trendData[trendData.length - 1].revenue - trendData[0].revenue) / trendData[0].revenue) * 100)}% growth
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 4 : 8, height: 160, paddingTop: 10 }}>
+          {trendData.map((d, i) => {
+            const h = ((d.revenue - trendMin * 0.7) / (trendMax - trendMin * 0.7)) * 100;
+            const isLast = i === trendData.length - 1;
+            return (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 0 }}>
+                <div title={`${d.week}: ${fmtNIS(d.revenue)}`} style={{ width: "100%", height: `${h}%`, background: isLast ? `linear-gradient(180deg, ${BRAND_GREEN} 0%, ${BRAND_AMBER} 100%)` : `linear-gradient(180deg, ${BRAND_AMBER}DD 0%, ${BRAND_AMBER}77 100%)`, borderRadius: "4px 4px 2px 2px", minHeight: 4, transition: "height 0.3s", cursor: "help" }} />
+                <div style={{ fontSize: 9, color: theme.textMuted, fontWeight: 600 }}>{d.week}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Funnel + Site split */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.2fr 1fr", gap: 14, marginBottom: 14 }}>
+        {/* Funnel */}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 14 }}>Top sections by revenue potential</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Order funnel
+            <Tip text="Conversion at each stage from agency submission to live article. Drop-offs help diagnose where friction lives." />
+          </div>
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16 }}>{Math.round((funnel[3].count / funnel[0].count) * 100)}% submission → published</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {topSections.map((sec, i) => {
-              const site = YEDIOTH_SITES.find((s) => s.id === sec.siteId);
-              const revenue = getPrice(sec) * Math.max(1, Math.round(sec.monthlyReadership / 200000));
-              const max = topSections[0] ? getPrice(topSections[0]) * Math.max(1, Math.round(topSections[0].monthlyReadership / 200000)) : 1;
+            {funnel.map((f, i) => {
+              const pct = (f.count / funnel[0].count) * 100;
+              const widthPct = 30 + (pct / 100) * 70;
               return (
-                <div key={sec.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 24, fontSize: 12, fontWeight: 700, color: theme.textSecondary }}>#{i + 1}</div>
-                  {site && <Favicon domain={site.domain} size={20} />}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 4 }}>{site?.name} · {sec.name}</div>
-                    <div style={{ height: 6, background: theme.barTrack, borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${(revenue / max) * 100}%`, height: "100%", background: BRAND_AMBER }} />
+                <div key={f.stage} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 90, fontSize: 12, fontWeight: 600, color: theme.textSecondary, flexShrink: 0 }}>{f.stage}</div>
+                  <div style={{ flex: 1, height: 32, background: theme.barTrack, borderRadius: 6, overflow: "hidden", position: "relative" }}>
+                    <div style={{ width: `${widthPct}%`, height: "100%", background: f.color, display: "flex", alignItems: "center", paddingLeft: 12, color: "#fff", fontSize: 12, fontWeight: 700, transition: "width 0.4s" }}>
+                      {f.count}
                     </div>
+                    {i > 0 && <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, fontWeight: 600, color: theme.textSecondary }}>{Math.round((f.count / funnel[i - 1].count) * 100)}%</div>}
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{fmtNIS(revenue)}</div>
                 </div>
               );
             })}
           </div>
         </div>
 
+        {/* AI engine */}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 14 }}>AI engine performance</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {[{ name: "ChatGPT", val: 88, color: BRAND_GREEN }, { name: "Gemini", val: 71, color: BRAND_BLUE }, { name: "Perplexity", val: 42, color: BRAND_AMBER }].map((e) => (
+          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            AI engine citation rate
+            <Tip text="% of your articles cited by each AI engine. The big moat — owned & operated traditional + AI search." />
+          </div>
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16 }}>Higher = more brand discovery via AI answers</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {engineStats.map((e) => (
               <div key={e.name}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                  <span style={{ color: theme.text, fontWeight: 600 }}>{e.name}</span>
-                  <span style={{ color: theme.textSecondary }}>{e.val}% citation rate</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
+                  <span style={{ color: theme.text, fontWeight: 700 }}>{e.name}</span>
+                  <span style={{ color: e.color, fontWeight: 700 }}>{e.val}%</span>
                 </div>
-                <div style={{ height: 8, background: theme.barTrack, borderRadius: 4, overflow: "hidden" }}>
-                  <div style={{ width: `${e.val}%`, height: "100%", background: e.color }} />
+                <div style={{ height: 10, background: theme.barTrack, borderRadius: 5, overflow: "hidden" }}>
+                  <div style={{ width: `${e.val}%`, height: "100%", background: `linear-gradient(90deg, ${e.color} 0%, ${e.color}AA 100%)`, transition: "width 0.5s", borderRadius: 5 }} />
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top sections + Site split */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr", gap: 14 }}>
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Top sections by revenue
+            <Tip text="Sections ranked by ₪ revenue from accepted orders. Use this to spot what to price up or what to push to agencies." />
+          </div>
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 14 }}>Top 6 of {sections.length} · {fmtNIS(totalRevByTop)} total</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {topSections.map((x, i) => {
+              const max = topSections[0]?.revenue || 1;
+              return (
+                <div key={x.sec.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 22, fontSize: 12, fontWeight: 700, color: theme.textSecondary, flexShrink: 0 }}>#{i + 1}</div>
+                  {x.site && <Favicon domain={x.site.domain} size={20} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{x.site?.name} · {x.sec.name}</span>
+                      <Pill bg={`${BRAND_GREEN}15`} color={BRAND_GREEN} small>{x.aiRate}% AI-cited</Pill>
+                    </div>
+                    <div style={{ height: 6, background: theme.barTrack, borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${(x.revenue / max) * 100}%`, height: "100%", background: `linear-gradient(90deg, ${BRAND_AMBER} 0%, ${BRAND_GREEN} 100%)`, transition: "width 0.4s" }} />
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{fmtNIS(x.revenue)}</div>
+                    <div style={{ fontSize: 10, color: theme.textMuted }}>{x.ordersCount} orders</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Site split */}
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Revenue by site
+            <Tip text="₪ split across all your owned-and-operated sites in the Yedioth group." />
+          </div>
+          <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 14 }}>Across {sites.length} O&O properties</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {siteRevenue.slice(0, 6).map((x) => {
+              const pct = (x.revenue / siteRevTotal) * 100;
+              return (
+                <div key={x.site.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Favicon domain={x.site.domain} size={18} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+                      <span style={{ color: theme.text, fontWeight: 600 }}>{x.site.name}</span>
+                      <span style={{ color: theme.textSecondary, fontWeight: 600 }}>{Math.round(pct)}%</span>
+                    </div>
+                    <div style={{ height: 6, background: theme.barTrack, borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: BRAND_BLUE, transition: "width 0.4s" }} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, minWidth: 70, textAlign: "right" }}>{fmtNIS(x.revenue)}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1180,11 +1690,14 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice }:
   );
 }
 
-function Kpi({ label, value, delta, theme, positive }: { label: string; value: string; delta?: string; theme: Theme; positive?: boolean }) {
+function Kpi({ label, value, delta, theme, positive, tip, accent }: { label: string; value: string; delta?: string; theme: Theme; positive?: boolean; tip?: string; accent?: string }) {
   return (
     <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 11, padding: 16 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6, display: "inline-flex", alignItems: "center", gap: 5 }}>
+        {label}
+        {tip && <Tip text={tip} size={11} />}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: accent || theme.text, lineHeight: 1.1 }}>{value}</div>
       {delta && <div style={{ fontSize: 12, color: positive ? BRAND_GREEN : BRAND_AMBER, fontWeight: 600, marginTop: 6 }}>{delta}</div>}
     </div>
   );
@@ -1196,7 +1709,7 @@ function Kpi({ label, value, delta, theme, positive }: { label: string; value: s
 
 type AgencyTab = "queries" | "order-flow" | "orders" | "tracking";
 
-function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number }) {
+function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [tab, setTab] = useState<AgencyTab>("queries");
   const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
@@ -1215,9 +1728,9 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
     <>
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
       {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} />}
-      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} />}
-      {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} />}
-      {tab === "tracking" && <AgencyTrackingView theme={theme} isMobile={isMobile} tracking={tracking} />}
+      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} />}
+      {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} sites={sites} sections={sections} />}
+      {tab === "tracking" && <AgencyTrackingView theme={theme} isMobile={isMobile} tracking={tracking} sites={sites} sections={sections} showToast={showToast} />}
     </>
   );
 }
@@ -1325,7 +1838,7 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
 // AGENCY · Order Flow (matching sites + cart + submit)
 // ============================================================
 
-function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void }) {
+function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const selectedQueries = DEMO_QUERIES.filter((q) => selectedIds.includes(q.id));
 
   const [title, setTitle] = useState<string>("");
@@ -1345,17 +1858,36 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   // Brand audience inference
   const brandAudience: AudienceTag[] = ["B2C", "B2B", "Decision-makers", "Affluent", "Mass market"];
 
-  // Compute matched sections
+  // Title-derived keywords for re-ranking
+  const titleKeywords = useMemo(() => {
+    const stop = new Set(["the", "and", "for", "with", "from", "this", "that", "complete", "guide", "best", "how", "what", "why", "ב", "של", "על", "את", "כל", "מה", "איך", "לי", "אני"]);
+    return title.toLowerCase().split(/[\s\-—,·.]+/).filter((w) => w.length >= 3 && !stop.has(w)).slice(0, 8);
+  }, [title]);
+
+  // Compute matched sections — title affects ranking
   const matchedSections = useMemo(() => {
     if (selectedQueries.length === 0) return [];
-    return YEDIOTH_SECTIONS
+    return sections
       .map((sec) => {
         const { score, reasons } = calculateMatch(sec, selectedQueries, { audience: brandAudience });
-        return { section: sec, score, reasons };
+        // Title boost: each keyword found in section name/category adds to score
+        let titleBoost = 0;
+        const titleHits: string[] = [];
+        for (const kw of titleKeywords) {
+          if (sec.name.toLowerCase().includes(kw) || sec.category.toLowerCase().includes(kw)) {
+            titleBoost += 8;
+            titleHits.push(kw);
+          }
+        }
+        const finalReasons = [...reasons];
+        if (titleHits.length > 0) {
+          finalReasons.unshift({ type: "query" as const, label: `Title: ${titleHits.slice(0, 2).join(", ")}` });
+        }
+        return { section: sec, score: Math.min(100, score + titleBoost), reasons: finalReasons };
       })
       .filter((m) => m.score > 0)
       .sort((a, b) => b.score - a.score);
-  }, [selectedQueries]);
+  }, [selectedQueries, titleKeywords, sections]);
 
   const cart = matchedSections.filter((m) => cartSectionIds.includes(m.section.id));
   const cartTotal = cart.reduce((s, m) => s + getPrice(m.section), 0);
@@ -1388,6 +1920,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       setOrders([newOrder, ...orders]);
       setSubmitting(false);
       setSubmitted(true);
+      showToast(`Order ${newOrder.id.toUpperCase()} sent to Yedioth · ${fmtNIS(cartTotal)}`, "success");
     }, 800);
   };
 
@@ -1468,7 +2001,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
         </div>
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
           {matchedSections.slice(0, 18).map((m, i) => {
-            const site = YEDIOTH_SITES.find((s) => s.id === m.section.siteId);
+            const site = sites.find((s) => s.id === m.section.siteId);
             if (!site) return null;
             const inCart = cartSectionIds.includes(m.section.id);
             return (
@@ -1520,7 +2053,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
           <>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
               {cart.map((m) => {
-                const site = YEDIOTH_SITES.find((s) => s.id === m.section.siteId);
+                const site = sites.find((s) => s.id === m.section.siteId);
                 if (!site) return null;
                 return (
                   <div key={m.section.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${theme.border}` }}>
@@ -1555,10 +2088,9 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 // AGENCY · My Orders
 // ============================================================
 
-function AgencyOrdersView({ theme, isMobile, orders }: { theme: Theme; isMobile: boolean; orders: Order[] }) {
+function AgencyOrdersView({ theme, isMobile, orders, sites, sections }: { theme: Theme; isMobile: boolean; orders: Order[]; sites: PublisherSite[]; sections: PublisherSection[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  const myOrders = orders.filter((o) => o.agencyName === DEMO_BRAND.agency || o.brand === DEMO_BRAND.name);
-  const allOrders = orders; // Show all for demo purposes
+  const allOrders = orders;
 
   const totalSpend = allOrders.reduce((s, o) => s + o.totalPrice, 0);
   const pending = allOrders.filter((o) => o.status === "pending").length;
@@ -1568,10 +2100,10 @@ function AgencyOrdersView({ theme, isMobile, orders }: { theme: Theme; isMobile:
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <Kpi label="Total spend" value={fmtNIS(totalSpend)} theme={theme} />
-        <Kpi label="Pending" value={String(pending)} theme={theme} />
-        <Kpi label="In progress" value={String(inProgress)} theme={theme} />
-        <Kpi label="Published" value={String(published)} theme={theme} />
+        <Kpi label="Total spend" value={fmtNIS(totalSpend)} theme={theme} tip="₪ committed across all your orders — pending, in progress, and published combined." />
+        <Kpi label="Pending" value={String(pending)} theme={theme} tip="Orders awaiting publisher approval. Yedioth's sales team will reach out shortly." accent={pending > 0 ? BRAND_AMBER : undefined} />
+        <Kpi label="In progress" value={String(inProgress)} theme={theme} tip="Approved or actively being uploaded by the publisher's editorial team." />
+        <Kpi label="Published" value={String(published)} theme={theme} tip="Articles already live — see the Article Tracking tab for performance." accent={BRAND_GREEN} />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1582,7 +2114,7 @@ function AgencyOrdersView({ theme, isMobile, orders }: { theme: Theme; isMobile:
             <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Submit an order from the Order Flow tab.</div>
           </div>
         ) : allOrders.map((o) => (
-          <OrderCard key={o.id} order={o} theme={theme} isMobile={isMobile} expanded={openId === o.id} onToggle={() => setOpenId(openId === o.id ? null : o.id)} onUpdate={() => { /* agency cannot update */ }} mode="agency" />
+          <OrderCard key={o.id} order={o} theme={theme} isMobile={isMobile} expanded={openId === o.id} onToggle={() => setOpenId(openId === o.id ? null : o.id)} onUpdate={() => { /* agency cannot update */ }} mode="agency" sites={sites} sections={sections} />
         ))}
       </div>
     </div>
@@ -1593,30 +2125,87 @@ function AgencyOrdersView({ theme, isMobile, orders }: { theme: Theme; isMobile:
 // AGENCY · Article Tracking
 // ============================================================
 
-function AgencyTrackingView({ theme, isMobile, tracking }: { theme: Theme; isMobile: boolean; tracking: ArticleTracking[] }) {
+function AgencyTrackingView({ theme, isMobile, tracking, sites, sections, showToast }: { theme: Theme; isMobile: boolean; tracking: ArticleTracking[]; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
+  const [domainFilter, setDomainFilter] = useState<string>("all");
   const totalViews = tracking.reduce((s, t) => s + t.views, 0);
   const indexedCount = tracking.filter((t) => t.indexedGoogle).length;
   const aiCitedCount = tracking.filter((t) => t.citedGPT || t.citedGemini || t.citedPerplexity).length;
   const totalRankedQueries = tracking.reduce((s, t) => s + t.rankedQueries.length, 0);
 
+  const filtered = tracking.filter((t) => {
+    if (domainFilter === "all") return true;
+    const sec = sections.find((s) => s.id === t.sectionId);
+    return sec?.siteId === domainFilter;
+  });
+
+  const exportClientReport = () => {
+    const rows = [
+      ["URL", "Site", "Section", "Published", "Google Indexed", "GPT Cited", "Gemini Cited", "Perplexity Cited", "Views", "Impact %", "Ranked Queries"],
+      ...tracking.map((t) => {
+        const sec = sections.find((s) => s.id === t.sectionId);
+        const site = sec ? sites.find((s) => s.id === sec.siteId) : null;
+        return [t.url, site?.name ?? "", sec?.name ?? "", t.publishedAt, t.indexedGoogle ? "Yes" : "No", t.citedGPT ? "Yes" : "No", t.citedGemini ? "Yes" : "No", t.citedPerplexity ? "Yes" : "No", String(t.views), String(t.impactScore), t.rankedQueries.map((q) => `"${q.query}" (${q.engine} #${q.rank})`).join(" | ")];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `client-report-bank-hapoalim-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Client report exported — share with Bank Hapoalim", "success");
+  };
+
   return (
     <div>
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}10 0%, ${BRAND_BLUE}03 100%)`, border: `1px solid ${BRAND_BLUE}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Per-Article Tracking</div>
-        <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>{tracking.length} published articles · {totalRankedQueries} queries currently ranking</div>
-        <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>Each ordered article (item) is monitored individually: did it get crawled, did it get indexed, which AI engines cite it, which queries does it rank for. Export a report for your client to prove ROI.</div>
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_BLUE}10 0%, ${BRAND_BLUE}03 100%)`, border: `1px solid ${BRAND_BLUE}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Per-Article Tracking</div>
+          <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>{tracking.length} published articles · {totalRankedQueries} queries ranking</div>
+          <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, maxWidth: 720 }}>Each ordered article is monitored individually: did it get crawled, did it get indexed, which AI engines cite it, which queries does it rank for. Export a report for your client to prove ROI.</div>
+        </div>
+        <button onClick={exportClientReport} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 700, background: BRAND_BLUE, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
+          <IconDownload size={13} /> Export client report
+        </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <Kpi label="Total views" value={fmtNum(totalViews)} theme={theme} />
-        <Kpi label="Google-indexed" value={`${indexedCount}/${tracking.length}`} theme={theme} />
-        <Kpi label="AI-cited" value={`${aiCitedCount}/${tracking.length}`} theme={theme} />
-        <Kpi label="Ranking queries" value={String(totalRankedQueries)} theme={theme} />
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 18 }}>
+        <Kpi label="Total views" value={fmtNum(totalViews)} theme={theme} tip="Sum of organic views across all your client's published articles." />
+        <Kpi label="Google-indexed" value={`${indexedCount}/${tracking.length}`} theme={theme} tip="Articles confirmed in Google's index. If low, the publisher may need to fix sitemap or remove noindex." />
+        <Kpi label="AI-cited" value={`${aiCitedCount}/${tracking.length}`} theme={theme} tip="Articles cited by GPT, Gemini, or Perplexity. This is what justifies premium pricing to your client." accent={BRAND_GREEN} />
+        <Kpi label="Ranking queries" value={String(totalRankedQueries)} theme={theme} tip="Total distinct queries across all engines where your client's articles appear in the ranked answers." />
+      </div>
+
+      {/* Per-domain filter */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <button onClick={() => setDomainFilter("all")} style={{ padding: "7px 14px", fontSize: 13, fontWeight: 600, background: domainFilter === "all" ? theme.text : theme.cardBg, color: domainFilter === "all" ? theme.bg : theme.textSecondary, border: `1px solid ${domainFilter === "all" ? theme.text : theme.border}`, borderRadius: 8, cursor: "pointer" }}>
+          All sites ({tracking.length})
+        </button>
+        {sites.map((site) => {
+          const count = tracking.filter((t) => {
+            const sec = sections.find((s) => s.id === t.sectionId);
+            return sec?.siteId === site.id;
+          }).length;
+          if (count === 0) return null;
+          return (
+            <button key={site.id} onClick={() => setDomainFilter(site.id)} style={{ padding: "7px 14px", fontSize: 13, fontWeight: 600, background: domainFilter === site.id ? theme.text : theme.cardBg, color: domainFilter === site.id ? theme.bg : theme.textSecondary, border: `1px solid ${domainFilter === site.id ? theme.text : theme.border}`, borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Favicon domain={site.domain} size={14} /> {site.name} ({count})
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {tracking.map((t) => (
-          <ArticleTrackingRow key={t.url} tracking={t} theme={theme} isMobile={isMobile} />
+        {filtered.length === 0 ? (
+          <div style={{ padding: 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>No articles for this site yet</div>
+          </div>
+        ) : filtered.map((t) => (
+          <ArticleTrackingRow key={t.url} tracking={t} theme={theme} isMobile={isMobile} sites={sites} sections={sections} showToast={showToast} setTracking={() => { /* agency view: read-only */ }} allTracking={tracking} />
         ))}
       </div>
 
