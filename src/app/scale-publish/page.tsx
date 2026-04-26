@@ -587,6 +587,10 @@ export default function ScalePublishPage() {
                 <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
                 <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
                 <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
+                <a href="/scale-publish-roadmap" style={{ fontSize: 15, fontWeight: 500, color: BRAND_GREEN, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: BRAND_GREEN }} />
+                  Spec for Inna
+                </a>
                 <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Content Editor</a>
                 <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Roadmap</a>
               </nav>
@@ -602,6 +606,7 @@ export default function ScalePublishPage() {
             <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
             <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
             <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
+            <a href="/scale-publish-roadmap" style={{ fontSize: 15, fontWeight: 500, color: BRAND_GREEN, textDecoration: "none", padding: "8px 0" }}>● Spec for Inna</a>
             <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Content Editor</a>
             <a href="/roadmap" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Roadmap</a>
           </div>
@@ -1743,6 +1748,215 @@ function Kpi({ label, value, delta, theme, positive, tip, accent }: { label: str
 }
 
 // ============================================================
+// ARTICLE PREVIEW — AdsGPT-style editorial layout
+// Matches: hero, stats highlight box, intro, pull quote, H2/H3 sections,
+// comparison table, key learnings callout, conclusion
+// ============================================================
+
+function ArticlePreview({ title, selectedQueries, theme, isMobile }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean }) {
+  const wordCount = selectedQueries.length * 320 + 230; // intro + sections + conclusion
+  const readMin = Math.max(2, Math.round(wordCount / 220));
+  const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const categoriesPresent = Array.from(new Set(selectedQueries.map((q) => q.category))).slice(0, 3);
+
+  // Stable mock numbers from query IDs
+  const seedFromQueries = selectedQueries.map((q) => q.id).join("-");
+  const seedHash = seedFromQueries.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
+  const stat1 = 65 + (seedHash % 30); // AI citation %
+  const stat2 = 12 + (seedHash % 18); // ranked queries
+  const stat3 = (selectedQueries.length * 1.2 + (seedHash % 10) / 10).toFixed(1); // ROAS-style multiplier
+  const stat4 = `${selectedQueries.length * 320}+`; // word count
+
+  // Mock body text per query
+  const bodyByQuery = (q: typeof DEMO_QUERIES[number], i: number): { paras: string[]; h3s: string[]; pullQuote?: string; bullets?: string[] } => {
+    const angle = i % 3;
+    return {
+      paras: [
+        `When ${DEMO_BRAND.name} customers ask "${q.text.toLowerCase()}", the answer used to live behind a logged-in dashboard or buried in a 60-page PDF. Today, the same customer types the question into ChatGPT — and the engine cites whichever source covered it best in the public web. That source is now the brand's storefront, even if the brand never planned it that way.`,
+        `The shift matters for ${q.category.toLowerCase()} specifically because the audience here (${q.audience.slice(0, 2).join(" and ")}) tends to do their research before they ever click into a vendor site. If your competitor's article on Ynet ranks first, you've already lost the consideration phase before the user reaches your funnel.`,
+      ],
+      h3s: angle === 0 ? ["What the data actually shows", "How leading brands are responding"] : angle === 1 ? ["The numbers behind the trend", "What to watch for next quarter"] : ["Where most analyses get this wrong", "A practical framework for action"],
+      pullQuote: i === 0 ? `If your audience is asking AI engines this question, every day you're not the cited answer is a day a competitor is.` : i === 1 ? undefined : i === 2 ? `The most expensive moment in customer acquisition is the one before they know your name exists.` : undefined,
+      bullets: angle === 0 ? [`${stat1}% of ${q.audience[0] || "B2C"} buyers begin research outside owned channels`, `${q.category} queries on AI engines grew 4.2× year-over-year`, `Citation share — not click share — is becoming the leading indicator`] : undefined,
+    };
+  };
+
+  // Comparison table data (shown after first H2 for variety)
+  const comparisonRows = [
+    { aspect: "Discovery channel", before: "Paid search + display", after: "AI-cited editorial + paid search" },
+    { aspect: "Time to brand mention", before: "Click 3–5 of funnel", after: "Click 1 (the AI answer itself)" },
+    { aspect: "Cost per qualified visit", before: "₪18–₪32", after: "₪6–₪11 (after CPC normalization)" },
+    { aspect: "Trust signal", before: "Ad disclosure label", after: "Editorial citation in trusted publisher" },
+  ];
+
+  // Article container styling — matches AdsGPT editorial CSS
+  const articleFont = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif";
+  const editorialCol = isMobile ? "auto" : "auto";
+  const articlePadding = isMobile ? "20px" : "32px 40px";
+
+  return (
+    <div style={{ marginBottom: 18 }}>
+      {/* Step header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          Step 1.5 · Article preview (live)
+          <Tip text="Live preview of what Yedioth's editor will publish. Each query becomes a section. Edit your selection or title to update it." />
+        </div>
+        <div style={{ fontSize: 12, color: theme.textSecondary }}>~{wordCount} words · {readMin} min read · {selectedQueries.length} H2 sections</div>
+      </div>
+
+      {/* The article itself */}
+      <article style={{ background: "#FFFFFF", color: "#1A1A1A", border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden", fontFamily: articleFont, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        {/* Hero image placeholder */}
+        <div style={{ height: isMobile ? 120 : 180, background: `linear-gradient(135deg, ${BRAND_GREEN}25 0%, ${BRAND_BLUE}20 100%)`, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ color: "#FFFFFF99", fontSize: 12, fontWeight: 600, letterSpacing: 1.4, textTransform: "uppercase", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>Featured image · provided by editor</div>
+        </div>
+
+        <div style={{ padding: articlePadding, maxWidth: 760, margin: "0 auto" }}>
+          {/* Category tags */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            {categoriesPresent.map((c) => (
+              <span key={c} style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: `${BRAND_GREEN}12`, color: BRAND_GREEN, borderRadius: 4, letterSpacing: 0.3 }}>{c}</span>
+            ))}
+            <span style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: "#F1F5F9", color: "#475569", borderRadius: 4, letterSpacing: 0.3 }}>Sponsored by {DEMO_BRAND.name}</span>
+          </div>
+
+          {/* Title (H1) — large, bold, tight line-height */}
+          <h1 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, color: "#0F172A", lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 14px" }}>
+            {title || `Your article title appears here once you fill it in below`}
+          </h1>
+
+          {/* Byline */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 18, marginBottom: 24, borderBottom: "1px solid #E2E8F0", fontSize: 14, color: "#64748B", flexWrap: "wrap" }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>JIT</div>
+            <div>
+              <div style={{ color: "#0F172A", fontWeight: 600 }}>Just In Time Agency</div>
+              <div style={{ fontSize: 12 }}>{today} · {readMin} min read</div>
+            </div>
+          </div>
+
+          {selectedQueries.length === 0 ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#94A3B8", fontSize: 14, fontStyle: "italic" }}>Select queries to see the article take shape</div>
+          ) : (
+            <>
+              {/* Stats highlight box — AdsGPT-style 4-column grid callout */}
+              <div style={{ background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 8, padding: isMobile ? "16px" : "20px 24px", marginBottom: 28, display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 14 : 20 }}>
+                {[
+                  { num: `+${stat1}%`, label: "AI citation lift" },
+                  { num: `${stat2}`, label: "Queries ranked" },
+                  { num: `${stat3}x`, label: "Brand-mention reach" },
+                  { num: stat4, label: "Words of coverage" },
+                ].map((s, i) => (
+                  <div key={i} style={{ textAlign: isMobile ? "left" : "center" }}>
+                    <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: BRAND_GREEN, lineHeight: 1, letterSpacing: "-0.5px" }}>{s.num}</div>
+                    <div style={{ fontSize: 12, color: "#475569", marginTop: 6, fontWeight: 500 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Intro paragraph */}
+              <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.65, color: "#1E293B", margin: "0 0 24px", fontWeight: 400 }}>
+                For {DEMO_BRAND.name}'s customer segment, the path from first question to first conversation has collapsed. The buyer who once spent 3 weeks comparing options now asks ChatGPT, Gemini, or Perplexity a single sharp question — and gets a single confident answer. This piece walks through {selectedQueries.length === 1 ? "the question" : `the ${selectedQueries.length} questions`} {DEMO_BRAND.name}'s audience is asking right now, and what the data says about each.
+              </p>
+
+              {/* First pull-quote (AdsGPT style) */}
+              <blockquote style={{ borderLeft: `5px solid ${BRAND_GREEN}`, padding: "8px 0 8px 22px", margin: "0 0 32px", fontSize: isMobile ? 17 : 20, fontStyle: "italic", color: "#334155", fontWeight: 500, lineHeight: 1.5 }}>
+                "Creative fatigue has a cousin in publisher land — query fatigue. The brands winning AI search aren't writing more — they're writing the right {selectedQueries.length} questions, deeper than anyone else."
+              </blockquote>
+
+              {/* H2 sections */}
+              {selectedQueries.map((q, i) => {
+                const body = bodyByQuery(q, i);
+                return (
+                  <section key={q.id} style={{ marginBottom: 36 }}>
+                    <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, letterSpacing: "-0.4px", margin: "0 0 14px", scrollMarginTop: 80 }}>{q.text}</h2>
+
+                    {body.paras.map((p, pi) => (
+                      <p key={pi} style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>{p}</p>
+                    ))}
+
+                    {/* H3 + content */}
+                    <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3 }}>{body.h3s[0]}</h3>
+                    <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>
+                      Across the {q.category.toLowerCase()} category, three patterns repeat: brands that publish on Yedioth-tier sites get cited 3.4× more often than brands relying on owned-blog content alone, citation rate compounds — once an engine starts citing you for one query, related queries follow within 6–8 weeks, and the topical authority shows up in Google Search Console before it shows up in revenue dashboards.
+                    </p>
+
+                    {/* Bullets if present */}
+                    {body.bullets && (
+                      <ul style={{ margin: "0 0 18px", paddingLeft: 24, fontSize: 16, lineHeight: 1.75, color: "#334155" }}>
+                        {body.bullets.map((b, bi) => (
+                          <li key={bi} style={{ marginBottom: 6 }}>{b}</li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Pull quote inside section if present */}
+                    {body.pullQuote && (
+                      <blockquote style={{ borderLeft: `4px solid ${BRAND_GREEN}`, padding: "6px 0 6px 18px", margin: "20px 0 24px", fontSize: 18, fontStyle: "italic", color: "#475569", fontWeight: 500, lineHeight: 1.5 }}>
+                        "{body.pullQuote}"
+                      </blockquote>
+                    )}
+
+                    <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3 }}>{body.h3s[1]}</h3>
+                    <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>
+                      The practical move for {DEMO_BRAND.name} is to own this question on a Yedioth property where the audience already trusts the editorial voice. That's exactly what the {selectedQueries.length}-section article you're building does — each section answers one of the queries fully enough that GPT cites it, Gemini cites it, and Perplexity surfaces it as a primary source.
+                    </p>
+
+                    {/* Comparison table (insert after first section) */}
+                    {i === 0 && (
+                      <div style={{ margin: "24px 0", border: "1px solid #E2E8F0", borderRadius: 8, overflow: "hidden" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                          <thead>
+                            <tr style={{ background: "#F8FAFC" }}>
+                              <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: 700, color: "#0F172A", borderBottom: "1px solid #E2E8F0" }}>Aspect</th>
+                              <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: 700, color: "#64748B", borderBottom: "1px solid #E2E8F0" }}>Before AI search</th>
+                              <th style={{ padding: "12px 14px", textAlign: "left", fontWeight: 700, color: BRAND_GREEN, borderBottom: "1px solid #E2E8F0" }}>With Yedioth coverage</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {comparisonRows.map((r, ri) => (
+                              <tr key={ri} style={{ background: ri % 2 === 0 ? "#FFFFFF" : "#FAFBFC" }}>
+                                <td style={{ padding: "12px 14px", fontWeight: 600, color: "#0F172A", borderBottom: ri < comparisonRows.length - 1 ? "1px solid #E2E8F0" : "none" }}>{r.aspect}</td>
+                                <td style={{ padding: "12px 14px", color: "#64748B", borderBottom: ri < comparisonRows.length - 1 ? "1px solid #E2E8F0" : "none" }}>{r.before}</td>
+                                <td style={{ padding: "12px 14px", color: "#0F172A", borderBottom: ri < comparisonRows.length - 1 ? "1px solid #E2E8F0" : "none" }}>{r.after}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+
+              {/* Key takeaways callout */}
+              <div style={{ background: `${BRAND_GREEN}08`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 6, padding: isMobile ? "18px" : "22px 28px", margin: "0 0 32px" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>Key Takeaways</div>
+                <ol style={{ margin: 0, paddingLeft: 22, fontSize: 16, lineHeight: 1.7, color: "#1E293B" }}>
+                  <li style={{ marginBottom: 8 }}><strong>Cover the question, don't reference it.</strong> AI engines cite the most complete answer, not the most-linked one.</li>
+                  <li style={{ marginBottom: 8 }}><strong>Pick the right room.</strong> A Yedioth section your audience already trusts beats 10 owned-blog posts.</li>
+                  <li style={{ marginBottom: 8 }}><strong>Track per-item, not per-domain.</strong> One article can rank for {stat2} queries — measure each.</li>
+                  <li><strong>Compound, don't sprint.</strong> Citation rate grows for 6–8 weeks after publish — patience is the moat.</li>
+                </ol>
+              </div>
+
+              {/* Conclusion */}
+              <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px" }}>The bottom line</h2>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 14px" }}>
+                The {selectedQueries.length === 1 ? "question above" : `${selectedQueries.length} questions above`} represent {Math.round(stat1 * 1.2)}% of high-intent discovery for {DEMO_BRAND.name}'s category. Owning the answer on Yedioth means owning the moment a buyer is most ready to remember a brand name.
+              </p>
+              <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 8px" }}>
+                For more on how {DEMO_BRAND.name} approaches {categoriesPresent[0]?.toLowerCase() ?? "this topic"}, visit <a href="#" style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: "underline" }}>{DEMO_BRAND.domain}</a>.
+              </p>
+            </>
+          )}
+        </div>
+      </article>
+    </div>
+  );
+}
+
+// ============================================================
 // AGENCY DASHBOARD
 // ============================================================
 
@@ -2042,39 +2256,9 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
         )}
       </div>
 
-      {/* Article structure preview — built from queries */}
-      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            Article structure preview
-            <Tip text="Each query becomes an H2 section. The publisher's editor (or AI) writes 200–350 words per section, fully covering the question." />
-          </div>
-          <div style={{ fontSize: 12, color: theme.textSecondary }}>~{selectedQueries.length * 280}–{selectedQueries.length * 380} words · {selectedQueries.length} sections</div>
-        </div>
-        <div style={{ background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: isMobile ? 12 : 16, fontFamily: "Georgia, serif" }}>
-          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, marginBottom: 12, lineHeight: 1.3, paddingBottom: 10, borderBottom: `1px solid ${theme.border}` }}>{title || "Your article title appears here"}</div>
-          <div style={{ fontSize: 12, color: theme.textMuted, fontStyle: "italic", marginBottom: 14 }}>By Just In Time Agency · for Bank Hapoalim · ~{selectedQueries.length * 3} min read</div>
-          {selectedQueries.length === 0 ? (
-            <div style={{ fontSize: 13, color: theme.textSecondary, fontStyle: "italic", padding: 20, textAlign: "center" }}>Select queries to preview the article structure</div>
-          ) : (
-            <>
-              <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
-                <em>Introduction:</em> 120–150 words framing why these {selectedQueries.length} questions matter for {DEMO_BRAND.name} customers, with a natural mention of {DEMO_BRAND.name}.
-              </div>
-              {selectedQueries.map((q, i) => (
-                <div key={q.id} style={{ marginBottom: 14, paddingLeft: 12, borderLeft: `3px solid ${BRAND_GREEN}` }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, marginBottom: 4 }}>H2 · Section {i + 1}</div>
-                  <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{q.text}</div>
-                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>~280 words answering this question with data, examples, and a contextual link to {DEMO_BRAND.name}.</div>
-                </div>
-              ))}
-              <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, marginTop: 16, paddingTop: 12, borderTop: `1px solid ${theme.border}` }}>
-                <em>Conclusion:</em> 80–100 words summarizing key takeaways with a soft CTA toward {DEMO_BRAND.name}.
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      {/* Article preview — AdsGPT-style editorial layout */}
+      <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} />
+
 
       {/* Title editor */}
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
