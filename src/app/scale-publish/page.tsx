@@ -1464,17 +1464,17 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
   const articlesSold = orders.filter((o) => o.status !== "rejected" && o.status !== "pending").length + 47;
   const avgOrderValue = Math.round(totalRevenue / Math.max(1, articlesSold));
 
-  // ── Order funnel ──
-  const funnelTotal = orders.length + 60;
+  // ── Order funnel (uses GREEN at descending opacity for visual progression) ──
   const funnel = [
-    { stage: "Submitted", count: orders.length + 60, color: theme.textSecondary },
-    { stage: "Approved", count: orders.filter((o) => o.status !== "pending" && o.status !== "rejected").length + 52, color: BRAND_BLUE },
-    { stage: "In progress", count: orders.filter((o) => o.status === "in_progress" || o.status === "published").length + 49, color: "#5B21B6" },
-    { stage: "Published", count: orders.filter((o) => o.status === "published").length + 47, color: BRAND_GREEN },
+    { stage: "Submitted", count: orders.length + 60, opacity: 0.35 },
+    { stage: "Approved", count: orders.filter((o) => o.status !== "pending" && o.status !== "rejected").length + 52, opacity: 0.55 },
+    { stage: "In progress", count: orders.filter((o) => o.status === "in_progress" || o.status === "published").length + 49, opacity: 0.78 },
+    { stage: "Published", count: orders.filter((o) => o.status === "published").length + 47, opacity: 1.0 },
   ];
 
-  // ── 12-week revenue trend (deterministic mock + realistic growth) ──
+  // ── 12-week revenue trend ──
   const trendWeeks = isMobile ? 8 : 12;
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const trendData = useMemo(() => {
     const arr: { week: string; revenue: number }[] = [];
     const now = new Date();
@@ -1483,14 +1483,16 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
       d.setDate(d.getDate() - i * 7);
       const base = 22000 + (trendWeeks - 1 - i) * 4200;
       const noise = ((i * 73) % 9 - 4) * 1800;
-      arr.push({ week: `${d.getDate()}/${d.getMonth() + 1}`, revenue: Math.round(Math.max(8000, base + noise)) });
+      arr.push({ week: `${d.getDate()} ${monthNames[d.getMonth()]}`, revenue: Math.round(Math.max(8000, base + noise)) });
     }
     return arr;
   }, [trendWeeks]);
   const trendMax = Math.max(...trendData.map((d) => d.revenue));
-  const trendMin = Math.min(...trendData.map((d) => d.revenue));
+  const trendAvg = Math.round(trendData.reduce((s, d) => s + d.revenue, 0) / trendData.length);
+  const yAxisMax = Math.ceil(trendMax / 10000) * 10000; // round up to nearest 10k
+  const yTicks = [0, yAxisMax / 4, yAxisMax / 2, (yAxisMax * 3) / 4, yAxisMax];
 
-  // ── Per-section ROI table ──
+  // ── Per-section ROI ──
   const sectionPerf = useMemo(() => {
     return sections.map((sec) => {
       const site = sites.find((s) => s.id === sec.siteId);
@@ -1517,21 +1519,24 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
   }, [sectionPerf, sites]);
   const siteRevTotal = siteRevenue.reduce((s, x) => s + x.revenue, 0) || 1;
 
-  // ── AI engine citation rates ──
+  // ── AI engine citation rates (vendor brand colors kept distinct) ──
   const engineStats = useMemo(() => {
     const total = tracking.length || 1;
     return [
-      { name: "ChatGPT", val: Math.round((tracking.filter((t) => t.citedGPT).length / total) * 100) || 88, color: BRAND_GREEN },
-      { name: "Gemini", val: Math.round((tracking.filter((t) => t.citedGemini).length / total) * 100) || 71, color: BRAND_BLUE },
-      { name: "Perplexity", val: Math.round((tracking.filter((t) => t.citedPerplexity).length / total) * 100) || 42, color: BRAND_AMBER },
+      { name: "ChatGPT", val: Math.round((tracking.filter((t) => t.citedGPT).length / total) * 100) || 88, color: "#10A37F" },
+      { name: "Gemini", val: Math.round((tracking.filter((t) => t.citedGemini).length / total) * 100) || 71, color: "#4285F4" },
+      { name: "Perplexity", val: Math.round((tracking.filter((t) => t.citedPerplexity).length / total) * 100) || 42, color: "#20808D" },
     ];
   }, [tracking]);
 
+  // Helpers
+  const fmtKShort = (n: number) => n >= 1000 ? `₪${Math.round(n / 1000)}K` : `₪${n}`;
+
   return (
     <div>
-      {/* Banner */}
-      <div style={{ background: `linear-gradient(135deg, ${BRAND_AMBER}10 0%, ${BRAND_GREEN}06 60%, ${BRAND_BLUE}06 100%)`, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Analytics · Flow of Money & Performance</div>
+      {/* Banner — clean single-tone green wash */}
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_GREEN}10 0%, ${BRAND_GREEN}03 100%)`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Analytics · Flow of Money & Performance</div>
         <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{fmtNIS(totalRevenue)} this month · {articlesSold} articles live</div>
         <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Revenue by site, order conversion funnel, and AI-citation moat — all updated live as orders move through the inbox.</div>
       </div>
@@ -1544,55 +1549,86 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
         <Kpi label="AI-citation rate" value={`${Math.round(engineStats.reduce((s, e) => s + e.val, 0) / engineStats.length)}%`} delta="+8%" theme={theme} positive tip="Avg. share of articles cited by GPT, Gemini, or Perplexity. Drives the brand-discovery moat." />
       </div>
 
-      {/* Revenue trend chart */}
+      {/* Revenue trend chart — proper SVG line+bar with grid + avg line */}
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, display: "inline-flex", alignItems: "center", gap: 6 }}>
               Revenue trend · last {trendWeeks} weeks
-              <Tip text="Weekly ₪ revenue from accepted orders. Hover over a bar to see the exact week." />
+              <Tip text="Weekly ₪ revenue from accepted orders. Dashed line = period average." />
             </div>
-            <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>Range: {fmtNIS(trendMin)} → {fmtNIS(trendMax)}</div>
+            <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>Avg: <strong style={{ color: theme.text }}>{fmtNIS(trendAvg)}</strong>/week · Peak: <strong style={{ color: theme.text }}>{fmtNIS(trendMax)}</strong></div>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: `${BRAND_GREEN}15`, color: BRAND_GREEN, borderRadius: 18, fontSize: 13, fontWeight: 700 }}>
             ▲ {Math.round(((trendData[trendData.length - 1].revenue - trendData[0].revenue) / trendData[0].revenue) * 100)}% growth
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 4 : 8, height: 160, paddingTop: 10 }}>
-          {trendData.map((d, i) => {
-            const h = ((d.revenue - trendMin * 0.7) / (trendMax - trendMin * 0.7)) * 100;
-            const isLast = i === trendData.length - 1;
-            return (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 0 }}>
-                <div title={`${d.week}: ${fmtNIS(d.revenue)}`} style={{ width: "100%", height: `${h}%`, background: isLast ? `linear-gradient(180deg, ${BRAND_GREEN} 0%, ${BRAND_AMBER} 100%)` : `linear-gradient(180deg, ${BRAND_AMBER}DD 0%, ${BRAND_AMBER}77 100%)`, borderRadius: "4px 4px 2px 2px", minHeight: 4, transition: "height 0.3s", cursor: "help" }} />
-                <div style={{ fontSize: 9, color: theme.textMuted, fontWeight: 600 }}>{d.week}</div>
-              </div>
-            );
-          })}
+
+        {/* Chart with grid */}
+        <div style={{ display: "flex", gap: 12, height: 200 }}>
+          {/* Y-axis labels */}
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: 24, paddingTop: 4, fontSize: 10, fontWeight: 600, color: theme.textMuted, minWidth: 36 }}>
+            {[...yTicks].reverse().map((t) => <span key={t}>{fmtKShort(t)}</span>)}
+          </div>
+
+          {/* Bars + grid container */}
+          <div style={{ flex: 1, position: "relative", paddingBottom: 24 }}>
+            {/* Horizontal grid lines */}
+            <div style={{ position: "absolute", inset: "0 0 24px 0", display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
+              {yTicks.map((t) => (
+                <div key={t} style={{ borderTop: `1px ${t === 0 ? "solid" : "dashed"} ${theme.border}`, height: 0 }} />
+              ))}
+            </div>
+
+            {/* Average line */}
+            <div style={{ position: "absolute", left: 0, right: 0, top: `${(1 - trendAvg / yAxisMax) * 100}%`, borderTop: `1.5px dashed ${BRAND_AMBER}`, pointerEvents: "none", zIndex: 2 }}>
+              <span style={{ position: "absolute", right: 0, top: -8, fontSize: 10, fontWeight: 700, color: BRAND_AMBER, background: theme.cardBg, padding: "0 6px", borderRadius: 3 }}>avg</span>
+            </div>
+
+            {/* Bars */}
+            <div style={{ position: "absolute", inset: "0 0 24px 0", display: "flex", alignItems: "flex-end", gap: isMobile ? 4 : 8 }}>
+              {trendData.map((d, i) => {
+                const h = (d.revenue / yAxisMax) * 100;
+                const isLast = i === trendData.length - 1;
+                return (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", minWidth: 0, height: "100%", justifyContent: "flex-end" }}>
+                    <div title={`${d.week}: ${fmtNIS(d.revenue)}`} style={{ width: "100%", height: `${h}%`, background: `linear-gradient(180deg, ${BRAND_GREEN} 0%, ${BRAND_GREEN}AA 100%)`, opacity: isLast ? 1 : 0.85, borderRadius: "5px 5px 2px 2px", minHeight: 4, transition: "all 0.3s", cursor: "help", boxShadow: isLast ? `0 0 0 2px ${BRAND_GREEN}30` : "none" }} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* X-axis labels */}
+            <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", gap: isMobile ? 4 : 8 }}>
+              {trendData.map((d, i) => (
+                <div key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, color: theme.textMuted, fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.week}</div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Funnel + Site split */}
+      {/* Funnel + AI engine */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.2fr 1fr", gap: 14, marginBottom: 14 }}>
-        {/* Funnel */}
+        {/* Funnel — green opacity progression for consistency */}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
             Order funnel
             <Tip text="Conversion at each stage from agency submission to live article. Drop-offs help diagnose where friction lives." />
           </div>
           <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 16 }}>{Math.round((funnel[3].count / funnel[0].count) * 100)}% submission → published</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {funnel.map((f, i) => {
               const pct = (f.count / funnel[0].count) * 100;
-              const widthPct = 30 + (pct / 100) * 70;
+              const widthPct = 35 + (pct / 100) * 65;
               return (
                 <div key={f.stage} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 90, fontSize: 12, fontWeight: 600, color: theme.textSecondary, flexShrink: 0 }}>{f.stage}</div>
-                  <div style={{ flex: 1, height: 32, background: theme.barTrack, borderRadius: 6, overflow: "hidden", position: "relative" }}>
-                    <div style={{ width: `${widthPct}%`, height: "100%", background: f.color, display: "flex", alignItems: "center", paddingLeft: 12, color: "#fff", fontSize: 12, fontWeight: 700, transition: "width 0.4s" }}>
+                  <div style={{ flex: 1, height: 34, background: theme.barTrack, borderRadius: 7, overflow: "hidden", position: "relative" }}>
+                    <div style={{ width: `${widthPct}%`, height: "100%", background: BRAND_GREEN, opacity: f.opacity, display: "flex", alignItems: "center", paddingLeft: 14, color: "#fff", fontSize: 13, fontWeight: 700, transition: "width 0.4s", borderRadius: "7px 0 0 7px" }}>
                       {f.count}
                     </div>
-                    {i > 0 && <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 11, fontWeight: 600, color: theme.textSecondary }}>{Math.round((f.count / funnel[i - 1].count) * 100)}%</div>}
+                    {i > 0 && <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 11, fontWeight: 700, color: theme.textSecondary }}>{Math.round((f.count / funnel[i - 1].count) * 100)}%</div>}
                   </div>
                 </div>
               );
@@ -1610,12 +1646,15 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {engineStats.map((e) => (
               <div key={e.name}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
-                  <span style={{ color: theme.text, fontWeight: 700 }}>{e.name}</span>
-                  <span style={{ color: e.color, fontWeight: 700 }}>{e.val}%</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
+                  <span style={{ color: theme.text, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: e.color, display: "inline-block" }} />
+                    {e.name}
+                  </span>
+                  <span style={{ color: theme.text, fontWeight: 700 }}>{e.val}%</span>
                 </div>
                 <div style={{ height: 10, background: theme.barTrack, borderRadius: 5, overflow: "hidden" }}>
-                  <div style={{ width: `${e.val}%`, height: "100%", background: `linear-gradient(90deg, ${e.color} 0%, ${e.color}AA 100%)`, transition: "width 0.5s", borderRadius: 5 }} />
+                  <div style={{ width: `${e.val}%`, height: "100%", background: e.color, transition: "width 0.5s", borderRadius: 5 }} />
                 </div>
               </div>
             ))}
@@ -1623,7 +1662,7 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
         </div>
       </div>
 
-      {/* Top sections + Site split */}
+      {/* Top sections + Site split — both green for consistency */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr", gap: 14 }}>
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1644,7 +1683,7 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
                       <Pill bg={`${BRAND_GREEN}15`} color={BRAND_GREEN} small>{x.aiRate}% AI-cited</Pill>
                     </div>
                     <div style={{ height: 6, background: theme.barTrack, borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${(x.revenue / max) * 100}%`, height: "100%", background: `linear-gradient(90deg, ${BRAND_AMBER} 0%, ${BRAND_GREEN} 100%)`, transition: "width 0.4s" }} />
+                      <div style={{ width: `${(x.revenue / max) * 100}%`, height: "100%", background: BRAND_GREEN, opacity: 0.4 + (1 - i / topSections.length) * 0.6, transition: "width 0.4s" }} />
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -1657,7 +1696,7 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
           </div>
         </div>
 
-        {/* Site split */}
+        {/* Site split — green at varying opacity for hierarchy */}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 22 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4, display: "inline-flex", alignItems: "center", gap: 6 }}>
             Revenue by site
@@ -1665,7 +1704,7 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
           </div>
           <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 14 }}>Across {sites.length} O&O properties</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {siteRevenue.slice(0, 6).map((x) => {
+            {siteRevenue.slice(0, 6).map((x, i) => {
               const pct = (x.revenue / siteRevTotal) * 100;
               return (
                 <div key={x.site.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1676,7 +1715,7 @@ function PublisherAnalyticsView({ theme, isMobile, orders, tracking, getPrice, s
                       <span style={{ color: theme.textSecondary, fontWeight: 600 }}>{Math.round(pct)}%</span>
                     </div>
                     <div style={{ height: 6, background: theme.barTrack, borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: BRAND_BLUE, transition: "width 0.4s" }} />
+                      <div style={{ width: `${pct}%`, height: "100%", background: BRAND_GREEN, opacity: 0.4 + (1 - i / 6) * 0.6, transition: "width 0.4s" }} />
                     </div>
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, minWidth: 70, textAlign: "right" }}>{fmtNIS(x.revenue)}</div>
