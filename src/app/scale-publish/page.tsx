@@ -1811,14 +1811,31 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
         <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>Pick the queries you want to win. Select up to <strong style={{ color: theme.text }}>5 queries</strong> per article — fewer queries means deeper, higher-quality content. After selecting, you'll see Yedioth Ahronoth sections matched by audience, category, and intent.</div>
       </div>
 
-      {/* Selection count + CTA */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 14, background: selectedIds.length > 0 ? `${BRAND_GREEN}08` : theme.cardBg, border: `1px solid ${selectedIds.length > 0 ? BRAND_GREEN : theme.border}`, borderRadius: 11, marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 14, color: theme.text }}>
-          <strong>{selectedIds.length}</strong> of {MAX_SELECT} queries selected
-          {dismissedIds.size > 0 && <span style={{ marginLeft: 12, fontSize: 12, color: theme.textMuted }}>· {dismissedIds.size} dismissed <button onClick={restoreAll} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>Restore</button></span>}
+      {/* Selection count + CTA — sticky, with bullet progress + recommendation */}
+      <div style={{ position: "sticky", top: isMobile ? 60 : 72, zIndex: 30, padding: 14, background: selectedIds.length === MAX_SELECT ? `${BRAND_GREEN}10` : selectedIds.length > 0 ? `${BRAND_GREEN}06` : theme.cardBg, border: `1.5px solid ${selectedIds.length === MAX_SELECT ? BRAND_GREEN : selectedIds.length > 0 ? `${BRAND_GREEN}80` : theme.border}`, borderRadius: 11, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", boxShadow: selectedIds.length > 0 ? `0 2px 8px ${BRAND_GREEN}15` : "none" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          {/* Bullet dots */}
+          <div style={{ display: "inline-flex", gap: 5, alignItems: "center" }}>
+            {Array.from({ length: MAX_SELECT }).map((_, i) => (
+              <div key={i} style={{ width: 14, height: 14, borderRadius: "50%", background: i < selectedIds.length ? BRAND_GREEN : "transparent", border: `2px solid ${i < selectedIds.length ? BRAND_GREEN : theme.border}`, transition: "all 0.2s", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                {i < selectedIds.length && <IconCheck size={8} />}
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>
+              {selectedIds.length === 0 ? "Select up to 5 queries" : <><strong style={{ color: BRAND_GREEN }}>{selectedIds.length}</strong> of {MAX_SELECT} queries selected</>}
+            </div>
+            <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>
+              {selectedIds.length === 0 && "Pick the questions you want this article to win in AI search."}
+              {selectedIds.length === MAX_SELECT && <span style={{ color: BRAND_GREEN, fontWeight: 600 }}>✓ Maximum reached — perfect coverage for one article</span>}
+              {selectedIds.length > 0 && selectedIds.length < MAX_SELECT && <>Recommended: <strong style={{ color: theme.text }}>{MAX_SELECT}</strong> queries — pick {MAX_SELECT - selectedIds.length} more for richer content</>}
+              {dismissedIds.size > 0 && <span style={{ marginLeft: 10, color: theme.textMuted }}>· {dismissedIds.size} dismissed <button onClick={restoreAll} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>Restore</button></span>}
+            </div>
+          </div>
         </div>
-        <button onClick={goToOrderFlow} disabled={selectedIds.length === 0} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: selectedIds.length > 0 ? BRAND_GREEN : theme.barTrack, color: selectedIds.length > 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: selectedIds.length > 0 ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6 }}>
-          Continue to content creation <IconArrowRight size={13} />
+        <button onClick={goToOrderFlow} disabled={selectedIds.length === 0} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: selectedIds.length > 0 ? BRAND_GREEN : theme.barTrack, color: selectedIds.length > 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: selectedIds.length > 0 ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: selectedIds.length > 0 ? `0 2px 8px ${BRAND_GREEN}40` : "none" }}>
+          Next: build article <IconArrowRight size={13} />
         </button>
       </div>
 
@@ -1991,16 +2008,71 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 
   return (
     <div>
-      {/* Selected queries chips */}
+      {/* Selected queries — numbered list */}
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 1 · Selected queries ({selectedQueries.length}/5)</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {selectedQueries.map((q) => (
-            <div key={q.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px 6px 12px", background: `${BRAND_GREEN}10`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 18, fontSize: 13, color: theme.text }}>
-              {q.text}
-              <button onClick={() => setSelectedIds(selectedIds.filter((x) => x !== q.id))} style={{ background: "none", border: "none", color: theme.textSecondary, cursor: "pointer", padding: 0, marginLeft: 4, display: "inline-flex" }}><IconX size={12} /></button>
-            </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 1 · Selected queries</div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN }}>{selectedQueries.length}</span>
+            <span style={{ fontSize: 13, color: theme.textSecondary }}>of 5 {selectedQueries.length < 5 && <span style={{ color: BRAND_AMBER, fontWeight: 600 }}>· {5 - selectedQueries.length} more recommended</span>}</span>
+            <button onClick={goToQueries} style={{ marginLeft: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, background: "transparent", color: BRAND_GREEN, border: `1px solid ${BRAND_GREEN}50`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <IconPlus size={11} /> Add more
+            </button>
+          </div>
+        </div>
+        <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+          {selectedQueries.map((q, i) => (
+            <li key={q.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: `${BRAND_GREEN}06`, border: `1px solid ${BRAND_GREEN}25`, borderRadius: 9 }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", background: BRAND_GREEN, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 14, color: theme.text, fontWeight: 500 }}>{q.text}</div>
+              <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                <Pill bg={`${BRAND_BLUE}15`} color={BRAND_BLUE} small>{q.category}</Pill>
+                <button onClick={() => setSelectedIds(selectedIds.filter((x) => x !== q.id))} title="Remove" style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", padding: 4, display: "inline-flex", borderRadius: 4 }}>
+                  <IconX size={13} />
+                </button>
+              </div>
+            </li>
           ))}
+        </ol>
+        {selectedQueries.length < 5 && (
+          <div style={{ marginTop: 10, padding: "9px 12px", background: `${BRAND_AMBER}10`, border: `1px solid ${BRAND_AMBER}30`, borderRadius: 8, fontSize: 12, color: theme.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 14 }}>💡</span>
+            <span>You can continue with {selectedQueries.length} {selectedQueries.length === 1 ? "query" : "queries"}, but {5 - selectedQueries.length} more would let GPT/Gemini cover this topic from {5 - selectedQueries.length} more angles.</span>
+          </div>
+        )}
+      </div>
+
+      {/* Article structure preview — built from queries */}
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Article structure preview
+            <Tip text="Each query becomes an H2 section. The publisher's editor (or AI) writes 200–350 words per section, fully covering the question." />
+          </div>
+          <div style={{ fontSize: 12, color: theme.textSecondary }}>~{selectedQueries.length * 280}–{selectedQueries.length * 380} words · {selectedQueries.length} sections</div>
+        </div>
+        <div style={{ background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: isMobile ? 12 : 16, fontFamily: "Georgia, serif" }}>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: theme.text, marginBottom: 12, lineHeight: 1.3, paddingBottom: 10, borderBottom: `1px solid ${theme.border}` }}>{title || "Your article title appears here"}</div>
+          <div style={{ fontSize: 12, color: theme.textMuted, fontStyle: "italic", marginBottom: 14 }}>By Just In Time Agency · for Bank Hapoalim · ~{selectedQueries.length * 3} min read</div>
+          {selectedQueries.length === 0 ? (
+            <div style={{ fontSize: 13, color: theme.textSecondary, fontStyle: "italic", padding: 20, textAlign: "center" }}>Select queries to preview the article structure</div>
+          ) : (
+            <>
+              <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
+                <em>Introduction:</em> 120–150 words framing why these {selectedQueries.length} questions matter for {DEMO_BRAND.name} customers, with a natural mention of {DEMO_BRAND.name}.
+              </div>
+              {selectedQueries.map((q, i) => (
+                <div key={q.id} style={{ marginBottom: 14, paddingLeft: 12, borderLeft: `3px solid ${BRAND_GREEN}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, marginBottom: 4 }}>H2 · Section {i + 1}</div>
+                  <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{q.text}</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>~280 words answering this question with data, examples, and a contextual link to {DEMO_BRAND.name}.</div>
+                </div>
+              ))}
+              <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, marginTop: 16, paddingTop: 12, borderTop: `1px solid ${theme.border}` }}>
+                <em>Conclusion:</em> 80–100 words summarizing key takeaways with a soft CTA toward {DEMO_BRAND.name}.
+              </div>
+            </>
+          )}
         </div>
       </div>
 
