@@ -1138,13 +1138,59 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode,
         <div style={{ borderTop: `1px solid ${theme.border}`, padding: isMobile ? 14 : 20, background: theme.tableHeaderBg }}>
           <Section title="Selected queries" theme={theme}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {order.queries.map((q, i) => (
-                <div key={i} style={{ fontSize: 13, color: theme.text, padding: "6px 10px", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 7 }}>
-                  {i + 1}. {q}
-                </div>
-              ))}
+              {order.queries.map((q, i) => {
+                const found = DEMO_QUERIES.find((dq) => dq.text === q);
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: theme.text, padding: "8px 12px", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 7, flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 700, color: BRAND_GREEN, minWidth: 18 }}>{i + 1}.</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>{q}</span>
+                    {found && (
+                      <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 7px", background: `${BRAND_BLUE}15`, color: BRAND_BLUE, borderRadius: 4 }}>{found.category}</span>
+                        {found.audience.slice(0, 2).map((a) => (
+                          <span key={a} style={{ fontSize: 10, padding: "2px 7px", background: theme.tableHeaderBg, color: theme.textSecondary, borderRadius: 4 }}>{a}</span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </Section>
+
+          {mode === "publisher" && (
+            <Section title="Article preview · review before approving" theme={theme}>
+              <div style={{ fontSize: 12, color: theme.textSecondary, marginBottom: 10, padding: "8px 12px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderLeft: `3px solid ${BRAND_GREEN}`, borderRadius: 6 }}>
+                This is the article the agency built from their {order.queries.length} selected queries. Once you approve, your editor publishes this draft on the chosen sections.
+              </div>
+              <ArticlePreview
+                title={order.title}
+                selectedQueries={order.queries.map((qText, i) => {
+                  const found = DEMO_QUERIES.find((dq) => dq.text === qText);
+                  if (found) return found;
+                  const lower = qText.toLowerCase();
+                  const inferredCategory = lower.includes("bank") || lower.includes("invest") || lower.includes("fund") || lower.includes("pension") || lower.includes("credit") ? "Finance"
+                    : lower.includes("real estate") || lower.includes("mortgage") || lower.includes("housing") ? "Real Estate"
+                    : lower.includes("tech") || lower.includes("ai") || lower.includes("cloud") || lower.includes("saas") || lower.includes("startup") ? "Tech"
+                    : lower.includes("insurance") ? "Insurance"
+                    : "Editorial";
+                  return {
+                    id: `ord-${order.id}-q${i}`,
+                    text: qText,
+                    category: inferredCategory,
+                    audience: ["Decision-makers", "B2B"],
+                    gpt: false,
+                    gemini: false,
+                    perplexity: false,
+                    opportunity: 80,
+                  };
+                })}
+                theme={theme}
+                isMobile={isMobile}
+                mode="publisher"
+              />
+            </Section>
+          )}
 
           <Section title="Sections ordered" theme={theme}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1753,7 +1799,7 @@ function Kpi({ label, value, delta, theme, positive, tip, accent }: { label: str
 // comparison table, key learnings callout, conclusion
 // ============================================================
 
-function ArticlePreview({ title, selectedQueries, theme, isMobile }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean }) {
+function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agency" }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean; mode?: "agency" | "publisher" }) {
   const wordCount = selectedQueries.length * 320 + 230; // intro + sections + conclusion
   const readMin = Math.max(2, Math.round(wordCount / 220));
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -1799,8 +1845,8 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile }: { title: st
       {/* Step header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
-          Step 1.5 · Article preview (live)
-          <Tip text="Live preview of what Yedioth's editor will publish. Each query becomes a section. Edit your selection or title to update it." />
+          {mode === "publisher" ? "Article preview · what the agency wants you to publish" : "Step 1.5 · Article preview (live)"}
+          <Tip text={mode === "publisher" ? "This is the draft the agency built from their selected queries. Review the full article before approving — once approved, your editor takes it from here." : "Live preview of what Yedioth's editor will publish. Each query becomes a section. Edit your selection or title to update it."} />
         </div>
         <div style={{ fontSize: 12, color: theme.textSecondary }}>~{wordCount} words · {readMin} min read · {selectedQueries.length} H2 sections</div>
       </div>
