@@ -1034,8 +1034,14 @@ export default function ScanPage() {
   const [scanDomain, setScanDomain] = useState("all4horses.co.il");
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const d = new URLSearchParams(window.location.search).get("domain");
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get("domain");
     if (d) setScanDomain(d);
+    // Deep-link tab from external pages (e.g. scalepublish "Back to scan to add more queries")
+    const t = params.get("tab");
+    if (t === "queries" || t === "keywords" || t === "audiences" || t === "products" || t === "content" || t === "overview") {
+      setActiveTab(t);
+    }
   }, []);
   const buildScalePublishUrl = () => {
     const payload = encodeURIComponent(JSON.stringify(scalePublishBasket));

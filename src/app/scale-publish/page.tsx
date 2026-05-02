@@ -2447,18 +2447,25 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
         </button>
       </div>
 
-      {/* "Out of queries" warning — when user has <5 selected and there's nothing more to pick (typically because they came from /scan with a small basket). Gives them a one-click path back to the scan to grab more queries before building. */}
-      {selectedIds.length > 0 && selectedIds.length < MAX_SELECT && visibleQueries.length === selectedIds.length && (
+      {/* "Out of queries" warning — fires whenever the user has fewer than 5 queries selected AND every visible query is already chosen (or zero exist). Common case: they came from /scan with a small basket. Gives a one-click path back to the scan's Queries tab to grab more before building. */}
+      {selectedIds.length < MAX_SELECT && visibleQueries.length === selectedIds.length && (
         <div style={{ marginBottom: 16, padding: isMobile ? 14 : 18, background: `${BRAND_AMBER}10`, border: `1.5px solid ${BRAND_AMBER}50`, borderLeft: `5px solid ${BRAND_AMBER}`, borderRadius: 11, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 38, height: 38, borderRadius: "50%", background: `${BRAND_AMBER}20`, color: BRAND_AMBER, flexShrink: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4M12 17h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>Only {selectedIds.length} of {MAX_SELECT} recommended queries</div>
-            <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5 }}>You've selected every query available here. We recommend <strong style={{ color: theme.text }}>{MAX_SELECT} queries per article</strong> for full GEO coverage — each query becomes one H2 section, and {MAX_SELECT} sections is what AI engines need to crown your article the canonical answer. Go back to the scan to add more queries to your basket.</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>
+              {selectedIds.length === 0 ? (visibleQueries.length === 0 ? "No queries available" : "No queries selected yet") : `Only ${selectedIds.length} of ${MAX_SELECT} recommended queries`}
+            </div>
+            <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5 }}>
+              {selectedIds.length === 0 && visibleQueries.length === 0
+                ? <>There are no queries to pick from in this view. Articles need queries to target — head back to the scan and queue some questions you want this brand to win.</>
+                : <>You've selected every query available here. We recommend <strong style={{ color: theme.text }}>{MAX_SELECT} queries per article</strong> for full GEO coverage — each query becomes one H2 section, and {MAX_SELECT} sections is what AI engines need to crown your article the canonical answer. Go back to the scan to add more queries to your basket.</>
+              }
+            </div>
           </div>
           {scanSourceDomain ? (
-            <a href={`/scan?domain=${encodeURIComponent(scanSourceDomain)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+            <a href={`/scan?domain=${encodeURIComponent(scanSourceDomain)}&tab=queries`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
               <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span>
               Back to scan to add more
             </a>
@@ -2467,7 +2474,7 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
               Restore {dismissedIds.size} dismissed {dismissedIds.size === 1 ? "query" : "queries"}
             </button>
           ) : (
-            <a href="/scan" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+            <a href="/scan?tab=queries" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
               <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span>
               Run a scan to add more
             </a>
