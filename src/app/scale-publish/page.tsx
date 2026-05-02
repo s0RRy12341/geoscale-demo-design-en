@@ -2038,7 +2038,10 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  // Deep-link: pre-select the query that the user came from (/scan → "Order external article")
+  // Deep-link: pre-select the query that the user came from (/scan → "Order external article"),
+  // then jump straight to the Order Flow builder so the agency lands in the article-building step
+  // with the query already attached. This matches Noam's call idea: "click on one of them, enter
+  // the content-buying flow and add to cart article on that query".
   useEffect(() => {
     if (!deepLinkedQueryText) return;
     const lower = deepLinkedQueryText.toLowerCase();
@@ -2046,7 +2049,10 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
       ?? DEMO_QUERIES.find((q) => q.text.toLowerCase().includes(lower) || lower.includes(q.text.toLowerCase()));
     if (match) {
       setSelectedQueryIds((prev) => prev.includes(match.id) ? prev : [...prev, match.id].slice(0, 5));
-      showToast(`Pre-selected query "${match.text}" — pick more or build the article`, "info");
+      setTab("order-flow");
+      showToast(`Query "${match.text}" attached — building the article`, "info");
+    } else {
+      showToast(`Couldn't match "${deepLinkedQueryText}" to a known query — pick from the list`, "warn");
     }
     clearDeepLink?.();
   }, [deepLinkedQueryText]); // eslint-disable-line react-hooks/exhaustive-deps

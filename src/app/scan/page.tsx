@@ -1709,6 +1709,7 @@ export default function ScanPage() {
                     <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Persona <Tooltip text="The target-audience profile this query belongs to" /></span></th>
                     <th style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Stage <Tooltip text="Customer journey stage: Awareness, Research, Decision, Support" /></span></th>
                     <th style={{ textAlign: "center", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIEngineLogo engine="gpt" size={16} /> <AIEngineLogo engine="gemini" size={16} /> <AIEngineLogo engine="perplexity" size={16} /></span></th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontWeight: 500, color: theme.textSecondary, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.5px" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>Action <Tooltip text="Order an external article on a 3rd-party publisher (Ynet, Calcalist…) targeting this query. The query is pre-attached and the order goes onto your client proposal." /></span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1723,6 +1724,9 @@ export default function ScanPage() {
                           <MentionIcon mentioned={q.gemini} engine="gemini" />
                           <MentionIcon mentioned={false} engine="perplexity" />
                         </span>
+                      </td>
+                      <td style={{ padding: "10px 10px", textAlign: "right" }}>
+                        <a href={`/scale-publish?source=${encodeURIComponent(typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("domain") || "all4horses.co.il" : "all4horses.co.il")}&queryText=${encodeURIComponent(q.text)}`} style={{ fontSize: 13, fontWeight: 500, color: "#B45309", textDecoration: "none", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 4 }} title="Order an external article on Ynet/Calcalist for this query">Order external →</a>
                       </td>
                     </tr>
                   ))}
