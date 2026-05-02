@@ -130,26 +130,37 @@ function Tip({ text, size = 13 }: { text: string; size?: number }) {
 // GeoNote — annotation badge that explains why a given element contributes to GEO/SEO. Used inside
 // the article preview so the demo audience can hover any element and see its strategic rationale.
 // Renders nothing if `enabled` is false (toggleable via the article's "Show GEO annotations" switch).
+// On mobile (touch), tap toggles the tooltip; on desktop, hover shows it.
 function GeoNote({ text, enabled = true, label = "GEO" }: { text: string; enabled?: boolean; label?: string }) {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
+  // Close on outside click for mobile (so tap-to-show isn't sticky after the user moves on).
+  useEffect(() => {
+    if (!show) return;
+    const onDocClick = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setShow(false);
+    };
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("touchstart", onDocClick);
+    return () => { document.removeEventListener("click", onDocClick); document.removeEventListener("touchstart", onDocClick); };
+  }, [show]);
   if (!enabled) return null;
   const open = () => {
     if (ref.current) {
       const r = ref.current.getBoundingClientRect();
-      setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+      setPos({ top: r.top - 10, left: r.left + r.width / 2 });
     }
     setShow(true);
   };
   const close = () => setShow(false);
   return (
-    <span ref={ref} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }} style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "1px 7px", background: "#10A37F15", color: "#047857", fontSize: 10, fontWeight: 800, borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", border: "1px solid #10A37F40", cursor: "help", verticalAlign: "middle", marginLeft: 6, lineHeight: 1.4, flexShrink: 0 }}>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+    <span ref={ref} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", background: "#10A37F1F", color: "#047857", fontSize: 12, fontWeight: 800, borderRadius: 6, letterSpacing: 0.5, textTransform: "uppercase", border: "1.5px solid #10A37F", cursor: "help", verticalAlign: "middle", marginLeft: 6, lineHeight: 1.4, flexShrink: 0, boxShadow: "0 1px 3px rgba(16,163,127,0.2)" }}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
       {label}
       {show && (
-        <span style={{ position: "fixed", top: pos.top, left: pos.left, transform: "translate(-50%, -100%)", background: "#0F172A", color: "#fff", fontSize: 12, fontWeight: 400, lineHeight: 1.5, padding: "10px 14px", borderRadius: 8, whiteSpace: "normal", maxWidth: 320, zIndex: 99999, pointerEvents: "none", boxShadow: "0 8px 20px rgba(0,0,0,0.25)", textTransform: "none", letterSpacing: 0, textAlign: "left" }}>
-          <span style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Why this matters for GEO</span>
+        <span style={{ position: "fixed", top: pos.top, left: Math.min(Math.max(pos.left, 180), (typeof window !== "undefined" ? window.innerWidth : 1200) - 180), transform: "translate(-50%, -100%)", background: "#0F172A", color: "#fff", fontSize: 13, fontWeight: 400, lineHeight: 1.55, padding: "12px 16px", borderRadius: 9, whiteSpace: "normal", maxWidth: 340, width: "max-content", zIndex: 99999, pointerEvents: "none", boxShadow: "0 12px 30px rgba(0,0,0,0.35)", textTransform: "none", letterSpacing: 0, textAlign: "left" }}>
+          <span style={{ display: "block", fontSize: 11, fontWeight: 800, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Why this matters for GEO</span>
           {text}
           <span style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 10, height: 10, background: "#0F172A" }} />
         </span>
