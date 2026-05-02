@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ScalePublish merge — what changed after the Alexei + Noam call</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root {
+    --green: #10A37F;
+    --amber: #B45309;
+    --blue: #1D4ED8;
+    --text: #0F172A;
+    --muted: #64748B;
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    line-height: 1.65;
+  }
+  header {
+    background: linear-gradient(135deg, #0B1220 0%, #0F172A 100%);
+    color: #fff;
+    padding: 50px 24px 40px;
+  }
+  header .wrap { max-width: 920px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; color: var(--green);
+    letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 38px; font-weight: 800; margin: 0 0 12px;
+    line-height: 1.15; letter-spacing: -0.6px;
+  }
+  header p { font-size: 17px; color: #CBD5E1; margin: 0 0 22px; max-width: 720px; }
+  .cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cta {
+    display: inline-block; padding: 11px 22px; border-radius: 9px;
+    font-size: 14px; font-weight: 700; text-decoration: none;
+  }
+  .cta.primary { background: var(--green); color: #fff; }
+  .cta.ghost { background: transparent; color: #fff; border: 1px solid #475569; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  section { margin-bottom: 44px; }
+  h2 {
+    font-size: 26px; font-weight: 800; margin: 0 0 12px;
+    letter-spacing: -0.3px;
+  }
+  h3 { font-size: 19px; font-weight: 700; margin: 0 0 10px; }
+  .sub {
+    font-size: 13px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 1.3px; font-weight: 700; margin-bottom: 6px;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px; margin-bottom: 14px;
+  }
+  .card.green { border-left: 4px solid var(--green); }
+  .card.amber { border-left: 4px solid var(--amber); }
+  .card.blue { border-left: 4px solid var(--blue); }
+  .card.gray { border-left: 4px solid #94A3B8; }
+
+  blockquote {
+    border-left: 4px solid var(--green);
+    padding: 8px 0 8px 16px;
+    margin: 12px 0;
+    font-style: italic;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  blockquote .who {
+    display: block; font-style: normal; font-size: 11px;
+    font-weight: 700; color: var(--muted); margin-top: 6px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .change-grid {
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+  }
+  .change {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px;
+  }
+  .change .label {
+    font-size: 11px; font-weight: 700; color: var(--green);
+    letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .change h4 { font-size: 17px; font-weight: 700; margin: 0 0 8px; }
+  .change p { font-size: 14px; color: #334155; margin: 0 0 8px; }
+  .change a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px; background: #10A37F12; color: var(--green);
+    text-decoration: none; border-radius: 7px; font-size: 13px;
+    font-weight: 700; border: 1px solid #10A37F30; margin-top: 4px;
+  }
+
+  ul { padding-left: 22px; margin: 8px 0; }
+  ul li { margin-bottom: 6px; font-size: 15px; }
+
+  .pill {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 4px; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .pill.green { background: #10A37F15; color: var(--green); }
+  .pill.amber { background: #B4530915; color: var(--amber); }
+  .pill.gray { background: #F1F5F9; color: #475569; }
+
+  .table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+    background: var(--card); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .table th, .table td {
+    padding: 12px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .table th {
+    background: #F8FAFC; font-weight: 700; font-size: 12px;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  }
+  .table tr:last-child td { border-bottom: none; }
+
+  .footer-cta {
+    margin-top: 50px;
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: #fff; padding: 32px 24px; border-radius: 14px; text-align: center;
+  }
+
+  code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Backup tag: BEFORE-NOAM-AND-ALEXEY-PHONE-CALL · 2026-04-26</div>
+    <h1>ScalePublish merged into the scan flow</h1>
+    <p>What I changed in the demo after the Alexei+Noam call. Mapped to exact quotes from both transcripts so you can verify nothing was missed. Two callable callouts at the bottom: what was done, what is still open, and how to roll back if needed.</p>
+    <div class="cta-row">
+      <a class="cta primary" href="https://geoscale-demo-design-en.vercel.app/scan">Open the live scan demo &rarr;</a>
+      <a class="cta ghost" href="https://geoscale-demo-design-en.vercel.app/scale-publish">Open ScalePublish &rarr;</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <div class="sub">The core problem from the call</div>
+    <h2>Two products that needed to feel like one</h2>
+    <div class="card gray">
+      <p>There were two separate experiences: <strong>Inna's main Geoscale tool</strong> (per-domain scan dashboard, queries, reports, SEO/GEO research, content editor) and <strong>Nir's ScalePublish</strong> (external articles marketplace, agency / publisher two-sided flow). Alexei's complaint, almost word for word:</p>
+      <blockquote>
+        כלומר עכשיו צריך לשלב בין ה-UX שהוא עשה ל-UX הזה ככה שלא יהיה כפילויות במקומות, אבל כאילו בעצם שיהיה Flow כזה שיהיה שאילתות ומחקר וזה וזה וזה. יש Dashboard יפה, יש את כל מה שהוא עשה. פשוט כל הכפילויות בין הדברים.
+        <span class="who">Alexei, call 1 · ~0:59</span>
+      </blockquote>
+      <blockquote>
+        אבל צריכה להיות תוכנה אחת שלמה שיש בה גם את הפיצ'ר הזה של Publish במקום אחר.
+        <span class="who">Alexei, call 1 · ~3:15</span>
+      </blockquote>
+      <blockquote>
+        דבר שני שלא יהיה כל מיני כפילויות שיש, שיש שאילתות שנמצאות בתוכן ושאילתות שנמצאות לבד ושהיא כאילו שיהיה איזשהו UX שיהיה לא יהיה שם כפילויות שאילתות נמצאות שלוש פעמים במקומות שונים.
+        <span class="who">Alexei, call 2 · ~2:34</span>
+      </blockquote>
+      <p><strong>Translation of the requirement:</strong> ScalePublish must become a sub-section of the main tool, accessible from inside the per-domain scan, sharing the same queries (no duplication), and items ordered there must flow into the agency's master client proposal as line items.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sub">The 5 changes I shipped</div>
+    <h2>What's different on the demo right now</h2>
+
+    <div class="change-grid">
+
+      <div class="change">
+        <div class="label">Change 1 · /scan queries tab</div>
+        <h4>Each query now has TWO action tracks side-by-side</h4>
+        <p>When you expand any query in the Queries tab, you see two clearly-labeled cards under the AI engine answers:</p>
+        <ul>
+          <li><span class="pill green">Own site · Internal</span> &mdash; the existing "Generate GEO content" / "Create content" CTA. Goes to <code>/editor</code>. This is Inna's flow, untouched.</li>
+          <li><span class="pill amber">Publisher · External</span> &mdash; new CTA "Order article on Ynet, Calcalist, Sport5...". Deep-links into ScalePublish with the query pre-attached.</li>
+        </ul>
+        <p>The split makes the difference between own-site GEO content and publisher placements explicit. Same query, two clearly different actions, no duplication.</p>
+        <a href="https://geoscale-demo-design-en.vercel.app/scan">Open /scan → Queries tab → expand any query &rarr;</a>
+      </div>
+
+      <div class="change">
+        <div class="label">Change 2 · /scan overview top-5 queries</div>
+        <h4>Per-query "Order external" link in the Top 5 table</h4>
+        <p>This is Noam's exact idea Alexei agreed with:</p>
+        <blockquote>
+          אם אתה עושה לך שם rank לחמש שאילתות העיקריות שמופיעות שם בדשבורד הראשי לצורך הדוגמה, אז כבר יהיה לך את האופציה ל-ללחוץ על אחת מהן, להיכנס ל-flow של קניית תכנים ולבחור, אה, להוסיף לסל כתבה על אותו שאילתה.
+          <span class="who">Noam, call 2 · ~6:00</span>
+        </blockquote>
+        <p>Done. Each row in the Top 5 Queries table on the overview tab now has an "Order external &rarr;" link in a new Action column. One click → ScalePublish opens with that query pre-attached and the Order Flow builder already loaded.</p>
+        <a href="https://geoscale-demo-design-en.vercel.app/scan">Open /scan → Overview tab → scroll to Top 5 queries &rarr;</a>
+      </div>
+
+      <div class="change">
+        <div class="label">Change 3 · ScalePublish entry experience</div>
+        <h4>Deep-link auto-jumps into the article builder</h4>
+        <p>When you arrive at <code>/scale-publish?source=domain&queryText=...</code> the page now:</p>
+        <ul>
+          <li>Switches to <strong>Agency view</strong> automatically (regardless of last-saved mode)</li>
+          <li>Finds the matching query in the system, pre-selects it (5-of-5 selection counter shows 1)</li>
+          <li>Switches to the <strong>Order Flow</strong> tab so the agency lands in the article-building step, not on a list</li>
+          <li>Toast confirms: <em>"Query 'X' attached &mdash; building the article"</em></li>
+        </ul>
+        <p>Previously: deep-link landed on My Queries with a silent selection 9 rows down — agency had to hunt for it. Now: agency lands in the builder ready to pick sections.</p>
+      </div>
+
+      <div class="change">
+        <div class="label">Change 4 · Source-context breadcrumb</div>
+        <h4>"External content for [domain]" strip at the top</h4>
+        <p>When deep-linked from a scan, ScalePublish shows a green left-border strip above the agency tabs with the domain favicon, brand name, a one-line explanation that orders here flow into the client proposal, and a "← Back to [domain] scan" button. This makes ScalePublish visually feel like a sub-section of the scan, not a separate app.</p>
+      </div>
+
+      <div class="change">
+        <div class="label">Change 5 · Order submit copy</div>
+        <h4>Submit button reframed as a proposal line-item</h4>
+        <p>Old: "Submit order to Yedioth Ahronoth" with caption "Yedioth's sales team will contact your agency to confirm and collect payment."</p>
+        <p>New: "Add to client proposal &amp; send to Yedioth" with caption "This becomes a line item on your master client proposal." Matches Alexei's exact framing:</p>
+        <blockquote>
+          מוסיף את זה להצעת מחיר כשהוא מוסיף את זה להצעת מחיר... זה גם מוסיף את זה להצעת מחיר של הלקוח בסוף. הבנת? של Agency.
+          <span class="who">Alexei, call 2 · ~0:59</span>
+        </blockquote>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sub">Coverage check</div>
+    <h2>Every agreed-on point from both calls, mapped to a change</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Agreed in the call</th>
+          <th>Where it shows up now</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"One complete software with this Publish feature in another place"</td>
+          <td>Scan-source breadcrumb + auto-jump deep-link make ScalePublish read as a sub-section of the scan</td>
+          <td><span class="pill green">Done</span></td>
+        </tr>
+        <tr>
+          <td>"No queries appearing 3 times in different places"</td>
+          <td>/scan queries tab is the single source of queries. Each query has links to both internal (/editor) and external (/scale-publish) flows. ScalePublish My Queries still has its own demo set for standalone use, but when deep-linked it skips that list entirely</td>
+          <td><span class="pill green">Done</span></td>
+        </tr>
+        <tr>
+          <td>"Click one of the top-5 queries → enter content-buying flow → choose article on Calcalist for that query"</td>
+          <td>Top-5 queries table on /scan overview has the "Order external →" link per row, deep-links straight into the Order Flow builder</td>
+          <td><span class="pill green">Done</span></td>
+        </tr>
+        <tr>
+          <td>"Adds it to the price quote of the agency"</td>
+          <td>Submit button + caption explicitly say "Add to client proposal" / "line item on your master client proposal"</td>
+          <td><span class="pill green">Done</span></td>
+        </tr>
+        <tr>
+          <td>"Agency can put zero on its own service price and just buy articles"</td>
+          <td>Out of scope for this app — that's the master proposal builder logic (DealroomJIT side). The hand-off from ScalePublish into the proposal is now wired by name; the zero-base option lives in the proposal tool itself.</td>
+          <td><span class="pill amber">Cross-app</span></td>
+        </tr>
+        <tr>
+          <td>"Publisher receives the order with the requested query attached"</td>
+          <td>Already done in the previous round — Publisher OrderCard now shows the queries with category/audience tags + the full AdsGPT-style article preview</td>
+          <td><span class="pill green">Done</span></td>
+        </tr>
+        <tr>
+          <td>"Less bold, less colors, look like Google Analytics / SimilarWeb"</td>
+          <td>Visual redesign &mdash; not done in this round. This is a separate, larger pass that touches every component (KPI cards, charts, tables, typography). Recommended as next sprint, after the merge logic is signed off.</td>
+          <td><span class="pill amber">Open</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sub">Try it yourself</div>
+    <h2>3-step path to see the merge end-to-end</h2>
+    <div class="card green">
+      <ol style="margin: 0; padding-left: 22px; font-size: 16px;">
+        <li><strong>Open <a href="https://geoscale-demo-design-en.vercel.app/scan">/scan</a></strong>. You're now inside a per-domain scan dashboard (the "Dashboard" Alexei was referring to). Scroll to "Top 5 queries" — see the new "Order external →" links on the right.</li>
+        <li><strong>Click one of those links.</strong> ScalePublish opens, you see the green "External content for [domain]" strip up top with a "← Back to scan" button, and you're already inside the Order Flow with that query attached. Pick sections, build the article.</li>
+        <li><strong>Hit "Add to client proposal & send to Yedioth"</strong> at the bottom. The caption tells you it's a line item on the master proposal. Toast confirms. Toggle to Publisher view → the order is in the inbox with the source query and the full article preview.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Alternative path: per-query CTA</h3>
+      <p>From <a href="https://geoscale-demo-design-en.vercel.app/scan">/scan</a>, click the <strong>Queries</strong> tab, expand any query. You'll see two side-by-side action cards: <span class="pill green">Own site · Internal</span> on the left (Inna's existing /editor flow) and <span class="pill amber">Publisher · External</span> on the right (new ScalePublish deep-link). Click the orange one — same end result.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sub">Still open</div>
+    <h2>What I deliberately did NOT change in this round</h2>
+    <div class="card amber">
+      <h3>Visual redesign (Google Analytics / SimilarWeb feel)</h3>
+      <blockquote>
+        הוא שם שם הרבה מאוד boldים, הרבה מאוד דברים שדשבורדים לא נראים ככה. שילך ל-ל reference טוב לגוגל אנליטיקס.
+        <span class="who">Alexei, call 2 · ~3:00</span>
+      </blockquote>
+      <p>This is a real ask — the demo is more colorful and bold than a dashboard product should be. It needs:</p>
+      <ul>
+        <li>Lighter typography weights (less 800-bold, more 500-600)</li>
+        <li>Reduced color palette — fewer simultaneous accent colors per screen</li>
+        <li>More table-style data presentation, fewer KPI hero cards</li>
+        <li>Tighter information density, less hero-banner real estate</li>
+      </ul>
+      <p>I held off because (a) it's a 4-8 hour pass that touches every screen, and (b) the merge logic in this round is the bigger architectural unblock. Recommend doing the visual cleanup as the next sprint, with SimilarWeb's UI pulled up alongside as the reference.</p>
+    </div>
+    <div class="card amber">
+      <h3>Master-proposal-side: agency zero-base service line</h3>
+      <p>Alexei mentioned that the agency could put zero on its own service price and only sell articles. That logic lives on the master proposal side (DealroomJIT or whichever proposal builder we're integrating with), not inside ScalePublish itself. The hand-off from ScalePublish to the proposal is now framed correctly ("line item on master proposal") — the zero-base toggle lives in the proposal tool.</p>
+    </div>
+    <div class="card amber">
+      <h3>ScalePublish My Queries source-of-truth</h3>
+      <p>When deep-linked from /scan, we now skip the My Queries list entirely (auto-jump to Order Flow). When the agency opens ScalePublish standalone (not from a scan), they still see the demo Bank Hapoalim queries. Long-term: My Queries should pull queries directly from the brand scan instead of having its own demo list. Doable in a follow-up; not blocking the merge story.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sub">If anything goes wrong</div>
+    <h2>Roll-back path</h2>
+    <div class="card gray">
+      <p>I tagged the pre-call state as <code>BEFORE-NOAM-AND-ALEXEY-PHONE-CALL</code> on the GitHub repo before any of these changes. To roll back:</p>
+      <ul>
+        <li><code>git checkout BEFORE-NOAM-AND-ALEXEY-PHONE-CALL</code> — read-only inspection</li>
+        <li><code>git reset --hard BEFORE-NOAM-AND-ALEXEY-PHONE-CALL</code> — full revert (destructive, ask first)</li>
+      </ul>
+      <p>The two commits added in this round are <code>6ba3e1b</code> (the merge) and <code>91857b8</code> (the top-5 + auto-jump follow-up).</p>
+    </div>
+  </section>
+
+  <div class="footer-cta">
+    <h3 style="margin-top: 0; font-size: 22px;">All deployed and live.</h3>
+    <p style="color: #CBD5E1; margin: 0 0 18px;">Send the link to Alexei + Noam to verify before the next call.</p>
+    <a class="cta primary" href="https://geoscale-demo-design-en.vercel.app/scan">Open the live demo &rarr;</a>
+  </div>
+
+</div>
+
+</body>
+</html>

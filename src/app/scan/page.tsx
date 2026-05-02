@@ -1005,6 +1005,42 @@ export default function ScanPage() {
   const [chartPeriod, setChartPeriod] = useState<"7" | "30" | "90">("30");
   const [productFilter, setProductFilter] = useState<"all" | "service" | "product">("all");
   const [contentQueue, setContentQueue] = useState<number[]>([]);
+
+  // ── ScalePublish basket: queries the user has queued from this scan ──
+  // Up to 5 queries form one external article. Persists across tabs and reloads.
+  type BasketItem = { id: string; text: string; persona?: string; stage?: string };
+  const MAX_BASKET = 5;
+  const [scalePublishBasket, setScalePublishBasket] = useState<BasketItem[]>([]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem("geoscale-scalepublish-basket");
+      if (saved) setScalePublishBasket(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("geoscale-scalepublish-basket", JSON.stringify(scalePublishBasket));
+  }, [scalePublishBasket]);
+  const isInBasket = (id: string) => scalePublishBasket.some((i) => i.id === id);
+  const addToBasket = (item: BasketItem) => {
+    if (scalePublishBasket.length >= MAX_BASKET || isInBasket(item.id)) return;
+    setScalePublishBasket([...scalePublishBasket, item]);
+  };
+  const removeFromBasket = (id: string) => setScalePublishBasket(scalePublishBasket.filter((i) => i.id !== id));
+  const clearBasket = () => setScalePublishBasket([]);
+
+  // Source domain for the deep-link (read once on mount, falls back to all4horses.co.il for the demo)
+  const [scanDomain, setScanDomain] = useState("all4horses.co.il");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const d = new URLSearchParams(window.location.search).get("domain");
+    if (d) setScanDomain(d);
+  }, []);
+  const buildScalePublishUrl = () => {
+    const payload = encodeURIComponent(JSON.stringify(scalePublishBasket));
+    return `/scale-publish?source=${encodeURIComponent(scanDomain)}&queries=${payload}`;
+  };
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('geoscale-dark-mode') === 'true';
@@ -1726,7 +1762,28 @@ export default function ScanPage() {
                         </span>
                       </td>
                       <td style={{ padding: "10px 10px", textAlign: "right" }}>
-                        <a href={`/scale-publish?source=${encodeURIComponent(typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("domain") || "all4horses.co.il" : "all4horses.co.il")}&queryText=${encodeURIComponent(q.text)}`} style={{ fontSize: 13, fontWeight: 500, color: "#B45309", textDecoration: "none", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 4 }} title="Order an external article on Ynet/Calcalist for this query">Order external →</a>
+                        {(() => {
+                          const basketId = `scan-${q.id}`;
+                          const queued = isInBasket(basketId);
+                          const full = scalePublishBasket.length >= MAX_BASKET && !queued;
+                          if (queued) {
+                            return (
+                              <button onClick={() => removeFromBasket(basketId)} style={{ fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                                Queued
+                              </button>
+                            );
+                          }
+                          if (full) {
+                            return <span style={{ fontSize: 13, color: theme.textMuted, whiteSpace: "nowrap" }}>Basket full</span>;
+                          }
+                          return (
+                            <button onClick={() => addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage })} style={{ fontSize: 13, fontWeight: 500, color: "#B45309", background: "transparent", border: `1px solid #B4530940`, borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }} title="Add this query to the ScalePublish basket — bundle up to 5 into one article">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+                              Queue
+                            </button>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}
@@ -1967,14 +2024,36 @@ export default function ScanPage() {
                                   <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                                     <div style={{ minWidth: 0 }}>
-                                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Order article on Ynet, Calcalist, Sport5...</span>
-                                      <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0" }}>Buy a placement on a 3rd-party publisher. Goes through ScalePublish &amp; into your client proposal.</p>
+                                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Queue for ScalePublish article</span>
+                                      <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0" }}>Add this query to your basket. Pick up to 5, then build one external article on Ynet, Calcalist, Sport5...</p>
                                     </div>
                                   </div>
-                                  <a href={`/scale-publish?source=${encodeURIComponent(typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("domain") || "all4horses.co.il" : "all4horses.co.il")}&queryText=${encodeURIComponent(q.text)}`} onClick={(e) => e.stopPropagation()} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#B45309", border: "1px solid #B45309", borderRadius: 8, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-                                    Order external article
-                                  </a>
+                                  {(() => {
+                                    const basketId = `scan-${q.id}`;
+                                    const queued = isInBasket(basketId);
+                                    const full = scalePublishBasket.length >= MAX_BASKET && !queued;
+                                    if (queued) {
+                                      return (
+                                        <button onClick={(e) => { e.stopPropagation(); removeFromBasket(basketId); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                          Queued · Remove
+                                        </button>
+                                      );
+                                    }
+                                    if (full) {
+                                      return (
+                                        <button disabled style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: theme.textMuted, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "not-allowed" }}>
+                                          Basket full (5/5)
+                                        </button>
+                                      );
+                                    }
+                                    return (
+                                      <button onClick={(e) => { e.stopPropagation(); addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage }); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#B45309", border: "1px solid #B45309", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+                                        Queue for ScalePublish
+                                      </button>
+                                    );
+                                  })()}
                                 </div>
                               </div>
                             </div>
@@ -2371,6 +2450,48 @@ export default function ScanPage() {
           <span style={{ fontSize: 15, color: theme.textMuted }}>GeoScale 2026 &copy;</span>
         </div>
       </footer>
+
+      {/* ── Floating ScalePublish basket bar ── */}
+      {scalePublishBasket.length > 0 && (
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: theme.cardBg, borderTop: `1px solid ${theme.border}`, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)", zIndex: 90, paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "12px 14px" : "14px 24px", display: "flex", alignItems: "center", gap: isMobile ? 12 : 18, flexWrap: "wrap" }}>
+            {/* Counter + dots */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+              <div style={{ display: "inline-flex", gap: 5 }}>
+                {Array.from({ length: MAX_BASKET }).map((_, i) => (
+                  <div key={i} style={{ width: 12, height: 12, borderRadius: "50%", background: i < scalePublishBasket.length ? "#10A37F" : "transparent", border: `2px solid ${i < scalePublishBasket.length ? "#10A37F" : theme.border}`, transition: "all 0.2s" }} />
+                ))}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: theme.text }}><strong style={{ color: "#10A37F" }}>{scalePublishBasket.length}</strong> of {MAX_BASKET} queries queued</span>
+                <span style={{ fontSize: 12, color: theme.textMuted }}>One ScalePublish article from <strong style={{ color: theme.textSecondary }}>{scanDomain}</strong></span>
+              </div>
+            </div>
+
+            {/* Chips */}
+            {!isMobile && (
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexWrap: "wrap", gap: 6, overflow: "hidden", maxHeight: 32 }}>
+                {scalePublishBasket.map((item) => (
+                  <span key={item.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", background: theme.hoverBg, border: `1px solid ${theme.border}`, borderRadius: 14, fontSize: 12, color: theme.text, maxWidth: 280 }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>
+                    <button onClick={() => removeFromBasket(item.id)} aria-label={`Remove ${item.text}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", color: theme.textMuted, padding: 0, flexShrink: 0 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0, marginLeft: isMobile ? 0 : "auto" }}>
+              <button onClick={clearBasket} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 500, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Clear</button>
+              <a href={buildScalePublishUrl()} style={{ padding: "10px 18px", fontSize: 14, fontWeight: 600, color: "#fff", background: "#10A37F", border: "1px solid #10A37F", borderRadius: 8, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                Build article <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

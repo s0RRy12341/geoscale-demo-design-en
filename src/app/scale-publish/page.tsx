@@ -531,20 +531,33 @@ export default function ScalePublishPage() {
     saveToLS(LS_KEY_USER_MODE, userMode);
   }, [userMode]);
 
-  // ── Deep-link from /scan: ?source=domain.co.il&queryText=... ──
-  // When the agency clicks "Order external article" on a scan page, we pre-select the query
-  // and remember the source domain so we can show a "From [domain] · Back to scan" breadcrumb.
+  // ── Deep-link from /scan: ?source=domain.co.il&queryText=... or ?queries=<JSON-array> ──
+  // When the agency clicks "Build article" on the /scan basket, we receive an array of queries
+  // (id, text, persona, stage). We pre-select all of them and remember the source domain so we
+  // can show a "From [domain] · Back to scan" breadcrumb.
+  type DeepQuery = { id: string; text: string; persona?: string; stage?: string };
   const [scanSource, setScanSource] = useState<{ domain: string; brand?: string } | null>(null);
+  const [deepLinkedQueries, setDeepLinkedQueries] = useState<DeepQuery[] | null>(null);
   const [deepLinkedQueryText, setDeepLinkedQueryText] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const source = params.get("source");
     const queryText = params.get("queryText");
+    const queriesParam = params.get("queries");
     const brand = params.get("brand") ?? undefined;
     if (source) {
       setScanSource({ domain: source, brand });
       setUserMode("agency");
+    }
+    if (queriesParam) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(queriesParam)) as DeepQuery[];
+        if (Array.isArray(parsed) && parsed.length) {
+          setDeepLinkedQueries(parsed);
+          setUserMode("agency");
+        }
+      } catch { /* ignore malformed param */ }
     }
     if (queryText) {
       setDeepLinkedQueryText(queryText);
@@ -585,6 +598,21 @@ export default function ScalePublishPage() {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
   }, []);
   const dismissToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
+
+  // Effective brand: when entering from a /scan deep-link, the agency is acting for THAT brand
+  // (e.g. all4horses), not the canned DEMO_BRAND (Bank Hapoalim). This drives every label, title
+  // suggestion, order metadata, and article-preview body text in the agency view.
+  const effectiveBrand = useMemo(() => {
+    if (scanSource) {
+      return {
+        name: scanSource.brand ?? scanSource.domain,
+        domain: scanSource.domain,
+        agency: DEMO_BRAND.agency,
+        agencyContact: DEMO_BRAND.agencyContact,
+      };
+    }
+    return DEMO_BRAND;
+  }, [scanSource]);
 
   return (
     <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
@@ -635,7 +663,7 @@ export default function ScalePublishPage() {
       </header>
 
       {/* ── User Mode Switcher ── */}
-      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} />
+      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} effectiveBrand={effectiveBrand} />
 
       {/* ── Body ── */}
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 80px" : "32px 24px 80px", width: "100%", boxSizing: "border-box" }}>
@@ -668,8 +696,10 @@ export default function ScalePublishPage() {
             sections={sections}
             showToast={showToast}
             scanSource={scanSource}
+            effectiveBrand={effectiveBrand}
             deepLinkedQueryText={deepLinkedQueryText}
-            clearDeepLink={() => setDeepLinkedQueryText(null)}
+            deepLinkedQueries={deepLinkedQueries}
+            clearDeepLink={() => { setDeepLinkedQueryText(null); setDeepLinkedQueries(null); }}
           />
         )}
       </div>
@@ -683,10 +713,10 @@ export default function ScalePublishPage() {
 // USER MODE SWITCHER (Agency / Publisher)
 // ============================================================
 
-function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number }) {
+function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND }) {
   const isAgency = userMode === "agency";
   const userInfo = isAgency
-    ? { name: DEMO_BRAND.agency, role: "Agency · Acting for: Bank Hapoalim", icon: <IconUsers size={16} /> }
+    ? { name: effectiveBrand.agency, role: `Agency · Acting for: ${effectiveBrand.name}`, icon: <IconUsers size={16} /> }
     : { name: "Yedioth Ahronoth Group", role: "Publisher · 8 sites · 30 sections", icon: <IconBuilding size={16} /> };
 
   return (
@@ -1823,7 +1853,8 @@ function Kpi({ label, value, delta, theme, positive, tip, accent }: { label: str
 // comparison table, key learnings callout, conclusion
 // ============================================================
 
-function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agency" }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean; mode?: "agency" | "publisher" }) {
+function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agency", brand }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean; mode?: "agency" | "publisher"; brand?: typeof DEMO_BRAND }) {
+  const articleBrand = brand ?? DEMO_BRAND;
   const wordCount = selectedQueries.length * 320 + 230; // intro + sections + conclusion
   const readMin = Math.max(2, Math.round(wordCount / 220));
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -1842,7 +1873,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
     const angle = i % 3;
     return {
       paras: [
-        `When ${DEMO_BRAND.name} customers ask "${q.text.toLowerCase()}", the answer used to live behind a logged-in dashboard or buried in a 60-page PDF. Today, the same customer types the question into ChatGPT — and the engine cites whichever source covered it best in the public web. That source is now the brand's storefront, even if the brand never planned it that way.`,
+        `When ${articleBrand.name} customers ask "${q.text.toLowerCase()}", the answer used to live behind a logged-in dashboard or buried in a 60-page PDF. Today, the same customer types the question into ChatGPT — and the engine cites whichever source covered it best in the public web. That source is now the brand's storefront, even if the brand never planned it that way.`,
         `The shift matters for ${q.category.toLowerCase()} specifically because the audience here (${q.audience.slice(0, 2).join(" and ")}) tends to do their research before they ever click into a vendor site. If your competitor's article on Ynet ranks first, you've already lost the consideration phase before the user reaches your funnel.`,
       ],
       h3s: angle === 0 ? ["What the data actually shows", "How leading brands are responding"] : angle === 1 ? ["The numbers behind the trend", "What to watch for next quarter"] : ["Where most analyses get this wrong", "A practical framework for action"],
@@ -1888,7 +1919,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
             {categoriesPresent.map((c) => (
               <span key={c} style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: `${BRAND_GREEN}12`, color: BRAND_GREEN, borderRadius: 4, letterSpacing: 0.3 }}>{c}</span>
             ))}
-            <span style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: "#F1F5F9", color: "#475569", borderRadius: 4, letterSpacing: 0.3 }}>Sponsored by {DEMO_BRAND.name}</span>
+            <span style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: "#F1F5F9", color: "#475569", borderRadius: 4, letterSpacing: 0.3 }}>Sponsored by {articleBrand.name}</span>
           </div>
 
           {/* Title (H1) — large, bold, tight line-height */}
@@ -1898,9 +1929,9 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
           {/* Byline */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 18, marginBottom: 24, borderBottom: "1px solid #E2E8F0", fontSize: 14, color: "#64748B", flexWrap: "wrap" }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>JIT</div>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>{articleBrand.agency.split(" ").map((w) => w[0]).slice(0, 3).join("").toUpperCase()}</div>
             <div>
-              <div style={{ color: "#0F172A", fontWeight: 600 }}>Just In Time Agency</div>
+              <div style={{ color: "#0F172A", fontWeight: 600 }}>{articleBrand.agency}</div>
               <div style={{ fontSize: 12 }}>{today} · {readMin} min read</div>
             </div>
           </div>
@@ -1926,7 +1957,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
               {/* Intro paragraph */}
               <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.65, color: "#1E293B", margin: "0 0 24px", fontWeight: 400 }}>
-                For {DEMO_BRAND.name}'s customer segment, the path from first question to first conversation has collapsed. The buyer who once spent 3 weeks comparing options now asks ChatGPT, Gemini, or Perplexity a single sharp question — and gets a single confident answer. This piece walks through {selectedQueries.length === 1 ? "the question" : `the ${selectedQueries.length} questions`} {DEMO_BRAND.name}'s audience is asking right now, and what the data says about each.
+                For {articleBrand.name}'s customer segment, the path from first question to first conversation has collapsed. The buyer who once spent 3 weeks comparing options now asks ChatGPT, Gemini, or Perplexity a single sharp question — and gets a single confident answer. This piece walks through {selectedQueries.length === 1 ? "the question" : `the ${selectedQueries.length} questions`} {articleBrand.name}'s audience is asking right now, and what the data says about each.
               </p>
 
               {/* First pull-quote (AdsGPT style) */}
@@ -1969,7 +2000,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
                     <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3 }}>{body.h3s[1]}</h3>
                     <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>
-                      The practical move for {DEMO_BRAND.name} is to own this question on a Yedioth property where the audience already trusts the editorial voice. That's exactly what the {selectedQueries.length}-section article you're building does — each section answers one of the queries fully enough that GPT cites it, Gemini cites it, and Perplexity surfaces it as a primary source.
+                      The practical move for {articleBrand.name} is to own this question on a Yedioth property where the audience already trusts the editorial voice. That's exactly what the {selectedQueries.length}-section article you're building does — each section answers one of the queries fully enough that GPT cites it, Gemini cites it, and Perplexity surfaces it as a primary source.
                     </p>
 
                     {/* Comparison table (insert after first section) */}
@@ -2013,10 +2044,10 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
               {/* Conclusion */}
               <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px" }}>The bottom line</h2>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 14px" }}>
-                The {selectedQueries.length === 1 ? "question above" : `${selectedQueries.length} questions above`} represent {Math.round(stat1 * 1.2)}% of high-intent discovery for {DEMO_BRAND.name}'s category. Owning the answer on Yedioth means owning the moment a buyer is most ready to remember a brand name.
+                The {selectedQueries.length === 1 ? "question above" : `${selectedQueries.length} questions above`} represent {Math.round(stat1 * 1.2)}% of high-intent discovery for {articleBrand.name}'s category. Owning the answer on Yedioth means owning the moment a buyer is most ready to remember a brand name.
               </p>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 8px" }}>
-                For more on how {DEMO_BRAND.name} approaches {categoriesPresent[0]?.toLowerCase() ?? "this topic"}, visit <a href="#" style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: "underline" }}>{DEMO_BRAND.domain}</a>.
+                For more on how {articleBrand.name} approaches {categoriesPresent[0]?.toLowerCase() ?? "this topic"}, visit <a href="#" style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: "underline" }}>{articleBrand.domain}</a>.
               </p>
             </>
           )}
@@ -2032,16 +2063,70 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
 type AgencyTab = "queries" | "order-flow" | "orders" | "tracking";
 
-function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, deepLinkedQueryText, clearDeepLink }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; deepLinkedQueryText?: string | null; clearDeepLink?: () => void }) {
+function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, effectiveBrand, deepLinkedQueryText, deepLinkedQueries, clearDeepLink }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; effectiveBrand: typeof DEMO_BRAND; deepLinkedQueryText?: string | null; deepLinkedQueries?: { id: string; text: string; persona?: string; stage?: string }[] | null; clearDeepLink?: () => void }) {
   const [tab, setTab] = useState<AgencyTab>("queries");
   const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  // Queries that arrived via deep-link from /scan but don't exist in DEMO_QUERIES (different brand).
+  // Synthesized into the same shape as DEMO_QUERIES so every consumer (My Queries view, Order Flow
+  // matching, ArticlePreview generator) treats them uniformly.
+  const [customQueries, setCustomQueries] = useState<typeof DEMO_QUERIES>([]);
+  // When the agency arrived from /scan for a specific brand, the canned Bank Hapoalim demo queries
+  // are noise — they belong to a different client. Show only the scan-derived queries instead.
+  const allQueries = useMemo<typeof DEMO_QUERIES>(() => scanSource ? customQueries : [...customQueries, ...DEMO_QUERIES], [customQueries, scanSource]);
 
-  // Deep-link: pre-select the query that the user came from (/scan → "Order external article"),
-  // then jump straight to the Order Flow builder so the agency lands in the article-building step
-  // with the query already attached. This matches Noam's call idea: "click on one of them, enter
-  // the content-buying flow and add to cart article on that query".
+  // Deep-link multi-query: arrives as ?queries=<JSON> from the /scan basket. For each item we either
+  // find an existing DEMO_QUERIES entry (rare cross-brand) or synthesize a Query object from the text.
+  useEffect(() => {
+    if (!deepLinkedQueries || !deepLinkedQueries.length) return;
+    const synthesized: typeof DEMO_QUERIES = [];
+    const idsToSelect: string[] = [];
+    for (const dq of deepLinkedQueries) {
+      const lower = dq.text.toLowerCase();
+      const existing = DEMO_QUERIES.find((q) => q.text.toLowerCase() === lower);
+      if (existing) {
+        idsToSelect.push(existing.id);
+        continue;
+      }
+      // Synthesize a Query object — keep IDs prefixed so they don't collide with DEMO_QUERIES
+      const lowerText = dq.text.toLowerCase();
+      const inferredCategory = lowerText.includes("bank") || lowerText.includes("invest") || lowerText.includes("fund") || lowerText.includes("pension") || lowerText.includes("credit") ? "Finance"
+        : lowerText.includes("real estate") || lowerText.includes("mortgage") || lowerText.includes("housing") ? "Real Estate"
+        : lowerText.includes("tech") || lowerText.includes("ai") || lowerText.includes("cloud") || lowerText.includes("saas") || lowerText.includes("startup") ? "Tech"
+        : lowerText.includes("therapy") || lowerText.includes("therapeutic") || lowerText.includes("riding") || lowerText.includes("horse") ? "Therapy"
+        : lowerText.includes("insurance") ? "Insurance"
+        : "Editorial";
+      synthesized.push({
+        id: `scan-${dq.id}`,
+        text: dq.text,
+        category: inferredCategory,
+        audience: dq.persona ? [dq.persona] : ["Decision-makers"],
+        gpt: false,
+        gemini: false,
+        perplexity: false,
+        opportunity: 80,
+      });
+      idsToSelect.push(`scan-${dq.id}`);
+    }
+    if (synthesized.length) setCustomQueries(synthesized);
+    if (idsToSelect.length) {
+      setSelectedQueryIds((prev) => {
+        const merged = [...prev];
+        for (const id of idsToSelect) if (!merged.includes(id) && merged.length < 5) merged.push(id);
+        return merged;
+      });
+      setTab("order-flow");
+      showToast(`${idsToSelect.length} ${idsToSelect.length === 1 ? "query" : "queries"} attached from scan — building the article`, "info");
+      // Clear basket on the /scan side so the user doesn't double-build
+      if (typeof window !== "undefined") {
+        try { localStorage.setItem("geoscale-scalepublish-basket", JSON.stringify([])); } catch { /* ignore */ }
+      }
+    }
+    clearDeepLink?.();
+  }, [deepLinkedQueries]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Legacy single-query deep-link (?queryText=...). Kept for backward compat with old links.
   useEffect(() => {
     if (!deepLinkedQueryText) return;
     const lower = deepLinkedQueryText.toLowerCase();
@@ -2052,7 +2137,12 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
       setTab("order-flow");
       showToast(`Query "${match.text}" attached — building the article`, "info");
     } else {
-      showToast(`Couldn't match "${deepLinkedQueryText}" to a known query — pick from the list`, "warn");
+      // Synthesize for unmatched too (cross-brand deep-link with single ?queryText=)
+      const synthId = `scan-text-${Date.now()}`;
+      setCustomQueries((prev) => [{ id: synthId, text: deepLinkedQueryText, category: "Editorial", audience: ["Decision-makers"], gpt: false, gemini: false, perplexity: false, opportunity: 80 }, ...prev]);
+      setSelectedQueryIds((prev) => prev.length < 5 ? [...prev, synthId] : prev);
+      setTab("order-flow");
+      showToast(`Query "${deepLinkedQueryText}" attached — building the article`, "info");
     }
     clearDeepLink?.();
   }, [deepLinkedQueryText]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -2080,8 +2170,8 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
         </div>
       )}
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
-      {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} />}
-      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} />}
+      {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} allQueries={allQueries} customQueryIds={new Set(customQueries.map((q) => q.id))} scanSourceDomain={scanSource?.domain} effectiveBrand={effectiveBrand} />}
+      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} allQueries={allQueries} effectiveBrand={effectiveBrand} />}
       {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} sites={sites} sections={sections} />}
       {tab === "tracking" && <AgencyTrackingView theme={theme} isMobile={isMobile} tracking={tracking} sites={sites} sections={sections} showToast={showToast} />}
     </>
@@ -2092,9 +2182,12 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
 // AGENCY · My Queries (multi-select up to 5)
 // ============================================================
 
-function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinnedIds, setPinnedIds, dismissedIds, setDismissedIds, goToOrderFlow }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; pinnedIds: Set<string>; setPinnedIds: (v: Set<string>) => void; dismissedIds: Set<string>; setDismissedIds: (v: Set<string>) => void; goToOrderFlow: () => void }) {
+function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinnedIds, setPinnedIds, dismissedIds, setDismissedIds, goToOrderFlow, allQueries, customQueryIds, scanSourceDomain, effectiveBrand }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; pinnedIds: Set<string>; setPinnedIds: (v: Set<string>) => void; dismissedIds: Set<string>; setDismissedIds: (v: Set<string>) => void; goToOrderFlow: () => void; allQueries?: typeof DEMO_QUERIES; customQueryIds?: Set<string>; scanSourceDomain?: string; effectiveBrand?: typeof DEMO_BRAND }) {
+  const brand = effectiveBrand ?? DEMO_BRAND;
   const MAX_SELECT = 5;
-  const visibleQueries = DEMO_QUERIES.filter((q) => !dismissedIds.has(q.id));
+  const queryPool = allQueries ?? DEMO_QUERIES;
+  const customIds = customQueryIds ?? new Set<string>();
+  const visibleQueries = queryPool.filter((q) => !dismissedIds.has(q.id));
 
   const toggleSelect = (id: string) => {
     if (selectedIds.includes(id)) {
@@ -2120,7 +2213,7 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
     <div>
       {/* Banner */}
       <div style={{ background: `linear-gradient(135deg, ${BRAND_GREEN}10 0%, ${BRAND_GREEN}03 100%)`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 12, padding: isMobile ? 16 : 22, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Brand: {DEMO_BRAND.name}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Brand: {brand.name}</div>
         <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Queries with content opportunity</div>
         <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>Pick the queries you want to win. Select up to <strong style={{ color: theme.text }}>5 queries</strong> per article — fewer queries means deeper, higher-quality content. After selecting, you'll see Yedioth Ahronoth sections matched by audience, category, and intent.</div>
       </div>
@@ -2208,22 +2301,26 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
 // AGENCY · Order Flow (matching sites + cart + submit)
 // ============================================================
 
-function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
-  const selectedQueries = DEMO_QUERIES.filter((q) => selectedIds.includes(q.id));
+function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast, allQueries, effectiveBrand }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; allQueries?: typeof DEMO_QUERIES; effectiveBrand?: typeof DEMO_BRAND }) {
+  const queryPool = allQueries ?? DEMO_QUERIES;
+  const brand = effectiveBrand ?? DEMO_BRAND;
+  const selectedQueries = queryPool.filter((q) => selectedIds.includes(q.id));
 
   const [title, setTitle] = useState<string>("");
   const [contentMode, setContentMode] = useState<"empty" | "generate">("generate");
   const [cartSectionIds, setCartSectionIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // Publisher-site filter (Step 4): empty Set = show all sites; non-empty = restrict to chosen sites.
+  const [siteFilter, setSiteFilter] = useState<Set<string>>(new Set());
 
   // Auto-suggest title from first query
   useEffect(() => {
     if (selectedQueries.length > 0 && !title) {
       const base = selectedQueries[0].text;
-      setTitle(`${base} — Bank Hapoalim's complete 2026 guide`);
+      setTitle(`${base} — ${brand.name}'s complete 2026 guide`);
     }
-  }, [selectedQueries.length]);
+  }, [selectedQueries.length, brand.name]);
 
   // Brand audience inference
   const brandAudience: AudienceTag[] = ["B2C", "B2B", "Decision-makers", "Affluent", "Mass market"];
@@ -2276,10 +2373,10 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       const newOrder: Order = {
         id: `ord-${Date.now().toString(36)}`,
         createdAt: new Date().toISOString(),
-        agencyName: DEMO_BRAND.agency,
-        agencyContact: DEMO_BRAND.agencyContact,
-        brand: DEMO_BRAND.name,
-        brandDomain: DEMO_BRAND.domain,
+        agencyName: brand.agency,
+        agencyContact: brand.agencyContact,
+        brand: brand.name,
+        brandDomain: brand.domain,
         queries: selectedQueries.map((q) => q.text),
         title,
         contentMode,
@@ -2311,7 +2408,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
           <IconCheck size={28} />
         </div>
         <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Order submitted to Yedioth Ahronoth</div>
-        <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 18, maxWidth: 520, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>Yedioth's sales team will contact <strong style={{ color: theme.text }}>{DEMO_BRAND.agencyContact}</strong> to confirm and collect payment. Estimated upload time: ~3 days per article. Tracking will appear under "Article Tracking" once published.</div>
+        <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 18, maxWidth: 520, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>Yedioth's sales team will contact <strong style={{ color: theme.text }}>{brand.agencyContact}</strong> to confirm and collect payment. Estimated upload time: ~3 days per article. Tracking will appear under "Article Tracking" once published.</div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={() => { setSubmitted(false); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToOrders(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>View my orders</button>
           <button onClick={() => { setSubmitted(false); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToQueries(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Place another order</button>
@@ -2357,7 +2454,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       </div>
 
       {/* Article preview — AdsGPT-style editorial layout */}
-      <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} />
+      <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} brand={brand} />
 
 
       {/* Title editor */}
@@ -2392,15 +2489,34 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       <div style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 4 · Yedioth sections matched to your queries (sorted by fit)</div>
-          <div style={{ fontSize: 12, color: theme.textSecondary }}>{matchedSections.length} matches · {cartSectionIds.length} selected</div>
+          <div style={{ fontSize: 12, color: theme.textSecondary }}>{(() => { const visible = matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)); return `${visible.length} of ${matchedSections.length} matches · ${cartSectionIds.length} selected`; })()}</div>
         </div>
+        {/* Site filter chips — let agency narrow to specific Yedioth properties (Ynet, Calcalist, Mako…) */}
+        {sites.length > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 10, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginRight: 4 }}>Focus on</span>
+            <button onClick={() => setSiteFilter(new Set())} style={{ padding: "5px 10px", fontSize: 12, fontWeight: 600, background: siteFilter.size === 0 ? BRAND_GREEN : "transparent", color: siteFilter.size === 0 ? "#fff" : theme.textSecondary, border: `1px solid ${siteFilter.size === 0 ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer" }}>All sites</button>
+            {sites.map((s) => {
+              const active = siteFilter.has(s.id);
+              const matchCount = matchedSections.filter((m) => m.section.siteId === s.id).length;
+              if (matchCount === 0) return null;
+              return (
+                <button key={s.id} onClick={() => { const next = new Set(siteFilter); if (active) next.delete(s.id); else next.add(s.id); setSiteFilter(next); }} style={{ padding: "5px 10px", fontSize: 12, fontWeight: 600, background: active ? BRAND_GREEN : "transparent", color: active ? "#fff" : theme.textSecondary, border: `1px solid ${active ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  <Favicon domain={s.domain} size={13} />
+                  {s.name}
+                  <span style={{ fontSize: 10, color: active ? "#ffffffcc" : theme.textMuted }}>({matchCount})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
-          {matchedSections.slice(0, 18).map((m, i) => {
+          {matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)).slice(0, 18).map((m, i, arr) => {
             const site = sites.find((s) => s.id === m.section.siteId);
             if (!site) return null;
             const inCart = cartSectionIds.includes(m.section.id);
             return (
-              <div key={m.section.id} style={{ borderBottom: i < Math.min(17, matchedSections.length - 1) ? `1px solid ${theme.border}` : "none", padding: isMobile ? 12 : 16, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: inCart ? `${BRAND_GREEN}05` : "transparent" }}>
+              <div key={m.section.id} style={{ borderBottom: i < Math.min(17, arr.length - 1) ? `1px solid ${theme.border}` : "none", padding: isMobile ? 12 : 16, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: inCart ? `${BRAND_GREEN}05` : "transparent" }}>
                 <div style={{ width: 36, fontSize: 14, fontWeight: 700, color: theme.textSecondary, flexShrink: 0 }}>#{i + 1}</div>
                 <Favicon domain={site.domain} size={26} />
                 <div style={{ flex: 1, minWidth: 200 }}>
@@ -2436,6 +2552,11 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
               </div>
             );
           })}
+          {matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)).length === 0 && (
+            <div style={{ padding: 24, textAlign: "center", fontSize: 13, color: theme.textSecondary }}>
+              No sections match the current site filter. <button onClick={() => setSiteFilter(new Set())} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>Clear filter</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2547,12 +2668,12 @@ function AgencyTrackingView({ theme, isMobile, tracking, sites, sections, showTo
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `client-report-bank-hapoalim-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `client-report-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast("Client report exported — share with Bank Hapoalim", "success");
+    showToast("Client report exported — share with your client", "success");
   };
 
   return (
@@ -2605,7 +2726,7 @@ function AgencyTrackingView({ theme, isMobile, tracking, sites, sections, showTo
       </div>
 
       <div style={{ marginTop: 24, padding: 14, background: `${BRAND_BLUE}08`, border: `1px solid ${BRAND_BLUE}25`, borderRadius: 9, fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>
-        <strong style={{ color: BRAND_BLUE }}>Why this matters:</strong> Today, agencies buy articles from publishers without ever knowing if they got picked up. Geoscale ScalePublish monitors every item — if Bank Hapoalim's article on Ynet gets cited by ChatGPT, you can prove it. That converts to repeat purchases.
+        <strong style={{ color: BRAND_BLUE }}>Why this matters:</strong> Today, agencies buy articles from publishers without ever knowing if they got picked up. Geoscale ScalePublish monitors every item — if your client's article on Ynet gets cited by ChatGPT, you can prove it. That converts to repeat purchases.
       </div>
     </div>
   );
