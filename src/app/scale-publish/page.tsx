@@ -261,6 +261,9 @@ type Order = {
   totalPrice: number;
   status: "pending" | "approved" | "in_progress" | "published" | "rejected";
   publishedUrls?: { sectionId: string; url: string; publishedAt: string }[];
+  // Publisher counter-offer: when Yedioth wants to renegotiate, they edit per-section prices and
+  // optionally add a note. Agency sees the badge + revised total + note in their orders view.
+  counterOffer?: { adjustedSections: { sectionId: string; price: number }[]; adjustedTotal: number; note?: string; sentAt: string };
 };
 
 type ArticleTracking = {
@@ -1109,6 +1112,12 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, section
     showToast(`Order ${labels[status]}`, status === "rejected" ? "warn" : "success");
   };
 
+  const sendCounterOffer = (id: string, adjustedSections: { sectionId: string; price: number }[], note: string) => {
+    const adjustedTotal = adjustedSections.reduce((sum, s) => sum + s.price, 0);
+    setOrders(orders.map((o) => o.id === id ? { ...o, counterOffer: { adjustedSections, adjustedTotal, note: note.trim() || undefined, sentAt: new Date().toISOString() } } : o));
+    showToast(`Counter-offer sent · new total ${fmtNIS(adjustedTotal)}`, "info");
+  };
+
   return (
     <div>
       {/* Banner */}
@@ -1145,7 +1154,7 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, section
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map((order) => (
-            <OrderCard key={order.id} order={order} theme={theme} isMobile={isMobile} expanded={openOrderId === order.id} onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)} onUpdate={updateStatus} mode="publisher" sites={sites} sections={sections} />
+            <OrderCard key={order.id} order={order} theme={theme} isMobile={isMobile} expanded={openOrderId === order.id} onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)} onUpdate={updateStatus} onCounterOffer={sendCounterOffer} mode="publisher" sites={sites} sections={sections} />
           ))}
         </div>
       )}
@@ -1154,7 +1163,13 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, section
 }
 
 // ── ORDER CARD (shared between Publisher inbox & Agency orders) ──
-function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode, sites, sections }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; mode: "publisher" | "agency"; sites: PublisherSite[]; sections: PublisherSection[] }) {
+function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCounterOffer, mode, sites, sections }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; onCounterOffer?: (id: string, adjusted: { sectionId: string; price: number }[], note: string) => void; mode: "publisher" | "agency"; sites: PublisherSite[]; sections: PublisherSection[] }) {
+  // Counter-offer editor: publisher can adjust each section's price + add a note before sending back
+  const [counterEditing, setCounterEditing] = useState(false);
+  const [adjustedPrices, setAdjustedPrices] = useState<Record<string, number>>(() => Object.fromEntries(order.sections.map((s) => [s.sectionId, s.price])));
+  const [counterNote, setCounterNote] = useState("");
+  const adjustedTotal = order.sections.reduce((sum, s) => sum + (adjustedPrices[s.sectionId] ?? s.price), 0);
+  const adjustedDelta = adjustedTotal - order.totalPrice;
   const STATUS_STYLES: Record<Order["status"], { bg: string; color: string; label: string }> = {
     pending: { bg: "#FEF3C7", color: "#B45309", label: "Pending approval" },
     approved: { bg: "#DBEAFE", color: "#1D4ED8", label: "Approved" },
@@ -1183,8 +1198,18 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode,
             </div>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{fmtNIS(order.totalPrice)}</div>
-            <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Total order value</div>
+            {order.counterOffer ? (
+              <>
+                <div style={{ fontSize: 13, color: theme.textMuted, textDecoration: "line-through" }}>{fmtNIS(order.totalPrice)}</div>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
+                <div style={{ fontSize: 11, color: BRAND_AMBER, marginTop: 2, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase" }}>Counter-offer</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: theme.text }}>{fmtNIS(order.totalPrice)}</div>
+                <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Total order value</div>
+              </>
+            )}
           </div>
         </div>
       </button>
@@ -1276,13 +1301,80 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, mode,
             <div style={{ fontSize: 13, color: theme.text }}>{order.agencyName} · {order.agencyContact}</div>
           </Section>
 
+          {/* Existing counter-offer banner (visible to both sides once sent) */}
+          {order.counterOffer && (
+            <Section title={mode === "publisher" ? "Counter-offer sent" : "Counter-offer received from publisher"} theme={theme}>
+              <div style={{ padding: 14, background: `${BRAND_AMBER}10`, border: `1.5px solid ${BRAND_AMBER}50`, borderLeft: `4px solid ${BRAND_AMBER}`, borderRadius: 9 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, color: theme.textSecondary }}>Original: <s>{fmtNIS(order.totalPrice)}</s></div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
+                </div>
+                {order.counterOffer.note && (
+                  <div style={{ fontSize: 14, color: theme.text, lineHeight: 1.5, padding: "10px 12px", background: theme.cardBg, borderRadius: 7, border: `1px solid ${theme.border}` }}>
+                    <strong>Note:</strong> {order.counterOffer.note}
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {/* Counter-offer editor (publisher only, on pending orders) */}
+          {mode === "publisher" && order.status === "pending" && counterEditing && (
+            <Section title="Build counter-offer" theme={theme}>
+              <div style={{ padding: 14, background: `${BRAND_AMBER}08`, border: `1.5px solid ${BRAND_AMBER}40`, borderRadius: 9 }}>
+                <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 12, lineHeight: 1.5 }}>Adjust per-section prices to send a counter-offer to {order.agencyName}. They'll see the new total and your note in their orders view.</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                  {order.sections.map((s) => {
+                    const sec = sections.find((y) => y.id === s.sectionId);
+                    const site = sites.find((y) => y.id === s.siteId);
+                    if (!sec || !site) return null;
+                    const newPrice = adjustedPrices[s.sectionId] ?? s.price;
+                    return (
+                      <div key={s.sectionId} style={{ display: "flex", alignItems: "center", gap: 10, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, flexWrap: "wrap" }}>
+                        <Favicon domain={site.domain} size={20} />
+                        <div style={{ flex: 1, minWidth: 160, fontSize: 14, color: theme.text, fontWeight: 600 }}>{site.name} · {sec.name}</div>
+                        <div style={{ fontSize: 12, color: theme.textSecondary }}>was {fmtNIS(s.price)}</div>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 14, color: theme.textSecondary }}>₪</span>
+                          <input type="number" value={newPrice} onChange={(e) => setAdjustedPrices({ ...adjustedPrices, [s.sectionId]: Math.max(0, Number(e.target.value) || 0) })} style={{ width: 100, padding: "8px 10px", fontSize: 14, fontWeight: 700, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, textAlign: "right" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <textarea value={counterNote} onChange={(e) => setCounterNote(e.target.value)} placeholder="Optional note to the agency (e.g. 'Tech section is in high demand this month — premium pricing for the next 30 days')..." style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box", minHeight: 60, fontFamily: "inherit", resize: "vertical" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, flexWrap: "wrap", gap: 10, padding: "10px 14px", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
+                  <div style={{ fontSize: 13, color: theme.textSecondary }}>New total <strong style={{ color: theme.text }}>vs</strong> original</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 14, color: theme.textSecondary, textDecoration: "line-through" }}>{fmtNIS(order.totalPrice)}</span>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: theme.text }}>{fmtNIS(adjustedTotal)}</span>
+                    {adjustedDelta !== 0 && (
+                      <span style={{ fontSize: 13, fontWeight: 700, color: adjustedDelta > 0 ? BRAND_GREEN : "#DC2626", padding: "3px 9px", background: adjustedDelta > 0 ? `${BRAND_GREEN}15` : "#FEE2E2", borderRadius: 6 }}>{adjustedDelta > 0 ? "+" : ""}{fmtNIS(adjustedDelta)}</span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+                  <button onClick={() => { onCounterOffer && onCounterOffer(order.id, order.sections.map((s) => ({ sectionId: s.sectionId, price: adjustedPrices[s.sectionId] ?? s.price })), counterNote); setCounterEditing(false); }} disabled={adjustedDelta === 0} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: adjustedDelta !== 0 ? BRAND_AMBER : theme.barTrack, color: adjustedDelta !== 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: adjustedDelta !== 0 ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <IconArrowRight size={13} /> Send counter-offer to agency
+                  </button>
+                  <button onClick={() => { setCounterEditing(false); setAdjustedPrices(Object.fromEntries(order.sections.map((s) => [s.sectionId, s.price]))); setCounterNote(""); }} style={{ padding: "11px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </Section>
+          )}
+
           {/* Action buttons */}
-          {mode === "publisher" && order.status === "pending" && (
+          {mode === "publisher" && order.status === "pending" && !counterEditing && (
             <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-              <button onClick={() => onUpdate(order.id, "approved")} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <IconCheck size={13} /> Approve & contact agency
+              <button onClick={() => onUpdate(order.id, "approved")} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <IconCheck size={13} /> Approve &amp; contact agency
               </button>
-              <button onClick={() => onUpdate(order.id, "rejected")} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>
+              <button onClick={() => setCounterEditing(true)} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: "transparent", color: BRAND_AMBER, border: `1.5px solid ${BRAND_AMBER}`, borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <IconEdit size={13} /> Counter-offer
+              </button>
+              <button onClick={() => onUpdate(order.id, "rejected")} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>
                 Reject
               </button>
             </div>
@@ -2159,14 +2251,16 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
   return (
     <>
       {scanSource && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, padding: isMobile ? "10px 14px" : "12px 18px", marginBottom: 14, background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 9 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", minWidth: 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.4, textTransform: "uppercase" }}>External content for</span>
-            <Favicon domain={scanSource.domain} size={18} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{scanSource.brand ?? scanSource.domain}</span>
-            <span style={{ fontSize: 12, color: theme.textMuted }}>· every order placed here is added as a line item to your client proposal for this brand</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, padding: isMobile ? "14px 16px" : "16px 22px", marginBottom: 18, background: `${BRAND_GREEN}10`, border: `1.5px solid ${BRAND_GREEN}50`, borderLeft: `5px solid ${BRAND_GREEN}`, borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", minWidth: 0, flex: 1 }}>
+            <Favicon domain={scanSource.domain} size={32} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>External content for</div>
+              <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 800, color: theme.text, lineHeight: 1.2 }}>{scanSource.brand ?? scanSource.domain}</div>
+              <div style={{ fontSize: 14, color: theme.textSecondary, marginTop: 4, lineHeight: 1.5 }}>Every order placed here is added as a line item to your client proposal for this brand.</div>
+            </div>
           </div>
-          <a href={`/scan?domain=${encodeURIComponent(scanSource.domain)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: BRAND_GREEN, textDecoration: "none", padding: "6px 12px", border: `1px solid ${BRAND_GREEN}40`, borderRadius: 7, whiteSpace: "nowrap" }}>← Back to {scanSource.domain} scan</a>
+          <a href={`/scan?domain=${encodeURIComponent(scanSource.domain)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 700, color: BRAND_GREEN, textDecoration: "none", padding: "10px 16px", border: `1.5px solid ${BRAND_GREEN}`, background: theme.cardBg, borderRadius: 8, whiteSpace: "nowrap" }}>← Back to scan</a>
         </div>
       )}
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
@@ -2313,6 +2407,8 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   const [submitted, setSubmitted] = useState(false);
   // Publisher-site filter (Step 4): empty Set = show all sites; non-empty = restrict to chosen sites.
   const [siteFilter, setSiteFilter] = useState<Set<string>>(new Set());
+  // Wizard step (1..5). Each step has its own panel + Back/Continue footer.
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Auto-suggest title from first query
   useEffect(() => {
@@ -2417,18 +2513,55 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
     );
   }
 
+  // Wizard steps metadata for the progress header. Labels stay short so the bar fits one row on
+  // desktop and wraps gracefully on mobile.
+  const STEPS = [
+    { num: 1, label: "Queries" },
+    { num: 2, label: "Title" },
+    { num: 3, label: "Content" },
+    { num: 4, label: "Sections" },
+    { num: 5, label: "Review" },
+  ] as const;
+  const canContinue = (() => {
+    if (currentStep === 1) return selectedQueries.length > 0;
+    if (currentStep === 2) return title.trim().length > 3;
+    if (currentStep === 3) return true;
+    if (currentStep === 4) return cart.length > 0;
+    return false;
+  })();
+  const goNext = () => { if (currentStep < 5) setCurrentStep((currentStep + 1) as 1 | 2 | 3 | 4 | 5); };
+  const goPrev = () => { if (currentStep > 1) setCurrentStep((currentStep - 1) as 1 | 2 | 3 | 4 | 5); };
+
   return (
     <div>
-      {/* Selected queries — numbered list */}
+      {/* Wizard progress bar — clickable steps so users can jump back to anything they've completed */}
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? "12px 10px" : "14px 18px", marginBottom: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 8, flexWrap: "wrap" }}>
+          {STEPS.map((s, i) => {
+            const isActive = currentStep === s.num;
+            const isPast = currentStep > s.num;
+            return (
+              <React.Fragment key={s.num}>
+                <button onClick={() => { if (isPast || isActive) setCurrentStep(s.num as 1 | 2 | 3 | 4 | 5); }} disabled={!isPast && !isActive} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: isMobile ? "6px 8px" : "7px 12px", background: isActive ? `${BRAND_GREEN}10` : "transparent", border: `1px solid ${isActive ? BRAND_GREEN : "transparent"}`, borderRadius: 8, cursor: isPast || isActive ? "pointer" : "default", opacity: isPast || isActive ? 1 : 0.55 }}>
+                  <span style={{ width: 22, height: 22, borderRadius: "50%", background: isPast ? BRAND_GREEN : isActive ? BRAND_GREEN : theme.barTrack, color: isPast || isActive ? "#fff" : theme.textMuted, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>{isPast ? <IconCheck size={11} /> : s.num}</span>
+                  <span style={{ fontSize: isMobile ? 12 : 13, fontWeight: isActive ? 700 : 500, color: isActive ? theme.text : theme.textSecondary }}>{s.label}</span>
+                </button>
+                {i < STEPS.length - 1 && <span style={{ flex: isMobile ? "0 0 8px" : "0 0 18px", height: 1, background: currentStep > s.num ? BRAND_GREEN : theme.border }} />}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* STEP 1 · Selected queries */}
+      {currentStep === 1 && (
+      <>
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 1 · Selected queries</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 1 · Confirm your selected queries</div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN }}>{selectedQueries.length}</span>
             <span style={{ fontSize: 13, color: theme.textSecondary }}>of 5 {selectedQueries.length < 5 && <span style={{ color: BRAND_AMBER, fontWeight: 600 }}>· {5 - selectedQueries.length} more recommended</span>}</span>
-            <button onClick={goToQueries} style={{ marginLeft: 6, padding: "5px 10px", fontSize: 12, fontWeight: 600, background: "transparent", color: BRAND_GREEN, border: `1px solid ${BRAND_GREEN}50`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <IconPlus size={11} /> Add more
-            </button>
           </div>
         </div>
         <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -2446,27 +2579,38 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
           ))}
         </ol>
         {selectedQueries.length < 5 && (
-          <div style={{ marginTop: 10, padding: "9px 12px", background: `${BRAND_AMBER}10`, border: `1px solid ${BRAND_AMBER}30`, borderRadius: 8, fontSize: 12, color: theme.text, display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 14 }}>💡</span>
-            <span>You can continue with {selectedQueries.length} {selectedQueries.length === 1 ? "query" : "queries"}, but {5 - selectedQueries.length} more would let GPT/Gemini cover this topic from {5 - selectedQueries.length} more angles.</span>
+          <div style={{ marginTop: 12, padding: "12px 14px", background: `${BRAND_AMBER}10`, border: `1px solid ${BRAND_AMBER}40`, borderRadius: 9, fontSize: 13, color: theme.text, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 240, lineHeight: 1.5 }}>
+              <strong style={{ color: theme.text }}>You have {selectedQueries.length} {selectedQueries.length === 1 ? "query" : "queries"} of 5.</strong> {5 - selectedQueries.length} more would let GPT/Gemini cover this topic from {5 - selectedQueries.length} more angles. You can continue, or go back and add more.
+            </div>
+            <button onClick={goToQueries} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+              <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={12} /></span> Back to My Queries
+            </button>
           </div>
         )}
       </div>
 
-      {/* Article preview — AdsGPT-style editorial layout */}
+      {/* Article preview — visible from step 1 so user sees the live editorial draft as they confirm */}
       <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} brand={brand} />
+      </>
+      )}
 
-
-      {/* Title editor */}
+      {/* STEP 2 · Title */}
+      {currentStep === 2 && (
+      <>
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 2 · Article title (auto-suggested, editable)</div>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter article title in Hebrew or English..." style={{ width: "100%", padding: "12px 14px", fontSize: 15, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
-        <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>Editing the title re-evaluates which Yedioth sections are the best fit.</div>
+        <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>Editing the title re-evaluates which Yedioth sections are the best fit. The article preview below updates live.</div>
       </div>
+      <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} brand={brand} />
+      </>
+      )}
 
-      {/* Content mode */}
+      {/* STEP 3 · Content mode */}
+      {currentStep === 3 && (
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 3 · Content</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 3 · How is the content produced?</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={() => setContentMode("generate")} style={{ flex: 1, minWidth: 220, padding: 14, background: contentMode === "generate" ? `${BRAND_GREEN}10` : "transparent", border: `1.5px solid ${contentMode === "generate" ? BRAND_GREEN : theme.border}`, borderRadius: 10, cursor: "pointer", textAlign: "left", color: theme.text }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -2484,8 +2628,10 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
           </button>
         </div>
       </div>
+      )}
 
-      {/* Matching sections list (priority sorted, NOT boxes) */}
+      {/* STEP 4 · Pick Yedioth sections */}
+      {currentStep === 4 && (
       <div style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 4 · Yedioth sections matched to your queries (sorted by fit)</div>
@@ -2553,47 +2699,84 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
             );
           })}
           {matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)).length === 0 && (
-            <div style={{ padding: 24, textAlign: "center", fontSize: 13, color: theme.textSecondary }}>
-              No sections match the current site filter. <button onClick={() => setSiteFilter(new Set())} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}>Clear filter</button>
+            <div style={{ padding: 24, textAlign: "center", fontSize: 14, color: theme.textSecondary }}>
+              No sections match the current site filter. <button onClick={() => setSiteFilter(new Set())} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>Clear filter</button>
             </div>
           )}
         </div>
       </div>
+      )}
 
-      {/* Cart + submit */}
+      {/* STEP 5 · Review & submit */}
+      {currentStep === 5 && (
       <div style={{ background: theme.cardBg, border: `1.5px solid ${cart.length > 0 ? BRAND_GREEN : theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 22 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 5 · Order summary</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>Step 5 · Review &amp; submit</div>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 16 }}>
+          <div style={{ padding: 14, background: theme.tableHeaderBg, borderRadius: 9 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Brand &amp; Article</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{brand.name}</div>
+            <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.5 }}>{title || <em style={{ color: BRAND_AMBER }}>(no title yet — go back to step 2)</em>}</div>
+          </div>
+          <div style={{ padding: 14, background: theme.tableHeaderBg, borderRadius: 9 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Queries &amp; Content</div>
+            <div style={{ fontSize: 14, color: theme.text, fontWeight: 600 }}>{selectedQueries.length} {selectedQueries.length === 1 ? "query" : "queries"} selected</div>
+            <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 3 }}>{contentMode === "generate" ? "AI-generated draft, editor-reviewed" : "Agency-provided copy"}</div>
+          </div>
+        </div>
         {cart.length === 0 ? (
-          <div style={{ fontSize: 14, color: theme.textSecondary, textAlign: "center", padding: 20 }}>Add at least one section above to place your order.</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, textAlign: "center", padding: 20, background: `${BRAND_AMBER}10`, border: `1px solid ${BRAND_AMBER}40`, borderRadius: 9 }}>
+            <strong style={{ color: BRAND_AMBER }}>No sections selected yet.</strong> Go back to Step 4 to add Yedioth sections to this order.
+          </div>
         ) : (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Yedioth sections in this order</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
               {cart.map((m) => {
                 const site = sites.find((s) => s.id === m.section.siteId);
                 if (!site) return null;
                 return (
-                  <div key={m.section.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${theme.border}` }}>
-                    <Favicon domain={site.domain} size={18} />
-                    <div style={{ flex: 1, fontSize: 13, color: theme.text }}>{site.name} · {m.section.name}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{fmtNIS(getPrice(m.section))}</div>
+                  <div key={m.section.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: `1px solid ${theme.border}`, borderRadius: 8, background: theme.tableHeaderBg }}>
+                    <Favicon domain={site.domain} size={20} />
+                    <div style={{ flex: 1, fontSize: 14, color: theme.text, fontWeight: 600 }}>{site.name} <span style={{ color: theme.textSecondary, fontWeight: 400 }}>· {m.section.name}</span></div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>{fmtNIS(getPrice(m.section))}</div>
                   </div>
                 );
               })}
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 12, color: theme.textMuted }}>{cart.length} {cart.length === 1 ? "section" : "sections"} · {selectedQueries.length} queries · 1 article</div>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10, padding: "14px 16px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 9 }}>
+              <div style={{ fontSize: 14, color: theme.text, fontWeight: 600 }}>{cart.length} {cart.length === 1 ? "section" : "sections"} · {selectedQueries.length} queries · 1 article</div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600 }}>TOTAL</div>
-                <div style={{ fontSize: 26, fontWeight: 700, color: theme.text }}>{fmtNIS(cartTotal)}</div>
+                <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 700, letterSpacing: 1 }}>TOTAL</div>
+                <div style={{ fontSize: 28, fontWeight: 800, color: theme.text }}>{fmtNIS(cartTotal)}</div>
               </div>
             </div>
-            <button onClick={submitOrder} disabled={submitting || !title.trim()} style={{ width: "100%", padding: "14px 22px", fontSize: 15, fontWeight: 700, background: submitting ? theme.barTrack : BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: submitting ? "wait" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <button onClick={submitOrder} disabled={submitting || !title.trim()} style={{ width: "100%", padding: "16px 22px", fontSize: 16, fontWeight: 700, background: submitting ? theme.barTrack : BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: submitting ? "wait" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {submitting ? "Adding to client proposal..." : <>Add to client proposal &amp; send to Yedioth <IconArrowRight size={14} /></>}
             </button>
-            <div style={{ fontSize: 11, color: theme.textMuted, textAlign: "center", marginTop: 10 }}>This becomes a line item on your master client proposal. Yedioth's sales team contacts you to confirm. ~3 days per article.</div>
+            <div style={{ fontSize: 13, color: theme.textSecondary, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>This becomes a line item on your master client proposal. Yedioth's sales team contacts you to confirm. ~3 days per article.</div>
           </>
+        )}
+      </div>
+      )}
+
+      {/* Wizard footer — sticky Back/Continue */}
+      <div style={{ position: "sticky", bottom: 0, zIndex: 20, marginTop: 18, padding: isMobile ? 12 : 14, background: theme.headerBg, border: `1px solid ${theme.border}`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", boxShadow: "0 -2px 12px rgba(0,0,0,0.05)" }}>
+        {currentStep === 1 ? (
+          <button onClick={goToQueries} style={{ padding: "10px 16px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span> Back to My Queries
+          </button>
+        ) : (
+          <button onClick={goPrev} style={{ padding: "10px 16px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span> Back
+          </button>
+        )}
+        <div style={{ fontSize: 13, color: theme.textSecondary, fontWeight: 600 }}>Step {currentStep} of 5</div>
+        {currentStep < 5 ? (
+          <button onClick={goNext} disabled={!canContinue} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: canContinue ? BRAND_GREEN : theme.barTrack, color: canContinue ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canContinue ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Continue <IconArrowRight size={13} />
+          </button>
+        ) : (
+          <span style={{ fontSize: 13, color: theme.textMuted, fontStyle: "italic" }}>Final step — review &amp; submit above</span>
         )}
       </div>
     </div>
