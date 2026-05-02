@@ -1932,31 +1932,45 @@ export default function ScanPage() {
                                   </div>
                                 )}
                               </div>
-                              {/* Generate Content Action */}
-                              <div style={{ borderRadius: 10, padding: 14, background: theme.cardBg, border: "1px solid #10A37F40" }}>
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-                                    <div>
-                                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>Generate GEO content for this query</span>
-                                      <p style={{ fontSize: 15, color: theme.textSecondary, margin: "2px 0 0" }}>Create an optimized article with GEO format to appear in AI answers</p>
+                              {/* Two-track action row: own-site content (internal) vs. publisher article (external) */}
+                              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
+                                {/* Track A — Internal: own-site GEO content */}
+                                <div style={{ borderRadius: 10, padding: 14, background: theme.cardBg, border: "1px solid #10A37F40" }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Own site · Internal</div>
+                                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                                    <div style={{ minWidth: 0 }}>
+                                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Generate GEO content for this query</span>
+                                      <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0" }}>Create an optimized article on your own site to appear in AI answers.</p>
                                     </div>
                                   </div>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    {contentQueue.includes(q.id) ? (
-                                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                        <span style={{ fontSize: 15, fontWeight: 500, color: "#10A37F", padding: "4px 12px", background: "#10A37F15", borderRadius: 20 }}>Added to content queue</span>
-                                        <HoverButton filled onClick={(e) => { e.stopPropagation(); window.location.href = "/editor"; }} theme={theme} style={{ padding: "6px 14px", fontSize: 15, fontWeight: 600, ...btnFilled, borderRadius: 8, cursor: "pointer" }}>Edit in content editor</HoverButton>
-                                      </div>
-                                    ) : (
-                                      <HoverButton filled onClick={(e) => { e.stopPropagation(); setContentQueue([...contentQueue, q.id]); }} theme={theme} style={{ padding: "6px 14px", fontSize: 15, fontWeight: 600, color: "#fff", background: "#10A37F", border: "1px solid #10A37F", borderRadius: 8, cursor: "pointer" }}>
-                                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-                                          Create content
-                                        </span>
-                                      </HoverButton>
-                                    )}
+                                  {contentQueue.includes(q.id) ? (
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                      <span style={{ fontSize: 13, fontWeight: 500, color: "#10A37F", padding: "4px 12px", background: "#10A37F15", borderRadius: 20 }}>Added to content queue</span>
+                                      <HoverButton filled onClick={(e) => { e.stopPropagation(); window.location.href = "/editor"; }} theme={theme} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, ...btnFilled, borderRadius: 8, cursor: "pointer" }}>Edit in content editor</HoverButton>
+                                    </div>
+                                  ) : (
+                                    <HoverButton filled onClick={(e) => { e.stopPropagation(); setContentQueue([...contentQueue, q.id]); }} theme={theme} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#10A37F", border: "1px solid #10A37F", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+                                      Create content
+                                    </HoverButton>
+                                  )}
+                                </div>
+
+                                {/* Track B — External: publisher article via ScalePublish */}
+                                <div style={{ borderRadius: 10, padding: 14, background: theme.cardBg, border: "1px solid #B4530940" }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: "#B45309", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Publisher · External</div>
+                                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                    <div style={{ minWidth: 0 }}>
+                                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>Order article on Ynet, Calcalist, Sport5...</span>
+                                      <p style={{ fontSize: 13, color: theme.textSecondary, margin: "2px 0 0" }}>Buy a placement on a 3rd-party publisher. Goes through ScalePublish &amp; into your client proposal.</p>
+                                    </div>
                                   </div>
+                                  <a href={`/scale-publish?source=${encodeURIComponent(typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("domain") || "all4horses.co.il" : "all4horses.co.il")}&queryText=${encodeURIComponent(q.text)}`} onClick={(e) => e.stopPropagation()} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#B45309", border: "1px solid #B45309", borderRadius: 8, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+                                    Order external article
+                                  </a>
                                 </div>
                               </div>
                             </div>

@@ -531,6 +531,27 @@ export default function ScalePublishPage() {
     saveToLS(LS_KEY_USER_MODE, userMode);
   }, [userMode]);
 
+  // ── Deep-link from /scan: ?source=domain.co.il&queryText=... ──
+  // When the agency clicks "Order external article" on a scan page, we pre-select the query
+  // and remember the source domain so we can show a "From [domain] · Back to scan" breadcrumb.
+  const [scanSource, setScanSource] = useState<{ domain: string; brand?: string } | null>(null);
+  const [deepLinkedQueryText, setDeepLinkedQueryText] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("source");
+    const queryText = params.get("queryText");
+    const brand = params.get("brand") ?? undefined;
+    if (source) {
+      setScanSource({ domain: source, brand });
+      setUserMode("agency");
+    }
+    if (queryText) {
+      setDeepLinkedQueryText(queryText);
+      setUserMode("agency");
+    }
+  }, []);
+
   // ── Cross-view shared state ──
   const [orders, setOrders] = useState<Order[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
@@ -646,6 +667,9 @@ export default function ScalePublishPage() {
             sites={sites}
             sections={sections}
             showToast={showToast}
+            scanSource={scanSource}
+            deepLinkedQueryText={deepLinkedQueryText}
+            clearDeepLink={() => setDeepLinkedQueryText(null)}
           />
         )}
       </div>
@@ -2008,11 +2032,24 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
 type AgencyTab = "queries" | "order-flow" | "orders" | "tracking";
 
-function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
+function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, deepLinkedQueryText, clearDeepLink }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; deepLinkedQueryText?: string | null; clearDeepLink?: () => void }) {
   const [tab, setTab] = useState<AgencyTab>("queries");
   const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  // Deep-link: pre-select the query that the user came from (/scan → "Order external article")
+  useEffect(() => {
+    if (!deepLinkedQueryText) return;
+    const lower = deepLinkedQueryText.toLowerCase();
+    const match = DEMO_QUERIES.find((q) => q.text.toLowerCase() === lower)
+      ?? DEMO_QUERIES.find((q) => q.text.toLowerCase().includes(lower) || lower.includes(q.text.toLowerCase()));
+    if (match) {
+      setSelectedQueryIds((prev) => prev.includes(match.id) ? prev : [...prev, match.id].slice(0, 5));
+      showToast(`Pre-selected query "${match.text}" — pick more or build the article`, "info");
+    }
+    clearDeepLink?.();
+  }, [deepLinkedQueryText]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const myOrdersCount = orders.length;
 
@@ -2025,6 +2062,17 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
 
   return (
     <>
+      {scanSource && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, padding: isMobile ? "10px 14px" : "12px 18px", marginBottom: 14, background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 9 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", minWidth: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.4, textTransform: "uppercase" }}>External content for</span>
+            <Favicon domain={scanSource.domain} size={18} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{scanSource.brand ?? scanSource.domain}</span>
+            <span style={{ fontSize: 12, color: theme.textMuted }}>· every order placed here is added as a line item to your client proposal for this brand</span>
+          </div>
+          <a href={`/scan?domain=${encodeURIComponent(scanSource.domain)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: BRAND_GREEN, textDecoration: "none", padding: "6px 12px", border: `1px solid ${BRAND_GREEN}40`, borderRadius: 7, whiteSpace: "nowrap" }}>← Back to {scanSource.domain} scan</a>
+        </div>
+      )}
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
       {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} />}
       {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} />}
@@ -2415,9 +2463,9 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
               </div>
             </div>
             <button onClick={submitOrder} disabled={submitting || !title.trim()} style={{ width: "100%", padding: "14px 22px", fontSize: 15, fontWeight: 700, background: submitting ? theme.barTrack : BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: submitting ? "wait" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {submitting ? "Sending to Yedioth..." : <>Submit order to Yedioth Ahronoth <IconArrowRight size={14} /></>}
+              {submitting ? "Adding to client proposal..." : <>Add to client proposal &amp; send to Yedioth <IconArrowRight size={14} /></>}
             </button>
-            <div style={{ fontSize: 11, color: theme.textMuted, textAlign: "center", marginTop: 10 }}>Yedioth's sales team will contact your agency to confirm and collect payment. ~3 day publication window per article.</div>
+            <div style={{ fontSize: 11, color: theme.textMuted, textAlign: "center", marginTop: 10 }}>This becomes a line item on your master client proposal. Yedioth's sales team contacts you to confirm. ~3 days per article.</div>
           </>
         )}
       </div>
