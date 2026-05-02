@@ -17,14 +17,14 @@ type Theme = {
   inputBg: string; barTrack: string; logoFill: string; logoStroke: string;
 };
 const LIGHT_THEME: Theme = {
-  bg: "#FFFFFF", cardBg: "#FFFFFF", border: "#E5E5E5", text: "#000000", textSecondary: "#727272",
-  textMuted: "#A2A9B0", headerBg: "rgba(255,255,255,0.96)", hoverBg: "#FAFAFA",
+  bg: "#FFFFFF", cardBg: "#FFFFFF", border: "#E5E5E5", text: "#0F172A", textSecondary: "#475569",
+  textMuted: "#64748B", headerBg: "rgba(255,255,255,0.96)", hoverBg: "#FAFAFA",
   tableBg: "#FFFFFF", tableHeaderBg: "#FAFAFA", badgeBg: "#F9F9F9", inputBg: "#FFFFFF",
   barTrack: "#E5E5E5", logoFill: "#141414", logoStroke: "#ABABAB",
 };
 const DARK_THEME: Theme = {
-  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#8B949E",
-  textMuted: "#484F58", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
+  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#9DA5B0",
+  textMuted: "#7B8590", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
   tableBg: "#161B22", tableHeaderBg: "#1C2128", badgeBg: "#1C2128", inputBg: "#0D1117",
   barTrack: "#30363D", logoFill: "#E6EDF3", logoStroke: "#484F58",
 };

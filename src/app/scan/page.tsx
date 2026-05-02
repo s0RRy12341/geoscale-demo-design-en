@@ -33,9 +33,9 @@ const LIGHT_THEME: Theme = {
   bg: "#FFFFFF",
   cardBg: "#FFFFFF",
   border: "#E5E5E5",
-  text: "#000000",
-  textSecondary: "#727272",
-  textMuted: "#A2A9B0",
+  text: "#0F172A",
+  textSecondary: "#475569",
+  textMuted: "#64748B",
   headerBg: "rgba(255,255,255,0.96)",
   hoverBg: "#FAFAFA",
   tableBg: "#FFFFFF",
@@ -52,8 +52,8 @@ const DARK_THEME: Theme = {
   cardBg: "#161B22",
   border: "#30363D",
   text: "#E6EDF3",
-  textSecondary: "#8B949E",
-  textMuted: "#484F58",
+  textSecondary: "#9DA5B0",
+  textMuted: "#7B8590",
   headerBg: "rgba(13,17,23,0.96)",
   hoverBg: "#1C2128",
   tableBg: "#161B22",
@@ -1293,7 +1293,7 @@ export default function ScanPage() {
               <div style={{ padding: isMobile ? "10px 12px" : "10px 16px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", gap: 6 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 500, color: theme.text, margin: 0 }}>Site SEO Metrics</h3>
                 <Tooltip text="Traditional SEO performance data for all4horses.co.il. Source: Domain authority from Ahrefs/Moz, traffic from Google Search Console estimates, keyword rankings from SERP tracking." />
-                <span style={{ marginLeft: "auto", fontSize: 12, color: theme.textMuted, fontWeight: 400 }}>Updated 2 days ago</span>
+                <span style={{ marginLeft: "auto", fontSize: 13, color: theme.textSecondary, fontWeight: 500 }}>Updated 2 days ago</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(6, 1fr)" }}>
                 {[
@@ -1347,7 +1347,7 @@ export default function ScanPage() {
                   <div style={{ width: "100%", height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "95%", height: "100%", borderRadius: 2, background: theme.textSecondary, transition: "width 1s ease" }} />
                   </div>
-                  <p style={{ fontSize: 12, color: theme.textMuted, margin: 0 }}>12 queries · expected high</p>
+                  <p style={{ fontSize: 13, color: theme.textSecondary, margin: 0, fontWeight: 500 }}>12 queries · expected high</p>
                 </div>
                 <div style={{ border: `1px solid ${theme.border}`, borderRadius: 10, padding: 14, position: "relative", background: darkMode ? "rgba(180,83,9,0.06)" : "#FFFBF5" }}>
                   <div style={{ position: "absolute", top: -9, right: 12, background: "#B45309", color: "#fff", fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>KEY METRIC</div>
@@ -1359,7 +1359,7 @@ export default function ScanPage() {
                   <div style={{ width: "100%", height: 4, borderRadius: 2, background: theme.barTrack, overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ width: "68%", height: "100%", borderRadius: 2, background: "#B45309", transition: "width 1s ease" }} />
                   </div>
-                  <p style={{ fontSize: 12, color: theme.textMuted, margin: 0 }}>25 queries · the real GEO metric</p>
+                  <p style={{ fontSize: 13, color: theme.textSecondary, margin: 0, fontWeight: 500 }}>25 queries · the real GEO metric</p>
                 </div>
               </div>
             </div>
@@ -2463,8 +2463,8 @@ export default function ScanPage() {
                 ))}
               </div>
               <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: theme.text }}><strong style={{ color: "#10A37F" }}>{scalePublishBasket.length}</strong> of {MAX_BASKET} queries queued</span>
-                <span style={{ fontSize: 12, color: theme.textMuted }}>One ScalePublish article from <strong style={{ color: theme.textSecondary }}>{scanDomain}</strong></span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: theme.text }}><strong style={{ color: "#10A37F" }}>{scalePublishBasket.length}</strong> of {MAX_BASKET} queries queued</span>
+                <span style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>One ScalePublish article from <strong style={{ color: theme.text }}>{scanDomain}</strong></span>
               </div>
             </div>
 
@@ -2472,7 +2472,7 @@ export default function ScanPage() {
             {!isMobile && (
               <div style={{ flex: 1, minWidth: 0, display: "flex", flexWrap: "wrap", gap: 6, overflow: "hidden", maxHeight: 32 }}>
                 {scalePublishBasket.map((item) => (
-                  <span key={item.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", background: theme.hoverBg, border: `1px solid ${theme.border}`, borderRadius: 14, fontSize: 12, color: theme.text, maxWidth: 280 }}>
+                  <span key={item.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: theme.hoverBg, border: `1px solid ${theme.border}`, borderRadius: 14, fontSize: 13, fontWeight: 500, color: theme.text, maxWidth: 280 }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>
                     <button onClick={() => removeFromBasket(item.id)} aria-label={`Remove ${item.text}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", color: theme.textMuted, padding: 0, flexShrink: 0 }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
