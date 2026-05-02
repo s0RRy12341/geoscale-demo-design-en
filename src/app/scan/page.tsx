@@ -1387,38 +1387,28 @@ export default function ScanPage() {
             </div>
 
             {/* GPT vs Gemini */}
-            <div style={{ ...card, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div style={{ ...card, padding: isMobile ? 14 : 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>AI engine comparison</h3>
                 <Tooltip text="Compares your brand's mention rates between ChatGPT and Google Gemini. Source: ChatGPT and Gemini query analysis" />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
-                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <img src="/logos/chatgpt.svg" width={18} height={18} alt="ChatGPT" style={{ display: "inline-block" }} />
-                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>ChatGPT (GPT-4o)</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { logo: "/logos/chatgpt.svg", name: "ChatGPT (GPT-4o)", pct: 57, color: "#10A37F", count: `${gptMentioned} / ${totalQueries} queries mentioned` },
+                  { logo: "/logos/gemini.svg", name: "Google Gemini", pct: 73, color: "#475569", count: `${geminiMentioned} / ${totalQueries} queries mentioned` },
+                ].map((engine, ei) => (
+                  <div key={ei} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr auto" : "minmax(160px, 200px) 1fr auto auto", gap: isMobile ? 8 : 14, alignItems: "center", padding: "12px 0", borderBottom: ei === 0 ? `1px solid ${theme.border}` : "none" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      <img src={engine.logo} width={20} height={20} alt={engine.name} style={{ display: "inline-block" }} />
+                      <span style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>{engine.name}</span>
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 500, color: "#10A37F" }}>57%</span>
-                  </div>
-                  <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
-                    <div style={{ width: "57%", height: "100%", borderRadius: 3, background: "#10A37F", transition: "width 1s ease" }} />
-                  </div>
-                  <p style={{ fontSize: 15, color: theme.textSecondary, marginTop: 8 }}>{gptMentioned} / {totalQueries} queries mentioned</p>
-                </div>
-                <div style={{ border: thinBorder, borderRadius: 10, padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <img src="/logos/gemini.svg" width={18} height={18} alt="Gemini" style={{ display: "inline-block" }} />
-                      <span style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>Google Gemini</span>
+                    <div style={{ width: "100%", height: 8, borderRadius: 4, background: theme.barTrack, overflow: "hidden", gridColumn: isMobile ? "1 / -1" : "auto" }}>
+                      <div style={{ width: `${engine.pct}%`, height: "100%", borderRadius: 4, background: engine.color, transition: "width 1s ease" }} />
                     </div>
-                    <span style={{ fontSize: 28, fontWeight: 500, color: "#727272" }}>73%</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: engine.color, textAlign: "right", minWidth: 50 }}>{engine.pct}%</span>
+                    <span style={{ fontSize: 13, color: theme.textSecondary, whiteSpace: "nowrap", gridColumn: isMobile ? "1 / -1" : "auto" }}>{engine.count}</span>
                   </div>
-                  <div style={{ width: "100%", height: 6, borderRadius: 3, background: theme.barTrack, overflow: "hidden" }}>
-                    <div style={{ width: "73%", height: "100%", borderRadius: 3, background: "#727272", transition: "width 1s ease" }} />
-                  </div>
-                  <p style={{ fontSize: 15, color: theme.textSecondary, marginTop: 8 }}>{geminiMentioned} / {totalQueries} queries mentioned</p>
-                </div>
+                ))}
               </div>
             </div>
 
@@ -1445,89 +1435,58 @@ export default function ScanPage() {
               })}
             </div>
 
-            {/* Persona + Competitors */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Identified persona</h3>
-                  <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses. Source: AI response analysis" />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  {[
-                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg>, label: "Target audience", value: "Parents of children with special needs, therapists, special-education teachers, and youth" },
-                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: "Industry", value: "Therapeutic riding, horse ranches, complementary therapy" },
-                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, label: "Location", value: "Israel" },
-                    { icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>, label: "Value proposition", value: "Professional therapeutic riding combined with a personal, research-driven approach" },
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderBottom: i < 3 ? `1px solid ${theme.border}` : "none" }}>
-                      <div style={{ flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center" }}>{item.icon}</div>
-                      <div>
-                        <div style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>{item.label}</div>
-                        <div style={{ ...bodyText, lineHeight: 1.5 }}>{item.value}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Identified persona — compact single-line-per-attribute layout */}
+            <div style={{ ...card, padding: isMobile ? 14 : 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Identified persona</h3>
+                <Tooltip text="Target audience profile identified from analysis of queries and AI engine responses. Source: AI response analysis" />
               </div>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Competitors</h3>
-                  <Tooltip text="Presence scores of leading competitors compared to your brand. Source: ChatGPT and Gemini query analysis" />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {COMPETITORS.map((comp, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 500, color: theme.text, flexShrink: 0 }}>{i + 1}</div>
-                      <img src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`} alt="" width={24} height={24} style={{ borderRadius: 5, flexShrink: 0, border: `1px solid ${theme.border}`, background: darkMode ? "#FFFFFF" : theme.cardBg, padding: darkMode ? 2 : 0 }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 500, color: theme.text }}>{comp.name}</div>
-                        <div style={{ fontSize: 15, color: theme.textMuted }}>{comp.domain}</div>
-                      </div>
-                      <div style={{ width: 80, height: 6, borderRadius: 3, overflow: "hidden", background: theme.barTrack }}>
-                        <div style={{ width: `${comp.score}%`, height: "100%", borderRadius: 3, background: "#10A37F" }} />
-                      </div>
-                      <span style={{ fontSize: 15, fontWeight: 500, width: 36, textAlign: "right", color: theme.text }}>{comp.score}%</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg>, label: "Target audience", value: "Parents of children with special needs, therapists, special-education teachers, and youth" },
+                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: "Industry", value: "Therapeutic riding, horse ranches, complementary therapy" },
+                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, label: "Location", value: "Israel" },
+                  { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>, label: "Value proposition", value: "Professional therapeutic riding combined with a personal, research-driven approach" },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: isMobile ? "auto 1fr" : "180px 1fr", alignItems: "center", gap: isMobile ? 8 : 14, padding: "10px 0", borderBottom: i < 3 ? `1px solid ${theme.border}` : "none" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: theme.textSecondary, fontSize: 13, fontWeight: 600, letterSpacing: "0.4px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                      {item.icon}
+                      <span>{item.label}</span>
                     </div>
-                  ))}
-                </div>
+                    <div style={{ fontSize: 15, color: theme.text, lineHeight: 1.45, fontWeight: 500 }}>{item.value}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Sentiment + Citation Quality */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Sentiment</h3>
-                  <Tooltip text="The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis" />
+            {/* Sentiment + Citation Quality — compact two-row card */}
+            <div style={{ ...card, padding: isMobile ? 14 : 16 }}>
+              {[
+                { title: "Sentiment", subtitle: "How AI talks about you", tooltip: "The overall tone in which AI engines present your brand - positive, neutral, or negative. Source: ChatGPT and Gemini response analysis", segments: [{ label: "Positive", pct: 80, color: "#10A37F" }, { label: "Neutral", pct: 20, color: theme.textMuted }, { label: "Negative", pct: 0, color: "#B45309" }] },
+                { title: "Citation quality", subtitle: "How well AI links back to you", tooltip: "How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis", segments: [{ label: "High", pct: 35, color: "#10A37F" }, { label: "Medium", pct: 30, color: theme.textMuted }, { label: "Low", pct: 35, color: theme.text }] },
+              ].map((row, ri) => (
+                <div key={ri} style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(180px, 220px) 1fr auto", gap: isMobile ? 10 : 18, alignItems: "center", padding: "12px 0", borderBottom: ri === 0 ? `1px solid ${theme.border}` : "none" }}>
+                  <div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <h4 style={{ fontSize: 15, fontWeight: 600, color: theme.text, margin: 0 }}>{row.title}</h4>
+                      <Tooltip text={row.tooltip} />
+                    </div>
+                    <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{row.subtitle}</div>
+                  </div>
+                  <div style={{ display: "flex", height: 10, borderRadius: 6, overflow: "hidden", background: theme.barTrack, minWidth: 140 }}>
+                    {row.segments.map((s, si) => s.pct > 0 && <div key={si} style={{ width: `${s.pct}%`, background: s.color, transition: "width 1s ease" }} />)}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 14, fontSize: 13, justifyContent: isMobile ? "flex-start" : "flex-end" }}>
+                    {row.segments.map((s, si) => (
+                      <div key={si} style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                        <div style={{ width: 9, height: 9, borderRadius: 5, background: s.color }} />
+                        <span style={{ color: theme.textSecondary }}>{s.label}</span>
+                        <span style={{ fontWeight: 700, color: theme.text }}>{s.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 16px" }}>How AI talks about you</p>
-                <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", background: theme.barTrack, marginBottom: 12 }}>
-                  <div style={{ width: "80%", background: "#10A37F", transition: "width 1s ease" }} />
-                  <div style={{ width: "20%", background: theme.textMuted, transition: "width 1s ease" }} />
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ color: theme.textSecondary }}>Positive</span><span style={{ fontWeight: 600, color: theme.text }}>80%</span></div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ color: theme.textSecondary }}>Neutral</span><span style={{ fontWeight: 600, color: theme.text }}>20%</span></div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#B45309" }} /><span style={{ color: theme.textSecondary }}>Negative</span><span style={{ fontWeight: 600, color: theme.text }}>0%</span></div>
-                </div>
-              </div>
-              <div style={{ ...card, padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 500, color: theme.text, margin: 0 }}>Citation quality</h3>
-                  <Tooltip text="How accurately and fully AI engines cite your brand. Source: ChatGPT and Gemini response analysis" />
-                </div>
-                <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 0 16px" }}>How well AI links back to you</p>
-                <div style={{ display: "flex", height: 14, borderRadius: 8, overflow: "hidden", background: theme.barTrack, marginBottom: 12 }}>
-                  <div style={{ width: "35%", background: "#10A37F", transition: "width 1s ease" }} />
-                  <div style={{ width: "30%", background: theme.textMuted, transition: "width 1s ease" }} />
-                  <div style={{ width: "35%", background: theme.text, transition: "width 1s ease" }} />
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: "#10A37F" }} /><span style={{ color: theme.textSecondary }}>High</span><span style={{ fontWeight: 600, color: theme.text }}>35%</span></div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.textMuted }} /><span style={{ color: theme.textSecondary }}>Medium</span><span style={{ fontWeight: 600, color: theme.text }}>30%</span></div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 5, background: theme.text }} /><span style={{ color: theme.textSecondary }}>Low</span><span style={{ fontWeight: 600, color: theme.text }}>35%</span></div>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Top 5 Keywords */}

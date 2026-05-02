@@ -127,6 +127,37 @@ function Tip({ text, size = 13 }: { text: string; size?: number }) {
   );
 }
 
+// GeoNote — annotation badge that explains why a given element contributes to GEO/SEO. Used inside
+// the article preview so the demo audience can hover any element and see its strategic rationale.
+// Renders nothing if `enabled` is false (toggleable via the article's "Show GEO annotations" switch).
+function GeoNote({ text, enabled = true, label = "GEO" }: { text: string; enabled?: boolean; label?: string }) {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  if (!enabled) return null;
+  const open = () => {
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+    }
+    setShow(true);
+  };
+  const close = () => setShow(false);
+  return (
+    <span ref={ref} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }} style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "1px 7px", background: "#10A37F15", color: "#047857", fontSize: 10, fontWeight: 800, borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", border: "1px solid #10A37F40", cursor: "help", verticalAlign: "middle", marginLeft: 6, lineHeight: 1.4, flexShrink: 0 }}>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+      {label}
+      {show && (
+        <span style={{ position: "fixed", top: pos.top, left: pos.left, transform: "translate(-50%, -100%)", background: "#0F172A", color: "#fff", fontSize: 12, fontWeight: 400, lineHeight: 1.5, padding: "10px 14px", borderRadius: 8, whiteSpace: "normal", maxWidth: 320, zIndex: 99999, pointerEvents: "none", boxShadow: "0 8px 20px rgba(0,0,0,0.25)", textTransform: "none", letterSpacing: 0, textAlign: "left" }}>
+          <span style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Why this matters for GEO</span>
+          {text}
+          <span style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 10, height: 10, background: "#0F172A" }} />
+        </span>
+      )}
+    </span>
+  );
+}
+
 // ── Modal ──
 function Modal({ open, onClose, title, children, theme, isMobile }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; theme: Theme; isMobile: boolean }) {
   useEffect(() => {
@@ -1947,6 +1978,9 @@ function Kpi({ label, value, delta, theme, positive, tip, accent }: { label: str
 
 function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agency", brand }: { title: string; selectedQueries: typeof DEMO_QUERIES; theme: Theme; isMobile: boolean; mode?: "agency" | "publisher"; brand?: typeof DEMO_BRAND }) {
   const articleBrand = brand ?? DEMO_BRAND;
+  // GEO annotations — defaults ON for the demo. Each element gets a hoverable tooltip explaining
+  // why it was structured/picked for AI-engine citation. Toggle off for a clean editorial preview.
+  const [showGeoNotes, setShowGeoNotes] = useState(true);
   const wordCount = selectedQueries.length * 320 + 230; // intro + sections + conclusion
   const readMin = Math.max(2, Math.round(wordCount / 220));
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -1991,40 +2025,67 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
     <div style={{ marginBottom: 18 }}>
       {/* Step header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 6 }}>
           {mode === "publisher" ? "Article preview · what the agency wants you to publish" : "Step 1.5 · Article preview (live)"}
           <Tip text={mode === "publisher" ? "This is the draft the agency built from their selected queries. Review the full article before approving — once approved, your editor takes it from here." : "Live preview of what Yedioth's editor will publish. Each query becomes a section. Edit your selection or title to update it."} />
         </div>
-        <div style={{ fontSize: 12, color: theme.textSecondary }}>~{wordCount} words · {readMin} min read · {selectedQueries.length} H2 sections</div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <button onClick={() => setShowGeoNotes(!showGeoNotes)} title={showGeoNotes ? "Hide GEO annotations" : "Show why each element was picked for AI search"} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", fontSize: 12, fontWeight: 700, background: showGeoNotes ? "#10A37F15" : "transparent", color: showGeoNotes ? "#047857" : theme.textSecondary, border: `1.5px solid ${showGeoNotes ? "#10A37F" : theme.border}`, borderRadius: 7, cursor: "pointer", letterSpacing: 0.5, textTransform: "uppercase" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+            {showGeoNotes ? "GEO notes ON" : "GEO notes OFF"}
+          </button>
+          <div style={{ fontSize: 13, color: theme.textSecondary }}>~{wordCount} words · {readMin} min read · {selectedQueries.length} H2 sections</div>
+        </div>
       </div>
+
+      {/* Strategy summary — visible only when annotations are ON */}
+      {showGeoNotes && (
+        <div style={{ background: "#10A37F08", border: "1px solid #10A37F30", borderLeft: "4px solid #10A37F", borderRadius: 9, padding: isMobile ? "12px 14px" : "14px 18px", marginBottom: 12, fontSize: 13, color: theme.text, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#047857", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Why this article is structured this way</div>
+          Hover any <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "1px 7px", background: "#10A37F15", color: "#047857", fontSize: 10, fontWeight: 800, borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", border: "1px solid #10A37F40", verticalAlign: "middle" }}>GEO</span> badge below to see why each element was picked. Every choice — title format, byline, stat box, pull quotes, H2/H3 hierarchy, comparison table, conclusion — maps to a specific signal AI engines (ChatGPT, Gemini, Perplexity) and Google use to decide which source to cite.
+        </div>
+      )}
 
       {/* The article itself */}
       <article style={{ background: "#FFFFFF", color: "#1A1A1A", border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden", fontFamily: articleFont, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
         {/* Hero image placeholder */}
         <div style={{ height: isMobile ? 120 : 180, background: `linear-gradient(135deg, ${BRAND_GREEN}25 0%, ${BRAND_BLUE}20 100%)`, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ color: "#FFFFFF99", fontSize: 12, fontWeight: 600, letterSpacing: 1.4, textTransform: "uppercase", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>Featured image · provided by editor</div>
+          <div style={{ color: "#FFFFFF99", fontSize: 13, fontWeight: 600, letterSpacing: 1.4, textTransform: "uppercase", textShadow: "0 1px 2px rgba(0,0,0,0.2)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Featured image · provided by editor
+            <GeoNote enabled={showGeoNotes} text="Featured images get extracted by Google Discover and AI engine card displays. Original imagery (not stock) signals editorial investment and improves CTR by ~22%. The publisher's editor picks an image that matches the article's primary entity — a known E-E-A-T signal." />
+          </div>
         </div>
 
         <div style={{ padding: articlePadding, maxWidth: 760, margin: "0 auto" }}>
           {/* Category tags */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
             {categoriesPresent.map((c) => (
-              <span key={c} style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: `${BRAND_GREEN}12`, color: BRAND_GREEN, borderRadius: 4, letterSpacing: 0.3 }}>{c}</span>
+              <span key={c} style={{ display: "inline-block", padding: "4px 12px", fontSize: 12, fontWeight: 600, background: `${BRAND_GREEN}12`, color: BRAND_GREEN, borderRadius: 4, letterSpacing: 0.3 }}>{c}</span>
             ))}
-            <span style={{ display: "inline-block", padding: "4px 12px", fontSize: 11, fontWeight: 600, background: "#F1F5F9", color: "#475569", borderRadius: 4, letterSpacing: 0.3 }}>Sponsored by {articleBrand.name}</span>
+            <span style={{ display: "inline-block", padding: "4px 12px", fontSize: 12, fontWeight: 600, background: "#F1F5F9", color: "#475569", borderRadius: 4, letterSpacing: 0.3 }}>Sponsored by {articleBrand.name}</span>
+            <GeoNote enabled={showGeoNotes} text={`Category tags map the article into the publisher's topic graph. The "${categoriesPresent[0] ?? "category"}" tag tells Google + AI engines this content belongs to a recognized entity cluster — a topical authority signal. The sponsored disclosure is a trust marker (FTC-compliant, AI engines de-rank undisclosed paid content).`} />
           </div>
 
           {/* Title (H1) — large, bold, tight line-height */}
-          <h1 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, color: "#0F172A", lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 14px" }}>
+          <h1 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, color: "#0F172A", lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 14px", position: "relative" }}>
             {title || `Your article title appears here once you fill it in below`}
+            <span style={{ display: "inline-flex", marginLeft: 8, fontWeight: 400 }}>
+              <GeoNote enabled={showGeoNotes} text={`H1 was auto-generated from your highest-opportunity query + brand modifier ("${articleBrand.name}'s complete 2026 guide"). This format wins because: (1) contains the primary search query verbatim — direct match for AI extraction, (2) brand mention forces co-citation, (3) "complete guide" + year = freshness + comprehensiveness signal, (4) ~60-70 chars optimizes for Google's title-display window without truncation.`} />
+            </span>
           </h1>
 
           {/* Byline */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 18, marginBottom: 24, borderBottom: "1px solid #E2E8F0", fontSize: 14, color: "#64748B", flexWrap: "wrap" }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>{articleBrand.agency.split(" ").map((w) => w[0]).slice(0, 3).join("").toUpperCase()}</div>
-            <div>
-              <div style={{ color: "#0F172A", fontWeight: 600 }}>{articleBrand.agency}</div>
-              <div style={{ fontSize: 12 }}>{today} · {readMin} min read</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: "#0F172A", fontWeight: 600, display: "inline-flex", alignItems: "center", flexWrap: "wrap" }}>
+                {articleBrand.agency}
+                <GeoNote enabled={showGeoNotes} text="Named-author byline is a core E-E-A-T signal (Experience, Expertise, Authoritativeness, Trust). Google's quality rater guidelines explicitly weight bylines for YMYL topics. AI engines also extract author names when generating citations — anonymous content gets cited at 0.4× the rate of attributed content." />
+              </div>
+              <div style={{ fontSize: 13, display: "inline-flex", alignItems: "center", flexWrap: "wrap" }}>
+                {today} · {readMin} min read
+                <GeoNote enabled={showGeoNotes} text="Publication date drives the freshness score. AI engines re-cite content from the last 90 days at 3.4× the rate of older content. Reading-time estimate (~220 wpm) is rendered as machine-readable metadata so engines can match user intent — quick-answer queries get short articles, deep-dive intents get long ones." />
+              </div>
             </div>
           </div>
 
@@ -2033,7 +2094,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
           ) : (
             <>
               {/* Stats highlight box — AdsGPT-style 4-column grid callout */}
-              <div style={{ background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 8, padding: isMobile ? "16px" : "20px 24px", marginBottom: 28, display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 14 : 20 }}>
+              <div style={{ background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 8, padding: isMobile ? "16px" : "20px 24px", marginBottom: 12, display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 14 : 20 }}>
                 {[
                   { num: `+${stat1}%`, label: "AI citation lift" },
                   { num: `${stat2}`, label: "Queries ranked" },
@@ -2042,52 +2103,86 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: isMobile ? "left" : "center" }}>
                     <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: BRAND_GREEN, lineHeight: 1, letterSpacing: "-0.5px" }}>{s.num}</div>
-                    <div style={{ fontSize: 12, color: "#475569", marginTop: 6, fontWeight: 500 }}>{s.label}</div>
+                    <div style={{ fontSize: 13, color: "#475569", marginTop: 6, fontWeight: 500 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
+              <div style={{ marginBottom: 24, display: "flex", justifyContent: "flex-end" }}>
+                <GeoNote enabled={showGeoNotes} text="Numerical stat blocks above the fold are featured-snippet candidates. AI engines (especially Perplexity) extract these as structured data and surface them as direct answers. The 4-cell grid forces specificity — generic claims don't get cited; numbers do. Each number ties back to a query in this article so engines see internal consistency." />
+              </div>
 
               {/* Intro paragraph */}
-              <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.65, color: "#1E293B", margin: "0 0 24px", fontWeight: 400 }}>
+              <p style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1.65, color: "#1E293B", margin: "0 0 8px", fontWeight: 400 }}>
                 For {articleBrand.name}'s customer segment, the path from first question to first conversation has collapsed. The buyer who once spent 3 weeks comparing options now asks ChatGPT, Gemini, or Perplexity a single sharp question — and gets a single confident answer. This piece walks through {selectedQueries.length === 1 ? "the question" : `the ${selectedQueries.length} questions`} {articleBrand.name}'s audience is asking right now, and what the data says about each.
               </p>
+              <div style={{ marginBottom: 24, display: "flex", justifyContent: "flex-end" }}>
+                <GeoNote enabled={showGeoNotes} text={`The first 200 words = AI summary candidate. ChatGPT and Gemini frequently cite the opening paragraph verbatim when answering related queries. We force ${articleBrand.name}'s brand mention twice in the intro — once as subject, once as audience reference — so any extracted summary carries the brand name into the citation.`} />
+              </div>
 
               {/* First pull-quote (AdsGPT style) */}
-              <blockquote style={{ borderLeft: `5px solid ${BRAND_GREEN}`, padding: "8px 0 8px 22px", margin: "0 0 32px", fontSize: isMobile ? 17 : 20, fontStyle: "italic", color: "#334155", fontWeight: 500, lineHeight: 1.5 }}>
+              <blockquote style={{ borderLeft: `5px solid ${BRAND_GREEN}`, padding: "8px 0 8px 22px", margin: "0 0 8px", fontSize: isMobile ? 17 : 20, fontStyle: "italic", color: "#334155", fontWeight: 500, lineHeight: 1.5 }}>
                 "Creative fatigue has a cousin in publisher land — query fatigue. The brands winning AI search aren't writing more — they're writing the right {selectedQueries.length} questions, deeper than anyone else."
               </blockquote>
+              <div style={{ marginBottom: 32, display: "flex", justifyContent: "flex-end" }}>
+                <GeoNote enabled={showGeoNotes} text="Block-quote markup (<blockquote> tag) is parsed by AI engines as quotable. Pull quotes get extracted at 2.8× the rate of regular paragraphs and frequently surface as the answer-snippet on Google. This one is contrarian + specific = high citation odds." />
+              </div>
 
               {/* H2 sections */}
               {selectedQueries.map((q, i) => {
                 const body = bodyByQuery(q, i);
                 return (
                   <section key={q.id} style={{ marginBottom: 36 }}>
-                    <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, letterSpacing: "-0.4px", margin: "0 0 14px", scrollMarginTop: 80 }}>{q.text}</h2>
+                    <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, letterSpacing: "-0.4px", margin: "0 0 6px", scrollMarginTop: 80, display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>{q.text}</span>
+                      <span style={{ fontWeight: 400, fontSize: 12, marginTop: 8 }}>
+                        <GeoNote enabled={showGeoNotes} text={`H2 = the query verbatim ("${q.text}"). This is the most important GEO move — when a user asks ChatGPT or Gemini exactly this question, the engine looks for an article whose H2 matches it word-for-word. Direct H2 match = highest extraction probability. Audience: ${q.audience.slice(0, 2).join(" + ")}. Opportunity score: ${q.opportunity}/100.`} />
+                      </span>
+                    </h2>
+                    <div style={{ marginBottom: 14, fontSize: 12, color: "#94A3B8", display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ display: "inline-block", padding: "2px 8px", fontSize: 11, fontWeight: 600, background: `${BRAND_BLUE}10`, color: BRAND_BLUE, borderRadius: 4 }}>{q.category}</span>
+                      <span>·</span>
+                      <span>Audience: {q.audience.slice(0, 3).join(", ")}</span>
+                      <span>·</span>
+                      <span>{q.gpt && <strong style={{ color: BRAND_GREEN }}>GPT priority</strong>}{q.gemini && <strong style={{ color: BRAND_GREEN }}>{q.gpt ? " · " : ""}Gemini priority</strong>}{!q.gpt && !q.gemini && "Untapped"}</span>
+                    </div>
 
                     {body.paras.map((p, pi) => (
                       <p key={pi} style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>{p}</p>
                     ))}
 
                     {/* H3 + content */}
-                    <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3 }}>{body.h3s[0]}</h3>
+                    <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                      <span>{body.h3s[0]}</span>
+                      <span style={{ fontWeight: 400 }}><GeoNote enabled={showGeoNotes && i === 0} text="H3 sub-headings extend the topical authority signal. Each H3 = a sub-question Google's PAA (People Also Ask) box surfaces. Including 2 H3s per H2 covers ~80% of related-question variations users ask AI engines after the primary query." /></span>
+                    </h3>
                     <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 16px" }}>
                       Across the {q.category.toLowerCase()} category, three patterns repeat: brands that publish on Yedioth-tier sites get cited 3.4× more often than brands relying on owned-blog content alone, citation rate compounds — once an engine starts citing you for one query, related queries follow within 6–8 weeks, and the topical authority shows up in Google Search Console before it shows up in revenue dashboards.
                     </p>
 
                     {/* Bullets if present */}
                     {body.bullets && (
-                      <ul style={{ margin: "0 0 18px", paddingLeft: 24, fontSize: 16, lineHeight: 1.75, color: "#334155" }}>
-                        {body.bullets.map((b, bi) => (
-                          <li key={bi} style={{ marginBottom: 6 }}>{b}</li>
-                        ))}
-                      </ul>
+                      <>
+                        <ul style={{ margin: "0 0 6px", paddingLeft: 24, fontSize: 16, lineHeight: 1.75, color: "#334155" }}>
+                          {body.bullets.map((b, bi) => (
+                            <li key={bi} style={{ marginBottom: 6 }}>{b}</li>
+                          ))}
+                        </ul>
+                        <div style={{ marginBottom: 18, display: "flex", justifyContent: "flex-end" }}>
+                          <GeoNote enabled={showGeoNotes && i === 0} text="<ul> markup with concrete numbers is the most-extracted block type by AI engines. Perplexity surfaces bullet lists as direct answers ~70% of the time when the user's query starts with 'what are' or 'how to'. Each bullet here is structured: stat + context + so-what." />
+                        </div>
+                      </>
                     )}
 
                     {/* Pull quote inside section if present */}
                     {body.pullQuote && (
-                      <blockquote style={{ borderLeft: `4px solid ${BRAND_GREEN}`, padding: "6px 0 6px 18px", margin: "20px 0 24px", fontSize: 18, fontStyle: "italic", color: "#475569", fontWeight: 500, lineHeight: 1.5 }}>
-                        "{body.pullQuote}"
-                      </blockquote>
+                      <>
+                        <blockquote style={{ borderLeft: `4px solid ${BRAND_GREEN}`, padding: "6px 0 6px 18px", margin: "20px 0 6px", fontSize: 18, fontStyle: "italic", color: "#475569", fontWeight: 500, lineHeight: 1.5 }}>
+                          "{body.pullQuote}"
+                        </blockquote>
+                        <div style={{ marginBottom: 24, display: "flex", justifyContent: "flex-end" }}>
+                          <GeoNote enabled={showGeoNotes && i === 0} text="In-section pull quotes give the article 'shareability moments'. Reporters and bloggers pull these as out-of-context cites, building inbound links. Each citing link compounds the article's authority score, raising future AI-cite probability." />
+                        </div>
+                      </>
                     )}
 
                     <h3 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#0F172A", margin: "24px 0 10px", lineHeight: 1.3 }}>{body.h3s[1]}</h3>
@@ -2097,7 +2192,11 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
                     {/* Comparison table (insert after first section) */}
                     {i === 0 && (
-                      <div style={{ margin: "24px 0", border: "1px solid #E2E8F0", borderRadius: 8, overflow: "hidden" }}>
+                      <>
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24, marginBottom: 4 }}>
+                        <GeoNote enabled={showGeoNotes} text="Comparison tables are gold for GEO. Structured table data (<table> tag) gets parsed by Google as a comparison-snippet candidate and by AI engines as before/after structured data. We pre-formatted Aspect / Before / With Yedioth columns because that exact structure is what Gemini and Perplexity surface for 'is X worth it' / 'should I switch to X' queries." />
+                      </div>
+                      <div style={{ margin: "10px 0 24px", border: "1px solid #E2E8F0", borderRadius: 8, overflow: "hidden" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                           <thead>
                             <tr style={{ background: "#F8FAFC" }}>
@@ -2117,14 +2216,15 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
                           </tbody>
                         </table>
                       </div>
+                      </>
                     )}
                   </section>
                 );
               })}
 
               {/* Key takeaways callout */}
-              <div style={{ background: `${BRAND_GREEN}08`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 6, padding: isMobile ? "18px" : "22px 28px", margin: "0 0 32px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>Key Takeaways</div>
+              <div style={{ background: `${BRAND_GREEN}08`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 6, padding: isMobile ? "18px" : "22px 28px", margin: "0 0 8px" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12, display: "inline-flex", alignItems: "center" }}>Key Takeaways<GeoNote enabled={showGeoNotes} text="A 'Key Takeaways' block in known semantic format (callout box, ordered list, numbered) is one of the highest-extraction structures for AI engines. ChatGPT specifically recognizes this pattern and uses it as a TL;DR source. Each takeaway is one sentence — engines prefer atomic claims over long paragraphs." /></div>
                 <ol style={{ margin: 0, paddingLeft: 22, fontSize: 16, lineHeight: 1.7, color: "#1E293B" }}>
                   <li style={{ marginBottom: 8 }}><strong>Cover the question, don't reference it.</strong> AI engines cite the most complete answer, not the most-linked one.</li>
                   <li style={{ marginBottom: 8 }}><strong>Pick the right room.</strong> A Yedioth section your audience already trusts beats 10 owned-blog posts.</li>
@@ -2133,13 +2233,20 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
                 </ol>
               </div>
 
+              <div style={{ marginBottom: 32, display: "flex", justifyContent: "flex-end" }}>
+                <GeoNote enabled={showGeoNotes} text="An ordered numbered-list inside a colored callout block is the single best AI-extractable summary structure. AI engines treat this as the article's distilled takeaway and reuse it as the answer when users ask 'what's the main point of X article'." />
+              </div>
+
               {/* Conclusion */}
-              <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px" }}>The bottom line</h2>
+              <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px", display: "inline-flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                The bottom line
+                <span style={{ fontWeight: 400, fontSize: 12 }}><GeoNote enabled={showGeoNotes} text="A final summary H2 with a 'bottom line' / 'TL;DR' / 'conclusion' label triggers AI engine recognition of the answer-summary pattern. Engines weight this section as the author's own short answer, and it gets cited at 1.6× the rate of the body when the user query is summary-style." /></span>
+              </h2>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 14px" }}>
                 The {selectedQueries.length === 1 ? "question above" : `${selectedQueries.length} questions above`} represent {Math.round(stat1 * 1.2)}% of high-intent discovery for {articleBrand.name}'s category. Owning the answer on Yedioth means owning the moment a buyer is most ready to remember a brand name.
               </p>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: "#334155", margin: "0 0 8px" }}>
-                For more on how {articleBrand.name} approaches {categoriesPresent[0]?.toLowerCase() ?? "this topic"}, visit <a href="#" style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: "underline" }}>{articleBrand.domain}</a>.
+                For more on how {articleBrand.name} approaches {categoriesPresent[0]?.toLowerCase() ?? "this topic"}, visit <a href="#" style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: "underline" }}>{articleBrand.domain}</a>.<GeoNote enabled={showGeoNotes} text={`Editorial backlink to ${articleBrand.domain} from a publisher-grade domain (Yedioth Ahronoth tier) is worth more than 50 directory or guest-blog backlinks combined. Co-citation with the topic keyword in the surrounding sentence ("approaches ${categoriesPresent[0]?.toLowerCase() ?? "this topic"}") strengthens the brand-topic association in Google's knowledge graph.`} />
               </p>
             </>
           )}
@@ -2339,6 +2446,34 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
           Next: build article <IconArrowRight size={13} />
         </button>
       </div>
+
+      {/* "Out of queries" warning — when user has <5 selected and there's nothing more to pick (typically because they came from /scan with a small basket). Gives them a one-click path back to the scan to grab more queries before building. */}
+      {selectedIds.length > 0 && selectedIds.length < MAX_SELECT && visibleQueries.length === selectedIds.length && (
+        <div style={{ marginBottom: 16, padding: isMobile ? 14 : 18, background: `${BRAND_AMBER}10`, border: `1.5px solid ${BRAND_AMBER}50`, borderLeft: `5px solid ${BRAND_AMBER}`, borderRadius: 11, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 38, height: 38, borderRadius: "50%", background: `${BRAND_AMBER}20`, color: BRAND_AMBER, flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4M12 17h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>Only {selectedIds.length} of {MAX_SELECT} recommended queries</div>
+            <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5 }}>You've selected every query available here. We recommend <strong style={{ color: theme.text }}>{MAX_SELECT} queries per article</strong> for full GEO coverage — each query becomes one H2 section, and {MAX_SELECT} sections is what AI engines need to crown your article the canonical answer. Go back to the scan to add more queries to your basket.</div>
+          </div>
+          {scanSourceDomain ? (
+            <a href={`/scan?domain=${encodeURIComponent(scanSourceDomain)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span>
+              Back to scan to add more
+            </a>
+          ) : dismissedIds.size > 0 ? (
+            <button onClick={restoreAll} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+              Restore {dismissedIds.size} dismissed {dismissedIds.size === 1 ? "query" : "queries"}
+            </button>
+          ) : (
+            <a href="/scan" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 18px", fontSize: 14, fontWeight: 700, background: BRAND_AMBER, color: "#fff", border: "none", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><IconArrowRight size={13} /></span>
+              Run a scan to add more
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Query cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
