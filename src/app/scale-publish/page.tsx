@@ -2560,6 +2560,8 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   const [submitted, setSubmitted] = useState(false);
   // Publisher-site filter (Step 4): empty Set = show all sites; non-empty = restrict to chosen sites.
   const [siteFilter, setSiteFilter] = useState<Set<string>>(new Set());
+  // Category (תחום) filter (Step 4): empty Set = all categories; non-empty = restrict by section category.
+  const [categoryFilter, setCategoryFilter] = useState<Set<string>>(new Set());
   // Wizard step (1..5). Each step has its own panel + Back/Continue footer.
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
@@ -2787,30 +2789,51 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       {currentStep === 4 && (
       <div style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 4 · Yedioth sections matched to your queries (sorted by fit)</div>
-          <div style={{ fontSize: 12, color: theme.textSecondary }}>{(() => { const visible = matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)); return `${visible.length} of ${matchedSections.length} matches · ${cartSectionIds.length} selected`; })()}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 4 · Yedioth sections matched to your queries (sorted by fit)</div>
+          <div style={{ fontSize: 13, color: theme.textSecondary }}>{(() => { const visible = matchedSections.filter((m) => (siteFilter.size === 0 || siteFilter.has(m.section.siteId)) && (categoryFilter.size === 0 || categoryFilter.has(m.section.category))); return `${visible.length} of ${matchedSections.length} matches · ${cartSectionIds.length} selected`; })()}</div>
         </div>
         {/* Site filter chips — let agency narrow to specific Yedioth properties (Ynet, Calcalist, Mako…) */}
         {sites.length > 1 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 10, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginRight: 4 }}>Focus on</span>
-            <button onClick={() => setSiteFilter(new Set())} style={{ padding: "5px 10px", fontSize: 12, fontWeight: 600, background: siteFilter.size === 0 ? BRAND_GREEN : "transparent", color: siteFilter.size === 0 ? "#fff" : theme.textSecondary, border: `1px solid ${siteFilter.size === 0 ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer" }}>All sites</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginRight: 4 }}>Site</span>
+            <button onClick={() => setSiteFilter(new Set())} style={{ padding: "6px 12px", fontSize: 13, fontWeight: 600, background: siteFilter.size === 0 ? BRAND_GREEN : "transparent", color: siteFilter.size === 0 ? "#fff" : theme.textSecondary, border: `1px solid ${siteFilter.size === 0 ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer" }}>All sites</button>
             {sites.map((s) => {
               const active = siteFilter.has(s.id);
               const matchCount = matchedSections.filter((m) => m.section.siteId === s.id).length;
               if (matchCount === 0) return null;
               return (
-                <button key={s.id} onClick={() => { const next = new Set(siteFilter); if (active) next.delete(s.id); else next.add(s.id); setSiteFilter(next); }} style={{ padding: "5px 10px", fontSize: 12, fontWeight: 600, background: active ? BRAND_GREEN : "transparent", color: active ? "#fff" : theme.textSecondary, border: `1px solid ${active ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
-                  <Favicon domain={s.domain} size={13} />
+                <button key={s.id} onClick={() => { const next = new Set(siteFilter); if (active) next.delete(s.id); else next.add(s.id); setSiteFilter(next); }} style={{ padding: "6px 12px", fontSize: 13, fontWeight: 600, background: active ? BRAND_GREEN : "transparent", color: active ? "#fff" : theme.textSecondary, border: `1px solid ${active ? BRAND_GREEN : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  <Favicon domain={s.domain} size={14} />
                   {s.name}
-                  <span style={{ fontSize: 10, color: active ? "#ffffffcc" : theme.textMuted }}>({matchCount})</span>
+                  <span style={{ fontSize: 11, color: active ? "#ffffffcc" : theme.textMuted }}>({matchCount})</span>
                 </button>
               );
             })}
           </div>
         )}
+        {/* Category (תחום) filter chips — narrow by editorial vertical (Tech, Finance, Real Estate, Lifestyle…) */}
+        {(() => {
+          const cats = Array.from(new Set(matchedSections.map((m) => m.section.category)));
+          if (cats.length <= 1) return null;
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 10, padding: 10, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginRight: 4 }}>Category · תחום</span>
+              <button onClick={() => setCategoryFilter(new Set())} style={{ padding: "6px 12px", fontSize: 13, fontWeight: 600, background: categoryFilter.size === 0 ? BRAND_BLUE : "transparent", color: categoryFilter.size === 0 ? "#fff" : theme.textSecondary, border: `1px solid ${categoryFilter.size === 0 ? BRAND_BLUE : theme.border}`, borderRadius: 6, cursor: "pointer" }}>All categories</button>
+              {cats.map((c) => {
+                const active = categoryFilter.has(c);
+                const matchCount = matchedSections.filter((m) => m.section.category === c).length;
+                return (
+                  <button key={c} onClick={() => { const next = new Set(categoryFilter); if (active) next.delete(c); else next.add(c); setCategoryFilter(next); }} style={{ padding: "6px 12px", fontSize: 13, fontWeight: 600, background: active ? BRAND_BLUE : "transparent", color: active ? "#fff" : theme.textSecondary, border: `1px solid ${active ? BRAND_BLUE : theme.border}`, borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    {c}
+                    <span style={{ fontSize: 11, color: active ? "#ffffffcc" : theme.textMuted }}>({matchCount})</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
-          {matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)).slice(0, 18).map((m, i, arr) => {
+          {matchedSections.filter((m) => (siteFilter.size === 0 || siteFilter.has(m.section.siteId)) && (categoryFilter.size === 0 || categoryFilter.has(m.section.category))).slice(0, 18).map((m, i, arr) => {
             const site = sites.find((s) => s.id === m.section.siteId);
             if (!site) return null;
             const inCart = cartSectionIds.includes(m.section.id);
@@ -2851,9 +2874,9 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
               </div>
             );
           })}
-          {matchedSections.filter((m) => siteFilter.size === 0 || siteFilter.has(m.section.siteId)).length === 0 && (
+          {matchedSections.filter((m) => (siteFilter.size === 0 || siteFilter.has(m.section.siteId)) && (categoryFilter.size === 0 || categoryFilter.has(m.section.category))).length === 0 && (
             <div style={{ padding: 24, textAlign: "center", fontSize: 14, color: theme.textSecondary }}>
-              No sections match the current site filter. <button onClick={() => setSiteFilter(new Set())} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>Clear filter</button>
+              No sections match the current filters. <button onClick={() => { setSiteFilter(new Set()); setCategoryFilter(new Set()); }} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>Clear filters</button>
             </div>
           )}
         </div>
