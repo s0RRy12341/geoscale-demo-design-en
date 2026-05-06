@@ -315,9 +315,10 @@ type Order = {
   // target URL + anchor text. If left blank, defaults to brand homepage with "click here" anchor.
   // No premium — this is standard, not an upsell.
   backlink?: { targetUrl: string; anchorText: string };
-  // Payment method: cash (invoice) or credits (article-bank prepaid). Hybrid splits across both
-  // when the cart total exceeds the available credit balance.
-  payment?: { method: "cash" | "credits" | "hybrid"; creditsUsed: number; cashAmount: number };
+  // Payment method (Alexei 2026-05-06: bank in NIS, not credits): cash (invoice) or "bank"
+  // (deduct from agency's prepaid bank balance). "hybrid" splits across both when the cart total
+  // exceeds the available bank balance. bankUsed/cashAmount are both in NIS.
+  payment?: { method: "cash" | "bank" | "hybrid"; bankUsed: number; cashAmount: number };
   // Agency-to-client share: when the agency clicks "Share with client" on an order, we mint a
   // shareId that becomes a deep-link URL. The client opens it and sees a clean review surface
   // (article preview + sections + total). Their decision (approve / request changes) plus any
@@ -349,26 +350,26 @@ type ArticleTracking = {
   impactScore: number;
 };
 
-// Article-bank top-up request (Alexei 2026-05-06): publishers sell the bank manually — they
-// arrange in meetings, agency pays via wire/invoice (not credit card). The agency uses this
-// "Request top-up" entry as a paper-trail. Publisher then either fulfills (sets credits to a
-// new value) or marks the request rejected. They can also adjust an agency's balance manually
-// without an inbound request.
+// Article-bank top-up request (Alexei 2026-05-06). The bank is denominated in MONEY (NIS), not
+// credits — each article's price is deducted from the agency's bank balance. Publishers sell
+// the bank manually (meetings, wire/invoice — never credit card here). The agency uses this
+// "Request top-up" entry as a paper-trail; publisher then fulfils (grants the NIS amount to the
+// balance) or declines. They can also manually adjust without an inbound request.
 type TopUpRequest = {
   id: string;
   agencyName: string;
-  requestedCredits: number;
+  requestedAmount: number; // NIS
   note?: string;
   requestedAt: string;
   status: "pending" | "fulfilled" | "rejected";
   fulfilledAt?: string;
-  fulfilledCredits?: number; // What the publisher actually granted (may differ from request).
+  fulfilledAmount?: number; // What publisher actually granted, in NIS (may differ from request).
 };
 
-type CreditLedgerEntry = {
+type BankLedgerEntry = {
   id: string;
   at: string;
-  delta: number; // Positive = top-up, negative = order debit.
+  delta: number; // NIS. Positive = top-up, negative = order debit / manual deduction.
   reason: string; // Free-text label visible in history.
   by: "publisher" | "system";
 };
@@ -544,14 +545,18 @@ const LS_KEY_USER_MODE = "geoscale-sp-user-mode";
 const LS_KEY_SITES = "geoscale-sp-sites-v1";
 const LS_KEY_SECTIONS = "geoscale-sp-sections-v1";
 const LS_KEY_DELETED_SECTIONS = "geoscale-sp-deleted-sections";
-const LS_KEY_CREDITS = "geoscale-sp-article-credits";
-const LS_KEY_TOPUP_REQUESTS = "geoscale-sp-topup-requests";
-const LS_KEY_CREDIT_LEDGER = "geoscale-sp-credit-ledger";
+// LS keys renamed 2026-05-06 (Alexei: bank in money not credits). New keys so old "8 credits"
+// values in returning browsers don't get reinterpreted as "8 NIS" — they'll just initialise to
+// the new seed (50,000 NIS).
+const LS_KEY_BANK_BALANCE = "geoscale-sp-bank-balance-nis";
+const LS_KEY_TOPUP_REQUESTS = "geoscale-sp-topup-requests-v2";
+const LS_KEY_BANK_LEDGER = "geoscale-sp-bank-ledger-v2";
 
 // ── ARTICLE BANK ("בנק כתבות") ──
-// 1 credit = 1 article placement on any section. Balance is publisher-managed: Yedioth manually
-// updates each agency's credits in admin (no credit-card checkout in this surface). See the
-// `PublisherBankView` and `ArticleBankModal` (agency request form) below for the UI.
+// Balance is in NIS (money), not credits. Publisher-managed: Yedioth manually updates each
+// agency's balance in admin (there is no credit-card checkout). When the agency pays "from
+// bank" at order checkout, the article's price is deducted from this balance. See the
+// `PublisherBankView` (admin) and `ArticleBankModal` (agency request form) below for the UI.
 
 function loadFromLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -690,12 +695,14 @@ export default function ScalePublishPage() {
   const [tracking, setTracking] = useState<ArticleTracking[]>([]);
   const [sites, setSites] = useState<PublisherSite[]>(YEDIOTH_SITES);
   const [sections, setSections] = useState<PublisherSection[]>(YEDIOTH_SECTIONS);
-  // Article-bank credit balance (agency only). Publisher-managed: only the publisher can grant
-  // credits. Demo seed: 8 credits so "pay with credits" is demo-able without first asking the
-  // publisher to top up. Persisted per-browser.
-  const [articleCredits, setArticleCredits] = useState<number>(8);
+  // Article-bank balance, in NIS (Alexei 2026-05-06: money, not credits). Publisher-managed:
+  // only the publisher can grant funds. Each article's price is deducted from this balance when
+  // an agency pays "with bank". Demo seed: 50,000 NIS — covers ~5 articles at the avg ₪9,400/article
+  // anchor price so "pay with bank" is demo-able without asking the publisher to top up.
+  const BANK_DEMO_SEED_NIS = 50000;
+  const [bankBalance, setBankBalance] = useState<number>(BANK_DEMO_SEED_NIS);
   const [topUpRequests, setTopUpRequests] = useState<TopUpRequest[]>([]);
-  const [creditLedger, setCreditLedger] = useState<CreditLedgerEntry[]>([]);
+  const [bankLedger, setBankLedger] = useState<BankLedgerEntry[]>([]);
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -706,10 +713,10 @@ export default function ScalePublishPage() {
     setSites(loadFromLS<PublisherSite[]>(LS_KEY_SITES, YEDIOTH_SITES));
     setSections(loadFromLS<PublisherSection[]>(LS_KEY_SECTIONS, YEDIOTH_SECTIONS));
     setTopUpRequests(loadFromLS<TopUpRequest[]>(LS_KEY_TOPUP_REQUESTS, []));
-    setCreditLedger(loadFromLS<CreditLedgerEntry[]>(LS_KEY_CREDIT_LEDGER, [
-      { id: "ledger-seed-1", at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(), delta: 8, reason: "Initial onboarding grant — manually added by Yedioth team", by: "publisher" },
+    setBankLedger(loadFromLS<BankLedgerEntry[]>(LS_KEY_BANK_LEDGER, [
+      { id: "ledger-seed-1", at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(), delta: BANK_DEMO_SEED_NIS, reason: "Initial onboarding deposit, manually added by Yedioth account team", by: "publisher" },
     ]));
-    setArticleCredits(loadFromLS<number>(LS_KEY_CREDITS, 8));
+    setBankBalance(loadFromLS<number>(LS_KEY_BANK_BALANCE, BANK_DEMO_SEED_NIS));
     setHydrated(true);
   }, []);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_ORDERS, orders); }, [orders, hydrated]);
@@ -717,9 +724,9 @@ export default function ScalePublishPage() {
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_TRACKING, tracking); }, [tracking, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_SITES, sites); }, [sites, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_SECTIONS, sections); }, [sections, hydrated]);
-  useEffect(() => { if (hydrated) saveToLS(LS_KEY_CREDITS, articleCredits); }, [articleCredits, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_BANK_BALANCE, bankBalance); }, [bankBalance, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_TOPUP_REQUESTS, topUpRequests); }, [topUpRequests, hydrated]);
-  useEffect(() => { if (hydrated) saveToLS(LS_KEY_CREDIT_LEDGER, creditLedger); }, [creditLedger, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_BANK_LEDGER, bankLedger); }, [bankLedger, hydrated]);
 
   // ── Effective price (overrides + base) ──
   const getPrice = useCallback((section: PublisherSection) => prices[section.id] ?? section.pricePerArticle, [prices]);
@@ -826,7 +833,7 @@ export default function ScalePublishPage() {
       </header>
 
       {/* ── User Mode Switcher ── */}
-      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} effectiveBrand={effectiveBrand} articleCredits={articleCredits} onOpenBank={() => setBankModalOpen(true)} />
+      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} effectiveBrand={effectiveBrand} bankBalance={bankBalance} onOpenBank={() => setBankModalOpen(true)} />
 
       {/* ── Body ── */}
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 80px" : "32px 24px 80px", width: "100%", boxSizing: "border-box" }}>
@@ -846,12 +853,12 @@ export default function ScalePublishPage() {
             sections={sections}
             setSections={setSections}
             showToast={showToast}
-            articleCredits={articleCredits}
-            setArticleCredits={setArticleCredits}
+            bankBalance={bankBalance}
+            setBankBalance={setBankBalance}
             topUpRequests={topUpRequests}
             setTopUpRequests={setTopUpRequests}
-            creditLedger={creditLedger}
-            setCreditLedger={setCreditLedger}
+            bankLedger={bankLedger}
+            setBankLedger={setBankLedger}
             agencyName={effectiveBrand.agency}
           />
         ) : (
@@ -870,10 +877,10 @@ export default function ScalePublishPage() {
             deepLinkedQueryText={deepLinkedQueryText}
             deepLinkedQueries={deepLinkedQueries}
             clearDeepLink={() => { setDeepLinkedQueryText(null); setDeepLinkedQueries(null); }}
-            articleCredits={articleCredits}
-            setArticleCredits={setArticleCredits}
+            bankBalance={bankBalance}
+            setBankBalance={setBankBalance}
             onOpenBank={() => setBankModalOpen(true)}
-            setCreditLedger={setCreditLedger}
+            setBankLedger={setBankLedger}
           />
         )}
       </div>
@@ -884,14 +891,14 @@ export default function ScalePublishPage() {
           onClose={() => setBankModalOpen(false)}
           theme={theme}
           isMobile={isMobile}
-          currentCredits={articleCredits}
-          ledger={creditLedger}
+          currentBalance={bankBalance}
+          ledger={bankLedger}
           topUpRequests={topUpRequests}
           agencyName={effectiveBrand.agency}
           onSubmitRequest={(req) => {
             const id = `topup-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-            setTopUpRequests((prev) => [{ id, agencyName: effectiveBrand.agency, requestedCredits: req.credits, note: req.note, requestedAt: new Date().toISOString(), status: "pending" }, ...prev]);
-            showToast(`Top-up request sent to Yedioth — ${req.credits} credits`, "success");
+            setTopUpRequests((prev) => [{ id, agencyName: effectiveBrand.agency, requestedAmount: req.amount, note: req.note, requestedAt: new Date().toISOString(), status: "pending" }, ...prev]);
+            showToast(`Top-up request sent to Yedioth, ${fmtNIS(req.amount)}`, "success");
             setBankModalOpen(false);
           }}
         />
@@ -906,7 +913,7 @@ export default function ScalePublishPage() {
 // USER MODE SWITCHER (Agency / Publisher)
 // ============================================================
 
-function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand, articleCredits, onOpenBank }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND; articleCredits: number; onOpenBank: () => void }) {
+function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand, bankBalance, onOpenBank }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND; bankBalance: number; onOpenBank: () => void }) {
   const isAgency = userMode === "agency";
   const userInfo = isAgency
     ? { name: effectiveBrand.agency, role: `Agency · Acting for: ${effectiveBrand.name}`, icon: <IconUsers size={16} /> }
@@ -926,13 +933,13 @@ function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pe
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          {/* Article-bank credit widget — agency only. Click = open balance + top-up request modal. */}
+          {/* Article-bank widget. Click = open balance + top-up request modal. NIS balance. */}
           {isAgency && (
-            <button onClick={onOpenBank} title="Article bank · publisher-managed balance" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: isMobile ? "8px 12px" : "8px 14px", background: theme.cardBg, border: `1px solid ${articleCredits > 0 ? `${BRAND_GREEN}50` : theme.border}`, borderRadius: 10, cursor: "pointer", color: theme.text }}>
+            <button onClick={onOpenBank} title="Article bank, publisher-managed prepaid balance" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: isMobile ? "8px 12px" : "8px 14px", background: theme.cardBg, border: `1px solid ${bankBalance > 0 ? `${BRAND_GREEN}50` : theme.border}`, borderRadius: 10, cursor: "pointer", color: theme.text }}>
               <div style={{ textAlign: "left", lineHeight: 1.2 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase" }}>Article bank</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: articleCredits > 0 ? theme.text : theme.text, fontVariantNumeric: "tabular-nums" }}>
-                  <span style={{ color: articleCredits > 0 ? BRAND_GREEN : theme.text, fontWeight: 700 }}>{articleCredits}</span> {articleCredits === 1 ? "credit" : "credits"}
+                <div style={{ fontSize: 14, fontWeight: 500, color: theme.text, fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ color: bankBalance > 0 ? BRAND_GREEN : theme.text, fontWeight: 700 }}>{fmtNIS(bankBalance)}</span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSecondary, marginLeft: 8 }}>Request top-up</span>
                 </div>
               </div>
@@ -1022,7 +1029,7 @@ function BrandContextSelector({ currentBrand, theme, isMobile }: { currentBrand:
 
 type PublisherTab = "sites" | "inbox" | "articles" | "analytics" | "bank";
 
-function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast, articleCredits, setArticleCredits, topUpRequests, setTopUpRequests, creditLedger, setCreditLedger, agencyName }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; creditLedger: CreditLedgerEntry[]; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>>; agencyName: string }) {
+function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast, bankBalance, setBankBalance, topUpRequests, setTopUpRequests, bankLedger, setBankLedger, agencyName }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void; bankBalance: number; setBankBalance: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; bankLedger: BankLedgerEntry[]; setBankLedger: React.Dispatch<React.SetStateAction<BankLedgerEntry[]>>; agencyName: string }) {
   const [tab, setTab] = useState<PublisherTab>("sites");
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const publishedCount = tracking.length + orders.filter((o) => o.status === "published").length;
@@ -1041,7 +1048,7 @@ function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPri
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as PublisherTab)} theme={theme} isMobile={isMobile} />
       {tab === "sites" && <PublisherSitesView theme={theme} isMobile={isMobile} prices={prices} setPrices={setPrices} getPrice={getPrice} sites={sites} setSites={setSites} sections={sections} setSections={setSections} showToast={showToast} />}
       {tab === "inbox" && <PublisherInboxView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} sites={sites} sections={sections} showToast={showToast} />}
-      {tab === "bank" && <PublisherBankView theme={theme} isMobile={isMobile} articleCredits={articleCredits} setArticleCredits={setArticleCredits} topUpRequests={topUpRequests} setTopUpRequests={setTopUpRequests} creditLedger={creditLedger} setCreditLedger={setCreditLedger} agencyName={agencyName} showToast={showToast} />}
+      {tab === "bank" && <PublisherBankView theme={theme} isMobile={isMobile} bankBalance={bankBalance} setBankBalance={setBankBalance} topUpRequests={topUpRequests} setTopUpRequests={setTopUpRequests} bankLedger={bankLedger} setBankLedger={setBankLedger} agencyName={agencyName} showToast={showToast} />}
       {tab === "articles" && <PublisherArticlesView theme={theme} isMobile={isMobile} tracking={tracking} setTracking={setTracking} sites={sites} sections={sections} showToast={showToast} />}
       {tab === "analytics" && <PublisherAnalyticsView theme={theme} isMobile={isMobile} orders={orders} tracking={tracking} getPrice={getPrice} sites={sites} sections={sections} />}
     </>
@@ -1464,10 +1471,10 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
                   {order.clientShare.status === "approved" ? "✓ Client approved" : order.clientShare.status === "changes_requested" ? "Client requested changes" : "Awaiting client review"}
                 </span>
               )}
-              {/* Payment badge — only show when credits were redeemed (i.e. non-default cash) */}
-              {order.payment && order.payment.creditsUsed > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 9px", fontSize: 11, fontWeight: 700, borderRadius: 6, lineHeight: 1.4, background: `${BRAND_GREEN}18`, color: BRAND_GREEN }}>
-                  {order.payment.creditsUsed} {order.payment.creditsUsed === 1 ? "credit" : "credits"}{order.payment.cashAmount > 0 ? ` + cash` : ""}
+              {/* Payment badge — only show when bank was tapped (non-default cash). NIS amounts. */}
+              {order.payment && order.payment.bankUsed > 0 && (
+                <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 9px", fontSize: 11, fontWeight: 600, borderRadius: 6, lineHeight: 1.4, background: `${BRAND_GREEN}18`, color: BRAND_GREEN, fontVariantNumeric: "tabular-nums" }}>
+                  {fmtNIS(order.payment.bankUsed)} from bank{order.payment.cashAmount > 0 ? ` + cash` : ""}
                 </span>
               )}
             </div>
@@ -1602,18 +1609,18 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
             </Section>
           )}
 
-          {/* Payment summary — only shown when there's actual payment metadata (newer orders). */}
-          {order.payment && (order.payment.creditsUsed > 0 || order.payment.cashAmount > 0) && (
+          {/* Payment summary, only when there's actual payment metadata. All values in NIS. */}
+          {order.payment && (order.payment.bankUsed > 0 || order.payment.cashAmount > 0) && (
             <Section title="Payment" theme={theme}>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                {order.payment.creditsUsed > 0 && (
-                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: `${BRAND_GREEN}15`, color: BRAND_GREEN, borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
-                    {order.payment.creditsUsed} {order.payment.creditsUsed === 1 ? "credit" : "credits"} redeemed
+                {order.payment.bankUsed > 0 && (
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: `${BRAND_GREEN}15`, color: BRAND_GREEN, borderRadius: 8, fontSize: 13, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                    {fmtNIS(order.payment.bankUsed)} debited from bank
                   </span>
                 )}
                 {order.payment.cashAmount > 0 && (
-                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: theme.tableHeaderBg, color: theme.text, borderRadius: 8, fontSize: 13, fontWeight: 700, border: `1px solid ${theme.border}` }}>
-                    {fmtNIS(order.payment.cashAmount)} cash
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: theme.tableHeaderBg, color: theme.text, borderRadius: 8, fontSize: 13, fontWeight: 600, border: `1px solid ${theme.border}`, fontVariantNumeric: "tabular-nums" }}>
+                    {fmtNIS(order.payment.cashAmount)} cash invoice
                   </span>
                 )}
               </div>
@@ -2649,7 +2656,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
 type AgencyTab = "queries" | "order-flow" | "orders" | "tracking";
 
-function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, effectiveBrand, deepLinkedQueryText, deepLinkedQueries, clearDeepLink, articleCredits, setArticleCredits, onOpenBank, setCreditLedger }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; effectiveBrand: typeof DEMO_BRAND; deepLinkedQueryText?: string | null; deepLinkedQueries?: { id: string; text: string; persona?: string; stage?: string }[] | null; clearDeepLink?: () => void; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>> }) {
+function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, effectiveBrand, deepLinkedQueryText, deepLinkedQueries, clearDeepLink, bankBalance, setBankBalance, onOpenBank, setBankLedger }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; effectiveBrand: typeof DEMO_BRAND; deepLinkedQueryText?: string | null; deepLinkedQueries?: { id: string; text: string; persona?: string; stage?: string }[] | null; clearDeepLink?: () => void; bankBalance: number; setBankBalance: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setBankLedger: React.Dispatch<React.SetStateAction<BankLedgerEntry[]>> }) {
   const [tab, setTab] = useState<AgencyTab>("queries");
   const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
@@ -2759,7 +2766,7 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
       )}
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
       {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} allQueries={allQueries} customQueryIds={new Set(customQueries.map((q) => q.id))} scanSourceDomain={scanSource?.domain} effectiveBrand={effectiveBrand} />}
-      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} allQueries={allQueries} effectiveBrand={effectiveBrand} articleCredits={articleCredits} setArticleCredits={setArticleCredits} onOpenBank={onOpenBank} setCreditLedger={setCreditLedger} />}
+      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} allQueries={allQueries} effectiveBrand={effectiveBrand} bankBalance={bankBalance} setBankBalance={setBankBalance} onOpenBank={onOpenBank} setBankLedger={setBankLedger} />}
       {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} sites={sites} sections={sections} agencyName={effectiveBrand.agency} showToast={showToast} />}
       {tab === "tracking" && <AgencyTrackingView theme={theme} isMobile={isMobile} tracking={tracking} sites={sites} sections={sections} showToast={showToast} />}
     </>
@@ -2924,7 +2931,7 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
 // AGENCY · Order Flow (matching sites + cart + submit)
 // ============================================================
 
-function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast, allQueries, effectiveBrand, articleCredits, setArticleCredits, onOpenBank, setCreditLedger }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; allQueries?: typeof DEMO_QUERIES; effectiveBrand?: typeof DEMO_BRAND; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>> }) {
+function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast, allQueries, effectiveBrand, bankBalance, setBankBalance, onOpenBank, setBankLedger }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; allQueries?: typeof DEMO_QUERIES; effectiveBrand?: typeof DEMO_BRAND; bankBalance: number; setBankBalance: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setBankLedger: React.Dispatch<React.SetStateAction<BankLedgerEntry[]>> }) {
   const queryPool = allQueries ?? DEMO_QUERIES;
   const brand = effectiveBrand ?? DEMO_BRAND;
   const selectedQueries = queryPool.filter((q) => selectedIds.includes(q.id));
@@ -2956,9 +2963,10 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   // target URL (defaults to brand homepage) + anchor text (defaults to brand name).
   const [backlinkUrl, setBacklinkUrl] = useState<string>("");
   const [backlinkAnchor, setBacklinkAnchor] = useState<string>("");
-  // Payment method selected at checkout. "cash" = invoice. "credits" = redeem from article-bank.
-  // "hybrid" = mix when cart count > available balance (some sections billed in cash).
-  const [payMethod, setPayMethod] = useState<"cash" | "credits" | "hybrid">("cash");
+  // Payment method selected at checkout. "cash" = invoice. "bank" = deduct cart total from
+  // agency's prepaid bank balance (NIS). "hybrid" = mix when bank balance < cart total — bank
+  // covers what it can, the remainder is invoiced.
+  const [payMethod, setPayMethod] = useState<"cash" | "bank" | "hybrid">("cash");
 
   // Auto-suggest title from first query
   useEffect(() => {
@@ -3004,29 +3012,26 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 
   const cart = matchedSections.filter((m) => cartSectionIds.includes(m.section.id));
   const cartTotal = cart.reduce((s, m) => s + getPrice(m.section), 0);
-  // Payment math: each cart section costs 1 credit. If credits cover all sections, pay 100% in
-  // credits (cash = 0). Otherwise hybrid: spend N credits, bill remaining sections in cash.
-  const cartCreditCount = cart.length; // each section = 1 article = 1 credit
-  const creditsAvailable = articleCredits;
-  const canPayAllCredits = creditsAvailable >= cartCreditCount && cartCreditCount > 0;
-  // Computed payment breakdown based on selected method
+  // Payment math (NIS, not credits): bank balance covers the article prices directly. If the
+  // balance covers cart total, pay 100% from bank. Else hybrid: bank covers what it can, the
+  // remainder is invoiced. cartTotal/balance/payment fields are all in NIS.
+  const bankAvailable = bankBalance;
+  const canPayAllFromBank = bankAvailable >= cartTotal && cartTotal > 0;
   const paymentBreakdown = useMemo(() => {
-    if (cartCreditCount === 0) return { creditsUsed: 0, cashAmount: cartTotal };
-    if (payMethod === "cash") return { creditsUsed: 0, cashAmount: cartTotal };
-    if (payMethod === "credits" && canPayAllCredits) return { creditsUsed: cartCreditCount, cashAmount: 0 };
-    // hybrid (or credits-when-insufficient): apply available credits to highest-priced sections first
-    const sortedByPriceDesc = [...cart].sort((a, b) => getPrice(b.section) - getPrice(a.section));
-    const creditsUsed = Math.min(creditsAvailable, cartCreditCount);
-    const sectionsCovered = sortedByPriceDesc.slice(0, creditsUsed);
-    const cashSectionsCost = cart.filter((m) => !sectionsCovered.some((c) => c.section.id === m.section.id)).reduce((s, m) => s + getPrice(m.section), 0);
-    return { creditsUsed, cashAmount: cashSectionsCost };
-  }, [payMethod, cartCreditCount, creditsAvailable, cartTotal, cart, canPayAllCredits, getPrice]);
-  // Auto-correct invalid pay method when credits change or cart changes
+    if (cartTotal === 0) return { bankUsed: 0, cashAmount: 0 };
+    if (payMethod === "cash") return { bankUsed: 0, cashAmount: cartTotal };
+    if (payMethod === "bank" && canPayAllFromBank) return { bankUsed: cartTotal, cashAmount: 0 };
+    // hybrid (or bank-when-insufficient): bank covers as much as it has, remainder is cash.
+    const bankUsed = Math.min(bankAvailable, cartTotal);
+    const cashAmount = Math.max(0, cartTotal - bankUsed);
+    return { bankUsed, cashAmount };
+  }, [payMethod, cartTotal, bankAvailable, canPayAllFromBank]);
+  // Auto-correct invalid pay method when balance or cart changes.
   useEffect(() => {
-    if (payMethod === "credits" && !canPayAllCredits) {
-      setPayMethod(creditsAvailable > 0 && cartCreditCount > 0 ? "hybrid" : "cash");
+    if (payMethod === "bank" && !canPayAllFromBank) {
+      setPayMethod(bankAvailable > 0 && cartTotal > 0 ? "hybrid" : "cash");
     }
-  }, [canPayAllCredits, creditsAvailable, cartCreditCount, payMethod]);
+  }, [canPayAllFromBank, bankAvailable, cartTotal, payMethod]);
 
   const toggleCart = (id: string) => {
     if (cartSectionIds.includes(id)) {
@@ -3056,24 +3061,24 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
         totalPrice: cartTotal,
         status: "pending",
         backlink: { targetUrl: finalBacklinkUrl, anchorText: finalAnchorText },
-        payment: { method: payMethod, creditsUsed: paymentBreakdown.creditsUsed, cashAmount: paymentBreakdown.cashAmount },
+        payment: { method: payMethod, bankUsed: paymentBreakdown.bankUsed, cashAmount: paymentBreakdown.cashAmount },
       };
       setOrders([newOrder, ...orders]);
-      // Deduct credits from balance now and log a ledger entry so publisher + agency see history
-      if (paymentBreakdown.creditsUsed > 0) {
-        setArticleCredits((prev) => Math.max(0, prev - paymentBreakdown.creditsUsed));
-        setCreditLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta: -paymentBreakdown.creditsUsed, reason: `Order ${newOrder.id.toUpperCase()} · ${cart.length} placement${cart.length === 1 ? "" : "s"}`, by: "system" }, ...prev]);
+      // Deduct from bank balance (NIS) and log a ledger entry so both sides see history.
+      if (paymentBreakdown.bankUsed > 0) {
+        setBankBalance((prev) => Math.max(0, prev - paymentBreakdown.bankUsed));
+        setBankLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta: -paymentBreakdown.bankUsed, reason: `Order ${newOrder.id.toUpperCase()}, ${cart.length} placement${cart.length === 1 ? "" : "s"}`, by: "system" }, ...prev]);
       }
-      // Static SMS simulation (per Alexei's request — live demo gold for the Ynet meeting)
+      // Static SMS simulation (Alexei: live demo gold for the Ynet meeting)
       const siteNames = Array.from(new Set(cart.map((m) => sites.find((s) => s.id === m.section.siteId)?.name).filter(Boolean))).join(", ");
-      const payLabel = paymentBreakdown.creditsUsed > 0 ? `\nPayment: ${paymentBreakdown.creditsUsed} credits${paymentBreakdown.cashAmount > 0 ? ` + ${fmtNIS(paymentBreakdown.cashAmount)} cash` : ""}` : `\nPayment: ${fmtNIS(cartTotal)} cash`;
+      const payLabel = paymentBreakdown.bankUsed > 0 ? `\nPayment: ${fmtNIS(paymentBreakdown.bankUsed)} from bank${paymentBreakdown.cashAmount > 0 ? ` + ${fmtNIS(paymentBreakdown.cashAmount)} cash` : ""}` : `\nPayment: ${fmtNIS(cartTotal)} cash`;
       const smsBody = `Geoscale ScalePublish · New order #${newOrder.id.toUpperCase()}\nAgency: ${brand.agency} (acting for ${brand.name})\nSites: ${siteNames}\nSections: ${cart.length} · Total: ${fmtNIS(cartTotal)}${payLabel}\nReview at geoscale.ai/publisher`;
       setSmsSimulation({ to: "+972-50-XXX-XXXX (Alexei · Yedioth)", body: smsBody, sentAt: new Date().toISOString() });
       setSubmittedOrderRef({ id: newOrder.id, total: cartTotal });
       setSubmitting(false);
       setSubmitted(true);
-      const creditsMsg = paymentBreakdown.creditsUsed > 0 ? ` · ${paymentBreakdown.creditsUsed} credits redeemed` : "";
-      showToast(`Order ${newOrder.id.toUpperCase()} sent to Yedioth${creditsMsg} · SMS dispatched`, "success");
+      const bankMsg = paymentBreakdown.bankUsed > 0 ? `, ${fmtNIS(paymentBreakdown.bankUsed)} from bank` : "";
+      showToast(`Order ${newOrder.id.toUpperCase()} sent to Yedioth${bankMsg}, SMS dispatched`, "success");
     }, 800);
   };
 
@@ -3462,47 +3467,47 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
             {/* Payment method selector */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Payment method</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary, letterSpacing: 1.2, textTransform: "uppercase" }}>Payment method</div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12.5, color: theme.textSecondary }}>
-                  Available: <strong style={{ color: articleCredits > 0 ? BRAND_GREEN : theme.textMuted }}>{articleCredits} credits</strong>
-                  <button onClick={onOpenBank} style={{ padding: "3px 9px", fontSize: 11.5, fontWeight: 700, background: "transparent", color: BRAND_GREEN, border: `1px solid ${BRAND_GREEN}`, borderRadius: 6, cursor: "pointer" }}>Buy more</button>
+                  Bank balance: <strong style={{ color: bankBalance > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums" }}>{fmtNIS(bankBalance)}</strong>
+                  <button onClick={onOpenBank} style={{ padding: "3px 9px", fontSize: 11.5, fontWeight: 600, background: "transparent", color: BRAND_GREEN, border: `1px solid ${BRAND_GREEN}`, borderRadius: 6, cursor: "pointer" }}>Request top-up</button>
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 8 }}>
                 {/* Cash */}
                 <button onClick={() => setPayMethod("cash")} style={{ textAlign: "left", padding: 12, background: payMethod === "cash" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "cash" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: "pointer" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Cash invoice</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Cash invoice</span>
                     {payMethod === "cash" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
                   </div>
-                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Pay {fmtNIS(cartTotal)} on the master proposal — standard 30-day terms.</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Pay {fmtNIS(cartTotal)} on the master proposal, standard 30-day terms.</div>
                 </button>
-                {/* Credits */}
-                <button onClick={() => articleCredits > 0 && cartCreditCount > 0 && canPayAllCredits && setPayMethod("credits")} disabled={!canPayAllCredits || articleCredits === 0 || cartCreditCount === 0} style={{ textAlign: "left", padding: 12, background: payMethod === "credits" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "credits" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: canPayAllCredits ? "pointer" : "not-allowed", opacity: canPayAllCredits && articleCredits > 0 ? 1 : 0.5 }}>
+                {/* Bank */}
+                <button onClick={() => canPayAllFromBank && setPayMethod("bank")} disabled={!canPayAllFromBank} style={{ textAlign: "left", padding: 12, background: payMethod === "bank" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "bank" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: canPayAllFromBank ? "pointer" : "not-allowed", opacity: canPayAllFromBank ? 1 : 0.5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Pay with credits</span>
-                    {payMethod === "credits" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Pay from bank</span>
+                    {payMethod === "bank" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
                   </div>
                   <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>
-                    {canPayAllCredits ? <>Use {cartCreditCount} of {articleCredits} credits — no cash on this order.</> : <>Need {cartCreditCount} credits, have {articleCredits}. <button onClick={(e) => { e.stopPropagation(); onOpenBank(); }} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 700, padding: 0, cursor: "pointer", textDecoration: "underline" }}>Buy more</button>.</>}
+                    {canPayAllFromBank ? <>Deduct {fmtNIS(cartTotal)} from your prepaid bank, no cash on this order.</> : <>Need {fmtNIS(cartTotal)}, balance {fmtNIS(bankBalance)}. <button onClick={(e) => { e.stopPropagation(); onOpenBank(); }} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 600, padding: 0, cursor: "pointer", textDecoration: "underline" }}>Request top-up</button>.</>}
                   </div>
                 </button>
                 {/* Hybrid */}
-                <button onClick={() => articleCredits > 0 && cartCreditCount > 0 && setPayMethod("hybrid")} disabled={articleCredits === 0 || cartCreditCount === 0} style={{ textAlign: "left", padding: 12, background: payMethod === "hybrid" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "hybrid" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: articleCredits > 0 ? "pointer" : "not-allowed", opacity: articleCredits > 0 && cartCreditCount > 0 ? 1 : 0.5 }}>
+                <button onClick={() => bankBalance > 0 && cartTotal > 0 && setPayMethod("hybrid")} disabled={bankBalance === 0 || cartTotal === 0} style={{ textAlign: "left", padding: 12, background: payMethod === "hybrid" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "hybrid" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: bankBalance > 0 && cartTotal > 0 ? "pointer" : "not-allowed", opacity: bankBalance > 0 && cartTotal > 0 ? 1 : 0.5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Credits + cash</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Bank + cash</span>
                     {payMethod === "hybrid" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
                   </div>
-                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Spend all {Math.min(articleCredits, cartCreditCount)} available credits, bill the rest in cash.</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Use the {fmtNIS(Math.min(bankBalance, cartTotal))} available in bank, invoice the rest.</div>
                 </button>
               </div>
 
               {/* Live payment math summary */}
-              {(payMethod === "credits" || payMethod === "hybrid") && paymentBreakdown.creditsUsed > 0 && (
+              {(payMethod === "bank" || payMethod === "hybrid") && paymentBreakdown.bankUsed > 0 && (
                 <div style={{ marginTop: 10, padding: "10px 14px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 8, fontSize: 13, color: theme.text, lineHeight: 1.6 }}>
-                  <strong style={{ color: BRAND_GREEN }}>You'll pay:</strong> {paymentBreakdown.creditsUsed} {paymentBreakdown.creditsUsed === 1 ? "credit" : "credits"}
+                  <strong style={{ color: BRAND_GREEN }}>You'll pay:</strong> {fmtNIS(paymentBreakdown.bankUsed)} from bank
                   {paymentBreakdown.cashAmount > 0 && <> + {fmtNIS(paymentBreakdown.cashAmount)} cash</>}
-                  <span style={{ color: theme.textSecondary, marginLeft: 8 }}>· balance after order: <strong style={{ color: theme.text }}>{Math.max(0, articleCredits - paymentBreakdown.creditsUsed)} credits</strong></span>
+                  <span style={{ color: theme.textSecondary, marginLeft: 8 }}>· balance after order: <strong style={{ color: theme.text, fontVariantNumeric: "tabular-nums" }}>{fmtNIS(Math.max(0, bankBalance - paymentBreakdown.bankUsed))}</strong></span>
                 </div>
               )}
             </div>
@@ -4355,30 +4360,31 @@ function SmsSentCard({ sms, theme, isMobile, orderRef }: { sms: { to: string; bo
 
 // ============================================================
 // PUBLISHER · ARTICLE BANK ADMIN
-// Where Yedioth manages each agency's prepaid balance manually. Pending top-up requests from
-// agencies surface here; the publisher fulfils (sets the credits) or declines. They can also
-// adjust the balance directly without an inbound request — e.g. after a cash deposit settles.
+// Where Yedioth manages each agency's prepaid balance manually (NIS, not credits — Alexei
+// 2026-05-06). Pending top-up requests surface for fulfilment; publisher can also adjust the
+// balance directly (relative ±N or set to absolute N) without an inbound request, e.g. after
+// a wire settles.
 // ============================================================
-function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits, topUpRequests, setTopUpRequests, creditLedger, setCreditLedger, agencyName, showToast }: { theme: Theme; isMobile: boolean; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; creditLedger: CreditLedgerEntry[]; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>>; agencyName: string; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
+function PublisherBankView({ theme, isMobile, bankBalance, setBankBalance, topUpRequests, setTopUpRequests, bankLedger, setBankLedger, agencyName, showToast }: { theme: Theme; isMobile: boolean; bankBalance: number; setBankBalance: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; bankLedger: BankLedgerEntry[]; setBankLedger: React.Dispatch<React.SetStateAction<BankLedgerEntry[]>>; agencyName: string; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [adjustValue, setAdjustValue] = useState<string>("");
   const [adjustNote, setAdjustNote] = useState<string>("");
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [grantOverride, setGrantOverride] = useState<string>("");
 
   const pendingRequests = topUpRequests.filter((r) => r.status === "pending");
-  const recentLedger = creditLedger.slice(0, 12);
+  const recentLedger = bankLedger.slice(0, 12);
 
   const grant = (delta: number, reason: string) => {
-    setArticleCredits((prev) => Math.max(0, prev + delta));
-    setCreditLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta, reason, by: "publisher" }, ...prev]);
+    setBankBalance((prev) => Math.max(0, prev + delta));
+    setBankLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta, reason, by: "publisher" }, ...prev]);
   };
 
-  const fulfilRequest = (req: TopUpRequest, granted: number) => {
-    grant(granted, `Top-up fulfilled · request from ${req.agencyName}${req.note ? ` (${req.note})` : ""}`);
-    setTopUpRequests((prev) => prev.map((r) => r.id === req.id ? { ...r, status: "fulfilled", fulfilledAt: new Date().toISOString(), fulfilledCredits: granted } : r));
+  const fulfilRequest = (req: TopUpRequest, grantedAmount: number) => {
+    grant(grantedAmount, `Top-up fulfilled, request from ${req.agencyName}${req.note ? ` (${req.note})` : ""}`);
+    setTopUpRequests((prev) => prev.map((r) => r.id === req.id ? { ...r, status: "fulfilled", fulfilledAt: new Date().toISOString(), fulfilledAmount: grantedAmount } : r));
     setEditingRequestId(null);
     setGrantOverride("");
-    showToast(`+${granted} credits granted to ${req.agencyName}`, "success");
+    showToast(`${fmtNIS(grantedAmount)} added to ${req.agencyName}`, "success");
   };
 
   const rejectRequest = (req: TopUpRequest) => {
@@ -4392,7 +4398,7 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
     grant(n, adjustNote.trim() || (n > 0 ? "Manual top-up by Yedioth" : "Manual deduction by Yedioth"));
     setAdjustValue("");
     setAdjustNote("");
-    showToast(`Balance ${n > 0 ? "increased" : "decreased"} by ${Math.abs(n)} credits`, "success");
+    showToast(`Balance ${n > 0 ? "increased" : "decreased"} by ${fmtNIS(Math.abs(n))}`, "success");
   };
 
   return (
@@ -4402,7 +4408,7 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Article Bank · Admin</div>
           <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: theme.text, marginBottom: 4, letterSpacing: "-0.01em" }}>Manage agency balances</div>
-          <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.5, maxWidth: 620 }}>You sell the bank manually — agree on the budget with the agency, then update their balance here. Inbound top-up requests surface below for fulfilment.</div>
+          <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.5, maxWidth: 620 }}>You sell the bank manually. Agree on the budget with the agency, then update their balance here. Inbound top-up requests surface below for fulfilment. All amounts are in NIS.</div>
         </div>
       </div>
 
@@ -4417,7 +4423,7 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
             {pendingRequests.map((req) => {
               const isEditing = editingRequestId === req.id;
               const overrideInt = parseInt(grantOverride, 10);
-              const grantAmount = isEditing && !isNaN(overrideInt) && overrideInt > 0 ? overrideInt : req.requestedCredits;
+              const grantAmount = isEditing && !isNaN(overrideInt) && overrideInt > 0 ? overrideInt : req.requestedAmount;
               return (
                 <div key={req.id} style={{ padding: 14, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
@@ -4426,23 +4432,23 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
                       <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>{new Date(req.requestedAt).toLocaleString()}{req.note ? ` · ${req.note}` : ""}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{req.requestedCredits}</div>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginTop: 3 }}>credits requested</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{fmtNIS(req.requestedAmount)}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginTop: 3 }}>requested</div>
                     </div>
                   </div>
                   {isEditing ? (
                     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                       <div>
-                        <label style={{ display: "block", fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Grant credits</label>
-                        <input value={grantOverride} onChange={(e) => setGrantOverride(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder={String(req.requestedCredits)} style={{ width: 110, padding: "8px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums" }} autoFocus />
+                        <label style={{ display: "block", fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Grant amount (NIS)</label>
+                        <input value={grantOverride} onChange={(e) => setGrantOverride(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder={String(req.requestedAmount)} style={{ width: 140, padding: "8px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums" }} autoFocus />
                       </div>
-                      <button onClick={() => fulfilRequest(req, grantAmount)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Confirm · grant {grantAmount}</button>
+                      <button onClick={() => fulfilRequest(req, grantAmount)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Confirm, grant {fmtNIS(grantAmount)}</button>
                       <button onClick={() => { setEditingRequestId(null); setGrantOverride(""); }} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Cancel</button>
                     </div>
                   ) : (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button onClick={() => fulfilRequest(req, req.requestedCredits)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Approve · grant {req.requestedCredits}</button>
-                      <button onClick={() => { setEditingRequestId(req.id); setGrantOverride(String(req.requestedCredits)); }} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Adjust amount</button>
+                      <button onClick={() => fulfilRequest(req, req.requestedAmount)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Approve, grant {fmtNIS(req.requestedAmount)}</button>
+                      <button onClick={() => { setEditingRequestId(req.id); setGrantOverride(String(req.requestedAmount)); }} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Adjust amount</button>
                       <button onClick={() => rejectRequest(req)} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Decline</button>
                     </div>
                   )}
@@ -4453,31 +4459,33 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
         </div>
       )}
 
-      {/* Agency balances grid (single agency in demo, but layout supports multi) */}
+      {/* Agency balances (layout supports multi-tenant) */}
       <div style={{ marginBottom: 22 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Agency balances</div>
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, lineHeight: 1.3 }}>{agencyName}</div>
-              <div style={{ fontSize: 12.5, color: theme.textSecondary, marginTop: 3 }}>Demo agency · single tenant</div>
+              <div style={{ fontSize: 12.5, color: theme.textSecondary, marginTop: 3 }}>Demo agency, single tenant</div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>Balance</div>
-              <div style={{ fontSize: 32, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{articleCredits}</div>
-              <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 3 }}>{articleCredits === 1 ? "credit" : "credits"}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>Balance (NIS)</div>
+              <div style={{ fontSize: isMobile ? 26 : 32, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{fmtNIS(bankBalance)}</div>
             </div>
           </div>
           {/* Manual adjust */}
           <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 8 }}>Manual adjustment</div>
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "120px 1fr auto auto", gap: 8, alignItems: "stretch" }}>
-              <input value={adjustValue} onChange={(e) => setAdjustValue(e.target.value.replace(/[^0-9-]/g, ""))} type="text" inputMode="numeric" placeholder="±N" style={{ padding: "9px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums" }} />
+            <div style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 8 }}>Manual adjustment (NIS)</div>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "150px 1fr auto auto", gap: 8, alignItems: "stretch" }}>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 500, color: theme.textSecondary, pointerEvents: "none" }}>₪</span>
+                <input value={adjustValue} onChange={(e) => setAdjustValue(e.target.value.replace(/[^0-9-]/g, ""))} type="text" inputMode="numeric" placeholder="±50000" style={{ width: "100%", padding: "9px 10px 9px 22px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums", boxSizing: "border-box" }} />
+              </div>
               <input value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} type="text" placeholder="Reason (e.g. wire received Q2-2026)" style={{ padding: "9px 10px", fontSize: 13, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none" }} />
-              <button onClick={submitManualAdjust} disabled={!adjustValue || parseInt(adjustValue, 10) === 0} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: adjustValue && parseInt(adjustValue, 10) !== 0 ? BRAND_AMBER : theme.barTrack, color: adjustValue && parseInt(adjustValue, 10) !== 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) !== 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Apply</button>
-              <button onClick={() => { const target = parseInt(adjustValue, 10); if (!isNaN(target) && target >= 0) { const delta = target - articleCredits; if (delta === 0) return; grant(delta, adjustNote.trim() || `Balance set to ${target} by Yedioth`); setAdjustValue(""); setAdjustNote(""); showToast(`Balance set to ${target} credits`, "success"); } }} disabled={!adjustValue || isNaN(parseInt(adjustValue, 10)) || parseInt(adjustValue, 10) < 0} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) >= 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Set to N</button>
+              <button onClick={submitManualAdjust} disabled={!adjustValue || parseInt(adjustValue, 10) === 0} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: adjustValue && parseInt(adjustValue, 10) !== 0 ? BRAND_AMBER : theme.barTrack, color: adjustValue && parseInt(adjustValue, 10) !== 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) !== 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Apply ±</button>
+              <button onClick={() => { const target = parseInt(adjustValue, 10); if (!isNaN(target) && target >= 0) { const delta = target - bankBalance; if (delta === 0) return; grant(delta, adjustNote.trim() || `Balance set to ${fmtNIS(target)} by Yedioth`); setAdjustValue(""); setAdjustNote(""); showToast(`Balance set to ${fmtNIS(target)}`, "success"); } }} disabled={!adjustValue || isNaN(parseInt(adjustValue, 10)) || parseInt(adjustValue, 10) < 0} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) >= 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Set to ₪N</button>
             </div>
-            <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Apply = add/subtract relative (use negative to deduct). Set to N = make balance exactly N. Both write a ledger entry.</div>
+            <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Apply ± adds or subtracts (use negative to deduct, e.g. -10000). Set to ₪N replaces the balance with that exact amount. Both actions write a ledger entry.</div>
           </div>
         </div>
       </div>
@@ -4485,7 +4493,7 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
       {/* Ledger */}
       {recentLedger.length > 0 && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Credit ledger</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Bank ledger</div>
           <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden" }}>
             {recentLedger.map((entry, i) => (
               <div key={entry.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "11px 14px", background: i % 2 === 0 ? theme.cardBg : theme.tableHeaderBg, borderBottom: i < recentLedger.length - 1 ? `1px solid ${theme.border}` : "none" }}>
@@ -4493,7 +4501,7 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
                   <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, lineHeight: 1.4 }}>{entry.reason}</div>
                   <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(entry.at).toLocaleString()} · {entry.by}</div>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${entry.delta}` : entry.delta}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${fmtNIS(entry.delta)}` : `-${fmtNIS(Math.abs(entry.delta))}`}</span>
               </div>
             ))}
           </div>
@@ -4511,14 +4519,15 @@ function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits,
 // REQUEST that the publisher fulfils manually. Bundle/tier pricing was removed — pricing is
 // negotiated offline.
 // ============================================================
-function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledger, topUpRequests, agencyName, onSubmitRequest }: { open: boolean; onClose: () => void; theme: Theme; isMobile: boolean; currentCredits: number; ledger: CreditLedgerEntry[]; topUpRequests: TopUpRequest[]; agencyName: string; onSubmitRequest: (r: { credits: number; note: string }) => void }) {
-  const [requestCredits, setRequestCredits] = useState<string>("10");
+function ArticleBankModal({ open, onClose, theme, isMobile, currentBalance, ledger, topUpRequests, agencyName, onSubmitRequest }: { open: boolean; onClose: () => void; theme: Theme; isMobile: boolean; currentBalance: number; ledger: BankLedgerEntry[]; topUpRequests: TopUpRequest[]; agencyName: string; onSubmitRequest: (r: { amount: number; note: string }) => void }) {
+  const PRESET_AMOUNTS = [25000, 50000, 100000, 250000, 500000];
+  const [requestAmount, setRequestAmount] = useState<string>("100000");
   const [requestNote, setRequestNote] = useState<string>("");
   if (!open) return null;
   const myRequests = topUpRequests.filter((r) => r.agencyName === agencyName).slice(0, 5);
   const myLedger = ledger.slice(0, 8);
-  const parsedCredits = parseInt(requestCredits, 10);
-  const canSubmit = !isNaN(parsedCredits) && parsedCredits > 0 && parsedCredits <= 1000;
+  const parsedAmount = parseInt(requestAmount, 10);
+  const canSubmit = !isNaN(parsedAmount) && parsedAmount > 0 && parsedAmount <= 10000000;
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 100, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: isMobile ? "16px 12px" : "40px 20px", overflowY: "auto" }}>
@@ -4531,8 +4540,8 @@ function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledg
             </div>
             <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: theme.text, lineHeight: 1.2, marginBottom: 6, letterSpacing: "-0.01em" }}>Your prepaid balance with Yedioth</div>
             <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.55, maxWidth: 620 }}>
-              The publisher manages your bank manually. You can request a top-up here — Yedioth's
-              account team will follow up to agree on the budget and add the credits to your balance.
+              The publisher manages your bank manually. Request a top-up here, Yedioth's account
+              team will follow up to confirm the budget and add the funds to your balance.
             </div>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, width: 34, height: 34, cursor: "pointer", color: theme.textSecondary, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -4543,30 +4552,38 @@ function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledg
         {/* Balance card */}
         <div style={{ padding: "18px 20px", background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12, marginBottom: 18 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Current balance</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-            <span style={{ fontSize: 40, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{currentCredits}</span>
-            <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>{currentCredits === 1 ? "credit available" : "credits available"}</span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: isMobile ? 32 : 40, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{fmtNIS(currentBalance)}</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: theme.textSecondary }}>available for article placements</span>
           </div>
-          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 6, lineHeight: 1.5 }}>1 credit = 1 article placement on any Yedioth section. Each article carries a do-follow backlink — standard, not an upsell.</div>
+          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 6, lineHeight: 1.5 }}>Each article's price is deducted from this balance when you choose "Pay from bank" at checkout. Every article carries a do-follow backlink as standard.</div>
         </div>
 
         {/* Request top-up form */}
         <div style={{ marginBottom: 18 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Request a top-up</div>
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "150px 1fr auto", gap: 10, alignItems: "stretch" }}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+            {PRESET_AMOUNTS.map((amt) => (
+              <button key={amt} onClick={() => setRequestAmount(String(amt))} style={{ padding: "7px 12px", fontSize: 12.5, fontWeight: parsedAmount === amt ? 600 : 500, background: parsedAmount === amt ? `${BRAND_GREEN}15` : theme.tableHeaderBg, color: parsedAmount === amt ? BRAND_GREEN : theme.textSecondary, border: `1px solid ${parsedAmount === amt ? BRAND_GREEN : theme.border}`, borderRadius: 999, cursor: "pointer", fontVariantNumeric: "tabular-nums" }}>{fmtNIS(amt)}</button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "180px 1fr auto", gap: 10, alignItems: "stretch" }}>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginBottom: 4 }}>Credits</label>
-              <input value={requestCredits} onChange={(e) => setRequestCredits(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder="10" style={{ width: "100%", padding: "10px 12px", fontSize: 15, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box", fontVariantNumeric: "tabular-nums" }} />
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginBottom: 4 }}>Amount (NIS)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, fontWeight: 500, color: theme.textSecondary, pointerEvents: "none" }}>₪</span>
+                <input value={requestAmount} onChange={(e) => setRequestAmount(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder="100000" style={{ width: "100%", padding: "10px 12px 10px 26px", fontSize: 15, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box", fontVariantNumeric: "tabular-nums" }} />
+              </div>
             </div>
             <div>
               <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginBottom: 4 }}>Note for Yedioth (optional)</label>
               <input value={requestNote} onChange={(e) => setRequestNote(e.target.value)} type="text" placeholder="Q3 campaign for Bank Hapoalim" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <button onClick={() => canSubmit && onSubmitRequest({ credits: parsedCredits, note: requestNote.trim() })} disabled={!canSubmit} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: canSubmit ? BRAND_GREEN : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canSubmit ? "pointer" : "not-allowed", whiteSpace: "nowrap", width: isMobile ? "100%" : undefined }}>Send request</button>
+              <button onClick={() => canSubmit && onSubmitRequest({ amount: parsedAmount, note: requestNote.trim() })} disabled={!canSubmit} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: canSubmit ? BRAND_GREEN : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canSubmit ? "pointer" : "not-allowed", whiteSpace: "nowrap", width: isMobile ? "100%" : undefined }}>Send request</button>
             </div>
           </div>
-          <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Yedioth will reach out to confirm the budget. Pricing is negotiated offline. Credits land in your balance once they fulfil the request.</div>
+          <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Yedioth will reach out to confirm the budget and arrange payment offline. The funds land in your balance once they fulfil the request in admin.</div>
         </div>
 
         {/* Recent requests */}
@@ -4576,11 +4593,11 @@ function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledg
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {myRequests.map((r) => {
                 const statusColor = r.status === "fulfilled" ? BRAND_GREEN : r.status === "rejected" ? "#9CA3AF" : BRAND_AMBER;
-                const statusLabel = r.status === "fulfilled" ? `Fulfilled · +${r.fulfilledCredits ?? r.requestedCredits} credits` : r.status === "rejected" ? "Declined" : "Awaiting publisher";
+                const statusLabel = r.status === "fulfilled" ? `Fulfilled · +${fmtNIS(r.fulfilledAmount ?? r.requestedAmount)}` : r.status === "rejected" ? "Declined" : "Awaiting publisher";
                 return (
                   <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 12px", background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{r.requestedCredits} credits requested{r.note ? ` · ${r.note}` : ""}</div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, fontVariantNumeric: "tabular-nums" }}>{fmtNIS(r.requestedAmount)} requested{r.note ? ` · ${r.note}` : ""}</div>
                       <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(r.requestedAt).toLocaleString()}</div>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, color: statusColor, background: `${statusColor}15`, padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap" }}>{statusLabel}</span>
@@ -4602,7 +4619,7 @@ function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledg
                     <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, lineHeight: 1.4 }}>{entry.reason}</div>
                     <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(entry.at).toLocaleString()}</div>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${entry.delta}` : entry.delta}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${fmtNIS(entry.delta)}` : `-${fmtNIS(Math.abs(entry.delta))}`}</span>
                 </div>
               ))}
             </div>
