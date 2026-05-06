@@ -3,352 +3,374 @@
 import React from "react";
 
 // ============================================================
-// SCALEPUBLISH SPEC — for Inna (designer)
-// Story-first walkthrough. Read top to bottom, click links to see live.
+// SCALEPUBLISH ROADMAP — for Inna (designer)
+// Clean docs-style layout. Updated 2026-05-05.
 // ============================================================
 
 const GREEN = "#10A37F";
 const AMBER = "#B45309";
 const BLUE = "#1D4ED8";
-const TEXT = "#0F172A";
-const TEXT_MUTED = "#64748B";
-const BG = "#FAFBFC";
-const CARD_BG = "#FFFFFF";
-const BORDER = "#E2E8F0";
-const SOFT_GREEN = "#10A37F12";
+const INK = "#0B1220";
+const TEXT = "#1F2937";
+const MUTED = "#6B7280";
+const BORDER = "#E5E7EB";
+const SOFT_BG = "#FAFAFA";
+
+const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
 export default function ScalePublishRoadmapPage() {
   return (
-    <div dir="ltr" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif", background: BG, minHeight: "100vh", color: TEXT }}>
-      {/* ── HERO ── */}
-      <header style={{ background: "linear-gradient(135deg, #0B1220 0%, #0F172A 100%)", color: "#fff", padding: "60px 24px 50px" }}>
-        <div style={{ maxWidth: 880, margin: "0 auto" }}>
-          <div style={{ fontSize: 12, color: GREEN, fontWeight: 700, letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 14 }}>ScalePublish · Spec for Inna</div>
-          <h1 style={{ fontSize: 42, fontWeight: 800, margin: "0 0 14px", lineHeight: 1.1, letterSpacing: "-0.8px" }}>How the Yedioth flow works</h1>
-          <p style={{ fontSize: 18, color: "#CBD5E1", margin: "0 0 26px", lineHeight: 1.6, maxWidth: 720 }}>
-            A 5-minute read. Read the story first, then click any &ldquo;See it live&rdquo; link to open the actual screen. Every section ends with the design question I need your help on.
-          </p>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <a href="/scale-publish" style={{ padding: "12px 24px", background: GREEN, color: "#fff", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>Open the live demo →</a>
-            <a href="#story" style={{ padding: "12px 24px", background: "transparent", color: "#fff", borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: "none", border: "1px solid #475569" }}>Skip to the story</a>
-          </div>
+    <div dir="ltr" style={{ fontFamily: FONT, background: "#FFFFFF", minHeight: "100vh", color: TEXT, fontSize: 16, lineHeight: 1.6, WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" }}>
+
+      {/* ── TOP BAR ── */}
+      <div style={{ borderBottom: `1px solid ${BORDER}`, background: "#FFFFFF", position: "sticky", top: 0, zIndex: 50, backdropFilter: "saturate(180%) blur(8px)" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: MUTED, letterSpacing: "0.02em" }}>ScalePublish · Roadmap</div>
+          <a href="/scale-publish" style={{ padding: "7px 14px", background: GREEN, color: "#fff", borderRadius: 7, fontSize: 13, fontWeight: 600, textDecoration: "none", letterSpacing: "0.01em" }}>Open the demo</a>
         </div>
-      </header>
+      </div>
 
-      <div style={{ maxWidth: 880, margin: "0 auto", padding: "44px 24px 100px" }}>
+      <main style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 120px" }}>
 
-        {/* ── STORY ── */}
-        <Section id="story" eyebrow="The whole thing in one paragraph" title="What ScalePublish is">
-          <Card style={{ background: SOFT_GREEN, borderLeft: `4px solid ${GREEN}` }}>
-            <P style={{ fontSize: 17, lineHeight: 1.75 }}>
-              Yedioth Ahronoth has 8 news sites and 30 sections. Brands like Bank Hapoalim want their messaging to show up when people ask AI assistants questions like &ldquo;<i>What&rsquo;s the best banking app in Israel?</i>&rdquo;. <B>ScalePublish is the marketplace that connects them.</B> The brand&rsquo;s agency picks 5 questions they want to win on, our system suggests which Yedioth sections fit best, the agency orders articles, Yedioth&rsquo;s editor approves and publishes them, and then we track every published article to see if AI assistants actually quote it. Two sides, one inbox, full-loop tracking.
-            </P>
-          </Card>
-        </Section>
+        {/* ── TITLE BLOCK ── */}
+        <header style={{ marginBottom: 56 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: GREEN, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 14 }}>Updated · 5 May 2026</div>
+          <h1 style={{ fontSize: 44, fontWeight: 800, margin: "0 0 16px", lineHeight: 1.1, letterSpacing: "-0.025em", color: INK }}>What changed since our last call</h1>
+          <p style={{ fontSize: 19, lineHeight: 1.6, color: MUTED, margin: 0, fontWeight: 400 }}>
+            Every decision from our meeting is now live in the demo, plus the article bank and SEO backlink Alexei asked for. Read straight through, then click any <em>See it live</em> link to jump into the actual screen.
+          </p>
+        </header>
 
-        {/* ── TWO ROLES ── */}
-        <Section eyebrow="Two roles, one product" title="Who logs in">
-          <P>The same /scale-publish URL has a toggle at the top. Both views share the same data &mdash; an order placed by the Agency shows up instantly in the Publisher&rsquo;s inbox.</P>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14, marginTop: 14 }}>
-            <Card accent={GREEN}>
-              <Tag color={GREEN}>Agency view</Tag>
-              <h3 style={{ fontSize: 19, fontWeight: 700, margin: "12px 0 8px" }}>Buys placements</h3>
-              <P style={{ margin: 0 }}>Just In Time Agency, on behalf of Bank Hapoalim. Picks queries → builds an article → orders sections → tracks AI citations → exports a client report.</P>
-            </Card>
-            <Card accent={AMBER}>
-              <Tag color={AMBER}>Publisher view</Tag>
-              <h3 style={{ fontSize: 19, fontWeight: 700, margin: "12px 0 8px" }}>Sells placements</h3>
-              <P style={{ margin: 0 }}>Yedioth Ahronoth&rsquo;s editorial team. Manages 8 sites + 30 sections + pricing → reviews orders → publishes articles → watches the revenue dashboard.</P>
-            </Card>
-          </div>
-        </Section>
+        {/* ── RECAP ── */}
+        <Lede>
+          <span style={{ fontWeight: 600, color: INK }}>ScalePublish</span> is a marketplace where agencies buy article placements on Yedioth Ahronoth&rsquo;s 8 sites and 30 sections. The agency picks queries to win in AI search, our system suggests which sections fit best, the agency orders, the publisher approves and publishes, and we track every article&rsquo;s AI citations. Two views, one inbox.
+        </Lede>
 
-        {/* ── FLOW DIAGRAM ── */}
-        <Section eyebrow="The 4 moments that matter" title="The flow at a glance">
-          <Card>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, fontSize: 13 }}>
-              <FlowStep n={1} label="Agency picks queries" sub="Up to 5" color={GREEN} />
-              <FlowStep n={2} label="Article gets built" sub="Sections matched" color={GREEN} />
-              <FlowStep n={3} label="Publisher approves" sub="Editor inbox" color={AMBER} />
-              <FlowStep n={4} label="We track citations" sub="Per article" color={BLUE} last />
-            </div>
-            <P style={{ margin: "18px 0 0", fontSize: 14, color: TEXT_MUTED, textAlign: "center" }}>
-              Steps 1&ndash;2 happen in the Agency view. Step 3 in the Publisher view. Step 4 is visible to both sides.
-            </P>
-          </Card>
-        </Section>
+        {/* ── TOC ── */}
+        <Toc items={[
+          { href: "#meeting", label: "Decisions from our call", count: 11 },
+          { href: "#alexei", label: "Alexei's additions", count: 4 },
+          { href: "#questions", label: "Open design questions", count: 7 },
+          { href: "#status", label: "Built · Next sprint" },
+        ]} />
 
-        {/* ── AGENCY FLOW ── */}
-        <Section eyebrow="Step by step" title="The Agency&rsquo;s journey">
-          <P style={{ marginBottom: 18 }}>This is what a brand&rsquo;s agency does on a Monday morning when they want to win 5 new AI queries this week.</P>
+        {/* ── MEETING DECISIONS ── */}
+        <SectionHeader id="meeting" eyebrow="Section 1" title="Decisions from our call" subtitle="Eleven items we agreed on. Every one is built and live." />
 
-          <Step n={1} title="Pick up to 5 queries">
-            <P>The agency lands on a page with 12 questions Bank Hapoalim wants to win. They check the boxes on the most important ones.</P>
-            <UL items={[
-              <>5 dots at the top fill green as they pick &mdash; visual progress bar</>,
-              <>Counter copy: <B>&ldquo;3 of 5 selected · 2 more recommended&rdquo;</B></>,
-              <>Each query shows: text, category, audience, AI-engine status (Found in GPT? Gemini?), opportunity score</>,
-            ]} />
-            <DemoLink href="/scale-publish" label="Open Agency view → My Queries" />
-            <Open>Should the 5-dot progress bar live at the top of the page (sticky), or only inline next to the &ldquo;Continue&rdquo; button?</Open>
-          </Step>
+        <Item n={1} title="Order Flow re-ordered: Sections before Content">
+          <p>You called this out: writing content before knowing where it&rsquo;s going makes no sense. The wizard now goes:</p>
+          <Steps items={[
+            "Selected queries",
+            "Article title (auto-suggested, editable, drives matching)",
+            "Pick Yedioth sections + the do-follow backlink target",
+            "Content mode (AI draft / agency provides copy)",
+            "Review & submit",
+          ]} />
+          <Note>The progress bar at the top is clickable, so users can jump back to any completed step.</Note>
+          <SeeLive href="/scale-publish" />
+        </Item>
 
-          <Step n={2} title="Watch the article get built">
-            <P>Once they hit Continue, a 5-step builder starts. Each step adds something to the article preview on the right.</P>
-            <UL items={[
-              <><B>2.1 &mdash; Selected queries:</B> shown as a numbered list with X to remove and an &ldquo;Add more&rdquo; link back to step 1.</>,
-              <><B>2.2 &mdash; Article preview (the magic moment):</B> a full editorial mockup styled like an AdsGPT case study. Hero image, byline, stats highlight box, intro, pull-quote, then each query becomes its own H2. Updates live as the agency tweaks.</>,
-              <><B>2.3 &mdash; Article title:</B> auto-suggested from the first query, fully editable. Editing the title <B>re-ranks</B> which Yedioth sections fit best.</>,
-              <><B>2.4 &mdash; Content mode:</B> &ldquo;We&rsquo;ll write the draft&rdquo; or &ldquo;I&rsquo;ll provide the copy&rdquo;.</>,
-              <><B>2.5 &mdash; Section list:</B> matched Yedioth sections sorted by fit, with reason pills (&ldquo;Audience match&rdquo;, &ldquo;Title keyword&rdquo;, &ldquo;Category&rdquo;). Agency picks which ones to buy.</>,
-            ]} />
-            <Quote author="Alexei">It needs to be a list, not boxes. Sorted by priority. Show why each section matched.</Quote>
-            <DemoLink href="/scale-publish" label="Open Agency view → Order Flow" />
-            <Open>The article preview is currently full-width below the steps. Would it work better as a sticky right-rail (steps on left, preview always visible on right)?</Open>
-          </Step>
+        <Item n={2} title="Multi-site warning banner">
+          <p>When the agency adds sections from 2+ sites, a yellow banner appears in Step 3 explaining: <em>&ldquo;Same intent, different wording &mdash; every query is rephrased and every answer reworded so each site gets its own version. Google penalizes duplicate content across domains.&rdquo;</em></p>
+          <Note>Triggered automatically when 2+ unique site IDs are in the cart.</Note>
+        </Item>
 
-          <Step n={3} title="Submit the order">
-            <P>Agency confirms, hits Submit. The order lands in Yedioth&rsquo;s inbox immediately.</P>
-            <UL items={[
-              <>Toast confirms: <B>&ldquo;Order ORD-128 sent to Yedioth · ₪32,400&rdquo;</B></>,
-              <>Confirmation screen: &ldquo;Yedioth&rsquo;s sales team will contact you within 24h. Articles publish in ~3 days.&rdquo;</>,
-              <>Two buttons: &ldquo;View my orders&rdquo; / &ldquo;Place another order&rdquo;</>,
-            ]} />
-            <Open>Should the agency see a delivery ETA per section (&ldquo;Ynet · Cars in 2 days&rdquo;) or just one global ETA?</Open>
-          </Step>
+        <Item n={3} title={`AI top-3 recommendations + "Use AI's pick"`}>
+          <p>Before the section list, a green banner shows the top-3 highest-fit sections with a one-click <strong>Use AI&rsquo;s pick</strong> button that adds all three to the cart. Toggles to <strong>Top 3 selected</strong> when active.</p>
+          <Note>Useful for agencies who don&rsquo;t want to read 18 rows of section matches.</Note>
+        </Item>
 
-          <Step n={4} title="Track every article">
-            <P>Once published, every article is tracked individually. The agency can see if GPT, Gemini, and Perplexity quote it &mdash; and export a clean CSV report for their client.</P>
-            <UL items={[
-              <>4 KPIs: Total views · Google-indexed · AI-cited · Ranking queries</>,
-              <>Per-domain pill filter (All sites / Ynet / Calcalist...)</>,
-              <>Each row: URL, site/section, publish date, views, indexed?, GPT/Gemini/Perplexity cited?, impact score</>,
-              <>&ldquo;Re-check engines&rdquo; button per row · &ldquo;Export client report&rdquo; CSV at the top</>,
-            ]} />
-            <DemoLink href="/scale-publish" label="Open Agency view → Article Tracking" />
-            <Open>Currently the citation flags are colored chips (green/red). Would a single &ldquo;3 of 3 engines&rdquo; meter with engine logos read more cleanly?</Open>
-          </Step>
-        </Section>
+        <Item n={4} title='"Match Score" rename + tooltip'>
+          <p>The number next to each section was called <strong>FIT SCORE</strong>. Renamed to <strong>MATCH SCORE</strong> with an info-icon tooltip:</p>
+          <Bullets items={[
+            "70 and up — strong match, recommended",
+            "40 to 69 — decent match",
+            "Under 40 — weak match, consider another section",
+          ]} />
+        </Item>
 
-        {/* ── PUBLISHER FLOW ── */}
-        <Section eyebrow="Other side of the table" title="Yedioth&rsquo;s side">
-          <P style={{ marginBottom: 18 }}>This is what Yedioth&rsquo;s editor and sales team see when they log in. Toggle to <B>Publisher view</B> in the top-right of /scale-publish to follow along.</P>
+        <Item n={5} title="Brand context selector (top-right)">
+          <p>Agencies manage multiple brands. The header now has a brand dropdown with all 5 demo brands (Bank Hapoalim, all4horses, TechStart Israel, Paradise Gardening, Artisan Bread Co), each showing the latest scan date and query count. Clicking a brand routes to its ScalePublish context.</p>
+          <Note>One entry per brand, latest scan only — never duplicates.</Note>
+        </Item>
 
-          <Step n={1} title="Manage inventory & pricing">
-            <P>Yedioth manages their 8 sites and 30 sections. Every section has a price they can edit on the fly.</P>
-            <UL items={[
-              <>Tree view: each site collapses to show its sections</>,
-              <>Click any price to edit inline &mdash; the change is immediately visible to all agencies</>,
-              <>Add Site / Add Section / Delete buttons (full modals, not placeholders)</>,
-              <>4 KPIs at the top: Sites, Sections, Avg price, Avg upload time</>,
-            ]} />
-            <Quote author="Alexei">They have to manage everything &mdash; add sites, add sections, change prices. The price they change is what the agency sees.</Quote>
-            <DemoLink href="/scale-publish" label="Open Publisher view → Sites & Sections" />
-            <Open>Right now Add Section opens a modal. Would inline-editing within the tree feel faster for editors who add sections often?</Open>
-          </Step>
+        <Item n={6} title="Content mode (Step 4) — XSS-safe rewrite">
+          <p>Two safe textareas instead of contentEditable:</p>
+          <Bullets items={[
+            <><strong>Visual tab</strong> — serif Georgia styling for editorial feel</>,
+            <><strong>Code tab</strong> — monospace for direct paste</>,
+            <><strong>Word file upload</strong> — reads as plain text via FileReader (no innerHTML, no XSS surface)</>,
+            <><strong>AI scan</strong> — one-click button returns covered queries (with coverage %), missing queries, and recommendations</>,
+          ]} />
+          <Note>Zero <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>dangerouslySetInnerHTML</code> in the entire codebase.</Note>
+        </Item>
 
-          <Step n={2} title="Approve orders from the inbox">
-            <P>Every agency order lands here. Editor reviews, approves; sales team contacts the agency.</P>
-            <UL items={[
-              <>Status filter pills: All / Pending / Approved / In progress / Published</>,
-              <>4 KPIs: Pending count, In-progress count, Published, Avg order value</>,
-              <>Expand any order to see queries, sections, content mode, agency contact</>,
-              <>Action buttons: Approve & contact / Reject / Mark in progress / Mark published</>,
-            ]} />
-            <DemoLink href="/scale-publish" label="Open Publisher view → Order Inbox" />
-            <Open>When publisher rejects an order &mdash; should we ask for a reason that the agency sees, or just send a generic &ldquo;not approved&rdquo;?</Open>
-          </Step>
+        <Item n={7} title="AI draft body editing">
+          <p>For AI-generated mode, the agency can toggle <strong>Edit draft</strong> and override the body text per query (one textarea per H2 section). The article title stays locked — only section bodies are editable, so the structure can&rsquo;t drift from the matched queries.</p>
+        </Item>
 
-          <Step n={3} title="Track every published article">
-            <P>Once published, the article URL appears here and gets tracked individually. Per-item, not per-domain.</P>
-            <UL items={[
-              <>4 KPIs: Total views, Indexed (X/Y), AI-cited (X/Y), Avg impact</>,
-              <>Per-site filter dropdown</>,
-              <>Re-check engines button (animated, updates citation flags)</>,
-              <>Export CSV for the publisher&rsquo;s records</>,
-            ]} />
-            <DemoLink href="/scale-publish" label="Open Publisher view → Articles & Tracking" />
-            <Open>Should the publisher get a notification when an article they published gets cited by an AI engine for the first time? (Right now: silent.)</Open>
-          </Step>
+        <Item n={8} title="SMS-sent card after submit">
+          <p>After hitting Submit, a phone-mockup card appears showing the SMS that was &ldquo;dispatched&rdquo; to the publisher director. Includes order ID, agency, sites, sections, total, and payment breakdown. Designed for the live Ynet demo.</p>
+          <SeeLive href="/scale-publish" label="Submit any order to see the SMS card" />
+        </Item>
 
-          <Step n={4} title="Watch the money flow">
-            <P>The dashboard Alexei was most excited about. Revenue, funnel, AI citations &mdash; all in one view.</P>
-            <UL items={[
-              <>Hero: &ldquo;₪X this month · N articles live&rdquo;</>,
-              <>4 KPIs: Revenue this month, Pending revenue, Avg order value, AI-citation rate</>,
-              <>Revenue trend chart: 12-week bars, dashed average line, current week highlighted</>,
-              <>Order funnel: Submitted → Approved → In progress → Published</>,
-              <>AI engine citation rates: ChatGPT, Gemini, Perplexity (each in its brand color)</>,
-              <>Top 6 sections by revenue · Revenue by site (% share)</>,
-            ]} />
-            <Quote author="Alexei">Flow of money. Flow of orders. They need to see it and feel it.</Quote>
-            <DemoLink href="/scale-publish" label="Open Publisher view → Analytics" />
-            <Open>Currently it&rsquo;s 6 widgets in a single column. Would a 2-column grid (revenue widgets left, AI/citation widgets right) read better on a 1440 monitor?</Open>
-          </Step>
-        </Section>
+        <Item n={9} title='"Scans" link hidden in publisher mode'>
+          <p>Publishers don&rsquo;t manage scans. The header navigation hides <strong>Scans</strong> when the user is in Publisher view.</p>
+        </Item>
 
-        {/* ── DESIGN QUESTIONS BUNDLED ── */}
-        <Section eyebrow="The big questions" title="Where I need your eye">
-          <P style={{ marginBottom: 14 }}>The functional flow is locked. These are the visual + interaction calls I&rsquo;d love your take on before Thursday.</P>
-          <Card accent={AMBER}>
-            <UL items={[
-              <><B>Hero / feature image:</B> who provides it? Editor uploads, AI generates from title, or agency provides? (Right now: gradient placeholder.)</>,
-              <><B>Article preview:</B> read-only mockup, or live WYSIWYG where the agency can edit copy in place?</>,
-              <><B>&ldquo;I&rsquo;ll provide the copy&rdquo; mode:</B> upload a Word doc, or paste into a rich-text editor?</>,
-              <><B>Premium pricing:</B> if a section has high AI-citation rates, should the publisher be able to mark it &ldquo;Premium&rdquo; with a badge agencies see?</>,
-              <><B>RTL Hebrew UI:</B> needed for the Yedioth editor team, or is English-LTR fine since they&rsquo;re tech-comfortable?</>,
-              <><B>Mobile order placement:</B> realistic, or do agencies always do this on desktop? Decides how much we polish mobile Order Flow.</>,
-              <><B>Re-check cadence:</B> daily auto-refresh, on-demand only, or both?</>,
-            ]} />
-          </Card>
-        </Section>
+        <Item n={10} title="Custom queries on the Scan page">
+          <p>The Scan page now has an <strong>Add custom query</strong> button. Modal collects text + persona dropdown + journey stage. Custom queries are saved to localStorage and appear inline alongside AI-discovered ones.</p>
+          <Note>So agencies can add queries the scan didn&rsquo;t auto-detect.</Note>
+        </Item>
+
+        <Item n={11} title="Client sharing flow (the missing piece)">
+          <p>You raised this as the gap: agencies need to share with their client before sending to the publisher. Now built end-to-end:</p>
+          <Bullets items={[
+            <>Agency hits <strong>Share with client</strong> on any order — mints a shareId and opens a modal for client name, email, optional message</>,
+            <>Generated share URL: <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>/scale-publish?clientShare=&lt;id&gt;</code></>,
+            "Copy / WhatsApp / Email / Preview-as-client buttons in the share modal",
+            "Client opens the URL — sees a clean, agency-branded review page (no Geoscale internals)",
+            <>Client decides: <strong>Approve</strong> or <strong>Request changes</strong> with a note</>,
+            "Bidirectional comment thread between agency and client, persisted on the order",
+            "Status banner in the agency view: pending / approved / changes requested",
+          ]} />
+          <SeeLive href="/scale-publish" label="Agency view → My Orders → Share with client" />
+        </Item>
+
+        {/* ── ALEXEI'S ADDITIONS ── */}
+        <SectionHeader id="alexei" eyebrow="Section 2" title="Alexei's additions" subtitle="Two things on top of the meeting items: prepaid article credits, and a do-follow backlink in every article." />
+
+        <Item n={1} title="Article Bank — prepaid credit bundles">
+          <p>Agencies pre-buy articles like credits. Each credit redeems for one placement on any Yedioth section — Ynet, Calcalist, Sport5, Mynet, the lot. Credits are fully interchangeable.</p>
+          <PriceTable rows={[
+            { name: "Starter", credits: 5, perCredit: "₪7,500", badge: null },
+            { name: "Growth", credits: 15, perCredit: "₪6,500", badge: { label: "Most popular", color: GREEN } },
+            { name: "Scale", credits: 50, perCredit: "₪5,500", badge: { label: "Best value · 41% off", color: BLUE } },
+            { name: "Enterprise", credits: 150, perCredit: "₪4,800", badge: { label: "49% off", color: MUTED } },
+          ]} />
+          <p>The credits widget is pinned in the agency header next to the brand selector. Clicking it opens the bank modal. Demo seed: every agency starts with 8 credits so the &ldquo;Pay with credits&rdquo; flow can be demoed without buying first.</p>
+          <SeeLive href="/scale-publish" label="Click the credits widget in the agency header" />
+        </Item>
+
+        <Item n={2} title="Do-follow backlink in every article">
+          <p>Every article carries one do-follow link to the client&rsquo;s site. Standard, not an upsell. The agency just picks where the link points and what it says — both fields are optional with sensible defaults:</p>
+          <Bullets items={[
+            <><strong>Target URL</strong> — defaults to the brand&rsquo;s homepage if left blank</>,
+            <><strong>Anchor text</strong> — defaults to the brand name if left blank</>,
+          ]} />
+          <Note>The publisher sees the embed instructions in the order detail (with a reminder not to add <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>rel=&quot;nofollow&quot;</code>). The client sees the destination + anchor in the review screen too.</Note>
+        </Item>
+
+        <Item n={3} title="Payment selector at checkout">
+          <p>Step 5 (Review) has three payment options:</p>
+          <Bullets items={[
+            <><strong>Cash invoice</strong> — pay the full amount on the master proposal, 30-day terms</>,
+            <><strong>Pay with credits</strong> — redeem from the article bank when the balance covers all sections</>,
+            <><strong>Credits + cash</strong> — spend all available credits, bill the rest in cash</>,
+          ]} />
+          <p>Credits-only and the hybrid option auto-disable when the balance is too low or the cart is empty. A live math summary shows: <em>&ldquo;You&rsquo;ll pay 3 credits + ₪9,800 cash · balance after order: 5 credits.&rdquo;</em></p>
+          <Note>Credits are deducted from the agency&rsquo;s balance the moment the order is submitted.</Note>
+        </Item>
+
+        <Item n={4} title="Order metadata flows everywhere">
+          <p>Backlink + payment info appears in:</p>
+          <Bullets items={[
+            <>The agency&rsquo;s order list (badge: &ldquo;3 credits redeemed&rdquo;)</>,
+            "The publisher's order inbox (full embed instructions)",
+            "The client review page (target URL + anchor for transparency)",
+            "The post-submit SMS to the publisher director",
+          ]} />
+        </Item>
+
+        {/* ── OPEN QUESTIONS ── */}
+        <SectionHeader id="questions" eyebrow="Section 3" title="Open design questions" subtitle="Where I'd love your eye before Thursday." />
+
+        <QuestionList items={[
+          <><strong>Article bank visual</strong> — the 4 packages are equal-weight cards right now. Should &ldquo;Most popular&rdquo; (Growth) and &ldquo;Best value&rdquo; (Scale) be visually larger, or is the badge enough?</>,
+          <><strong>Credits widget in header</strong> — sits next to the brand selector. On mobile it wraps below. Worth giving it a dedicated icon button instead of text?</>,
+          <><strong>Backlink panel placement</strong> — lives at the top of Step 3. Would it feel better as a collapsed accordion (open by default) so the section list is the focus?</>,
+          <><strong>Payment selector</strong> — 3 buttons in a row. Should the disabled options (when balance is 0) hide entirely, or stay visible greyed-out?</>,
+          <><strong>Hero / feature image</strong> — still open from the last call. Editor uploads, AI generates from title, or agency provides?</>,
+          <><strong>RTL Hebrew UI</strong> — needed for Yedioth&rsquo;s editor team, or English-LTR fine?</>,
+          <><strong>Mobile order placement</strong> — realistic, or always desktop? Decides how much we polish the mobile Order Flow.</>,
+        ]} />
 
         {/* ── STATUS ── */}
-        <Section eyebrow="Honest status" title="Built · Open · Next">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 14 }}>
-            <Card accent={GREEN}>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: GREEN, margin: "0 0 10px" }}>✓ Built and live</h3>
-              <UL items={[
-                <>Two-user toggle with shared state (Agency ↔ Publisher)</>,
-                <>5-bullet query selection · numbered query list · AdsGPT-style article preview</>,
-                <>List-not-boxes section matching with reason pills · title-affects-matching</>,
-                <>Editable pricing with toast feedback · Add/Delete site/section modals</>,
-                <>Order approval workflow · per-article tracking · Re-check engines · CSV exports</>,
-                <>Full Analytics view · per-domain filters · KPI tooltips · light/dark mode</>,
-                <>Mobile responsive across all views</>,
-              ]} />
-            </Card>
-            <Card accent={BLUE}>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: BLUE, margin: "0 0 10px" }}>→ Next sprint (after Yedioth meeting)</h3>
-              <UL items={[
-                <>Real CMS integration with Yedioth&rsquo;s publishing system (URL push-back)</>,
-                <>Real engine-check pipeline (replace simulated re-check with actual GPT/Gemini/Perplexity calls)</>,
-                <>Hebrew UI option for editor team</>,
-                <>Multi-brand agency support · approval comments · email/Slack notifications</>,
-                <>Stripe / Tranzila payment instead of &ldquo;sales contacts you&rdquo;</>,
-                <>Editor in-line citation suggestions when articles aren&rsquo;t getting cited</>,
-              ]} />
-            </Card>
-          </div>
-        </Section>
+        <SectionHeader id="status" eyebrow="Section 4" title="Built · Next sprint" subtitle="Where we are honestly." />
 
-        {/* ── GLOSSARY ── */}
-        <Section eyebrow="One-line definitions" title="Glossary">
-          <Card>
-            <UL items={[
-              <><B>AI citation</B> &mdash; when ChatGPT or Gemini quotes the article in an answer to a user&rsquo;s question.</>,
-              <><B>Query</B> &mdash; a question a brand wants to be the answer to (&ldquo;Best banking app in Israel?&rdquo;).</>,
-              <><B>Section</B> &mdash; a sub-page on a Yedioth site (e.g., Ynet · Cars). Each has its own price.</>,
-              <><B>Order</B> &mdash; a bundle of sections an agency buys for one article.</>,
-              <><B>AdsGPT-style preview</B> &mdash; the editorial mockup in step 2.2; modeled on the AdsGPT case study layout.</>,
-              <><B>GEO / AEO</B> &mdash; Generative Engine Optimization / Answer Engine Optimization. Geoscale&rsquo;s category.</>,
-              <><B>Impact score</B> &mdash; per-article composite of indexing + citation + ranking.</>,
-            ]} />
-          </Card>
-        </Section>
+        <StatusBlock title="Built and live" color={GREEN} items={[
+          "Two-user toggle with shared state (Agency ↔ Publisher)",
+          "5-bullet query selection · numbered query list · AdsGPT-style article preview",
+          "List-not-boxes section matching with reason pills · title-affects-matching",
+          "Editable pricing with toast feedback · Add/Delete site/section modals",
+          "Order approval workflow · per-article tracking · Re-check engines · CSV exports",
+          "Full Analytics view · per-domain filters · KPI tooltips · light/dark mode",
+          "All 11 meeting decisions (steps reordered, multi-site warning, AI top-3, match-score tooltip, brand selector, content tabs, AI draft editing, SMS card, custom queries, hidden Scans link, client sharing)",
+          "Client sharing flow end-to-end (mint, share, review, decision, comment thread)",
+          "Article bank (4 bundles, balance widget, redeem at checkout)",
+          "Do-follow backlink in every article (target + anchor with defaults)",
+          "Payment selector (cash / credits / hybrid) with live math",
+          "Mobile responsive across all views",
+        ]} />
 
-        {/* ── BOTTOM CTA ── */}
-        <div style={{ marginTop: 50, padding: "30px 24px", background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", borderRadius: 14, color: "#fff", textAlign: "center" }}>
-          <h3 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 8px" }}>That&rsquo;s the whole flow.</h3>
-          <p style={{ fontSize: 15, color: "#CBD5E1", margin: "0 0 18px" }}>Click below to play with the live demo. Toggle Agency ↔ Publisher in the header.</p>
-          <a href="/scale-publish" style={{ display: "inline-block", padding: "12px 28px", background: GREEN, color: "#fff", borderRadius: 10, fontSize: 15, fontWeight: 700, textDecoration: "none" }}>Open the live demo →</a>
+        <StatusBlock title="Next sprint · after the Yedioth meeting" color={BLUE} items={[
+          "Real CMS integration with Yedioth's publishing system (URL push-back)",
+          "Real engine-check pipeline (replace simulated re-check with actual GPT/Gemini/Perplexity calls)",
+          "Hebrew UI option for the editor team",
+          "Multi-brand agency support · approval comments · email/Slack notifications",
+          "Stripe / Tranzila for credit-bundle purchases (right now it's localStorage demo)",
+          "Editor in-line citation suggestions when articles aren't getting cited",
+        ]} />
+
+        {/* ── BOTTOM ── */}
+        <div style={{ marginTop: 80, padding: "40px 32px", background: SOFT_BG, border: `1px solid ${BORDER}`, borderRadius: 14, textAlign: "center" }}>
+          <h3 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px", color: INK, letterSpacing: "-0.01em" }}>That&rsquo;s the whole update.</h3>
+          <p style={{ fontSize: 16, color: MUTED, margin: "0 0 22px", lineHeight: 1.55 }}>Open the live demo and toggle Agency ↔ Publisher in the header.</p>
+          <a href="/scale-publish" style={{ display: "inline-block", padding: "12px 28px", background: GREEN, color: "#fff", borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.01em" }}>Open the live demo</a>
         </div>
 
-      </div>
+      </main>
     </div>
   );
 }
 
-// ── Helpers ──
-function Section({ id, eyebrow, title, children }: { id?: string; eyebrow?: string; title: string; children: React.ReactNode }) {
-  return (
-    <section id={id} style={{ margin: "44px 0 0" }}>
-      <div style={{ marginBottom: 16 }}>
-        {eyebrow && <div style={{ fontSize: 11, color: GREEN, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>{eyebrow}</div>}
-        <h2 style={{ fontSize: 28, fontWeight: 800, color: TEXT, margin: 0, lineHeight: 1.2, letterSpacing: "-0.4px" }}>{title}</h2>
-      </div>
-      {children}
-    </section>
-  );
-}
+// ============================================================
+// PRIMITIVES — clean, repeatable, no nested cards
+// ============================================================
 
-function Card({ children, accent, style }: { children: React.ReactNode; accent?: string; style?: React.CSSProperties }) {
+function Lede({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderLeft: accent ? `4px solid ${accent}` : `1px solid ${BORDER}`, borderRadius: 12, padding: 22, ...style }}>
+    <div style={{ padding: "20px 24px", background: SOFT_BG, borderLeft: `3px solid ${GREEN}`, borderRadius: 4, marginBottom: 36, fontSize: 16, lineHeight: 1.7, color: TEXT }}>
       {children}
     </div>
   );
 }
 
-function Tag({ children, color }: { children: React.ReactNode; color: string }) {
-  return <span style={{ display: "inline-block", padding: "5px 12px", fontSize: 11, fontWeight: 700, background: `${color}15`, color, borderRadius: 4, letterSpacing: 1.2, textTransform: "uppercase" }}>{children}</span>;
+function Toc({ items }: { items: { href: string; label: string; count?: number }[] }) {
+  return (
+    <nav style={{ marginBottom: 56, padding: "20px 24px", border: `1px solid ${BORDER}`, borderRadius: 10, background: "#FFFFFF" }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>On this page</div>
+      <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
+        {items.map((it, i) => (
+          <li key={i}>
+            <a href={it.href} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, padding: "8px 0", fontSize: 15, fontWeight: 500, color: TEXT, textDecoration: "none", borderBottom: i < items.length - 1 ? `1px dashed ${BORDER}` : "none" }}>
+              <span><span style={{ color: MUTED, fontVariantNumeric: "tabular-nums", marginRight: 10 }}>{String(i + 1).padStart(2, "0")}</span>{it.label}</span>
+              {typeof it.count === "number" && <span style={{ fontSize: 13, color: MUTED, fontVariantNumeric: "tabular-nums" }}>{it.count} items</span>}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
 }
 
-function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+function SectionHeader({ id, eyebrow, title, subtitle }: { id: string; eyebrow: string; title: string; subtitle?: string }) {
   return (
-    <div style={{ display: "flex", gap: 16, marginBottom: 20, alignItems: "flex-start" }}>
-      <div style={{ width: 40, height: 40, borderRadius: "50%", background: GREEN, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, flexShrink: 0, marginTop: 2 }}>{n}</div>
-      <Card style={{ flex: 1, minWidth: 0 }}>
-        <h3 style={{ fontSize: 19, fontWeight: 700, color: TEXT, margin: "0 0 10px" }}>{title}</h3>
-        <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7 }}>{children}</div>
-      </Card>
+    <div id={id} style={{ marginTop: 80, marginBottom: 32, paddingTop: 32, borderTop: `1px solid ${BORDER}`, scrollMarginTop: 80 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{eyebrow}</div>
+      <h2 style={{ fontSize: 32, fontWeight: 800, margin: "0 0 10px", color: INK, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{title}</h2>
+      {subtitle && <p style={{ fontSize: 17, color: MUTED, margin: 0, lineHeight: 1.55, fontWeight: 400 }}>{subtitle}</p>}
     </div>
   );
 }
 
-function FlowStep({ n, label, sub, color, last }: { n: number; label: string; sub: string; color: string; last?: boolean }) {
+function Item({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <div style={{ position: "relative", textAlign: "center", padding: "16px 8px", background: `${color}08`, borderRadius: 10, border: `1px solid ${color}30` }}>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", background: color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, marginBottom: 8 }}>{n}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 11, color: TEXT_MUTED }}>{sub}</div>
-      {!last && <div style={{ position: "absolute", right: -12, top: "50%", transform: "translateY(-50%)", color: TEXT_MUTED, fontSize: 14, fontWeight: 700 }}>→</div>}
-    </div>
+    <article style={{ display: "flex", gap: 20, paddingBottom: 32, marginBottom: 32, borderBottom: `1px solid ${BORDER}`, alignItems: "flex-start" }}>
+      <div style={{ width: 32, height: 32, borderRadius: "50%", background: SOFT_BG, color: INK, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, flexShrink: 0, fontVariantNumeric: "tabular-nums", border: `1px solid ${BORDER}`, marginTop: 2 }}>{n}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 12px", color: INK, lineHeight: 1.3, letterSpacing: "-0.01em" }}>{title}</h3>
+        <div style={{ fontSize: 16, lineHeight: 1.7, color: TEXT }}>{children}</div>
+      </div>
+    </article>
   );
 }
 
-function P({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <p style={{ fontSize: 15, lineHeight: 1.7, color: "#334155", margin: "0 0 12px", ...style }}>{children}</p>;
-}
-
-function B({ children }: { children: React.ReactNode }) {
-  return <strong style={{ color: TEXT, fontWeight: 700 }}>{children}</strong>;
-}
-
-function UL({ items }: { items: React.ReactNode[] }) {
+function Steps({ items }: { items: string[] }) {
   return (
-    <ul style={{ margin: "0 0 0", paddingLeft: 22, fontSize: 15, lineHeight: 1.75, color: "#334155" }}>
+    <ol style={{ margin: "12px 0", padding: 0, listStyle: "none", counterReset: "step", display: "flex", flexDirection: "column", gap: 6 }}>
       {items.map((it, i) => (
-        <li key={i} style={{ marginBottom: 7 }}>{it}</li>
+        <li key={i} style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "8px 12px", background: SOFT_BG, borderRadius: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: MUTED, letterSpacing: "0.06em", minWidth: 50 }}>STEP {i + 1}</span>
+          <span style={{ fontSize: 15, color: TEXT }}>{it}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Bullets({ items }: { items: React.ReactNode[] }) {
+  return (
+    <ul style={{ margin: "12px 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+      {items.map((it, i) => (
+        <li key={i} style={{ display: "flex", gap: 12, fontSize: 15.5, lineHeight: 1.65, color: TEXT }}>
+          <span style={{ flexShrink: 0, marginTop: 9, width: 5, height: 5, borderRadius: "50%", background: MUTED }} />
+          <span>{it}</span>
+        </li>
       ))}
     </ul>
   );
 }
 
-function Quote({ children, author }: { children: React.ReactNode; author: string }) {
+function Note({ children }: { children: React.ReactNode }) {
   return (
-    <blockquote style={{ borderLeft: `4px solid ${GREEN}`, padding: "8px 0 8px 18px", margin: "14px 0 4px", fontSize: 15, fontStyle: "italic", color: "#475569", lineHeight: 1.55 }}>
-      &ldquo;{children}&rdquo;
-      <span style={{ display: "block", marginTop: 6, fontStyle: "normal", fontSize: 12, fontWeight: 700, color: TEXT_MUTED }}>&mdash; {author}</span>
-    </blockquote>
+    <p style={{ marginTop: 14, marginBottom: 0, fontSize: 14, color: MUTED, lineHeight: 1.6 }}>{children}</p>
   );
 }
 
-function DemoLink({ href, label }: { href: string; label: string }) {
+function SeeLive({ href, label }: { href: string; label?: string }) {
   return (
-    <div style={{ marginTop: 14 }}>
-      <a href={href} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: SOFT_GREEN, color: GREEN, borderRadius: 7, fontSize: 13, fontWeight: 700, textDecoration: "none", border: `1px solid ${GREEN}30` }}>
-        ▶ {label}
-      </a>
+    <a href={href} style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "8px 14px", background: "#FFFFFF", color: INK, borderRadius: 7, fontSize: 13, fontWeight: 600, textDecoration: "none", border: `1px solid ${BORDER}`, letterSpacing: "0.01em" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: GREEN }} />
+      See it live{label ? ` · ${label}` : ""}
+      <span style={{ color: MUTED, marginLeft: 2 }}>→</span>
+    </a>
+  );
+}
+
+function PriceTable({ rows }: { rows: { name: string; credits: number; perCredit: string; badge: { label: string; color: string } | null }[] }) {
+  return (
+    <div style={{ margin: "16px 0", border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", padding: "10px 16px", background: SOFT_BG, borderBottom: `1px solid ${BORDER}`, fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        <div>Bundle</div>
+        <div>Credits</div>
+        <div style={{ textAlign: "right" }}>Per credit</div>
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", padding: "14px 16px", borderBottom: i < rows.length - 1 ? `1px solid ${BORDER}` : "none", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: INK }}>{r.name}</div>
+            {r.badge && <div style={{ marginTop: 3, display: "inline-block", padding: "2px 8px", background: `${r.badge.color}15`, color: r.badge.color, fontSize: 11, fontWeight: 700, borderRadius: 999, letterSpacing: "0.02em" }}>{r.badge.label}</div>}
+          </div>
+          <div style={{ fontSize: 15, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{r.credits}</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: INK, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.perCredit}</div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function Open({ children }: { children: React.ReactNode }) {
+function QuestionList({ items }: { items: React.ReactNode[] }) {
   return (
-    <div style={{ marginTop: 14, padding: "12px 14px", background: `${AMBER}08`, borderLeft: `3px solid ${AMBER}`, borderRadius: 6 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Design question for you</div>
-      <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>{children}</div>
+    <ol style={{ margin: 0, padding: 0, listStyle: "none", counterReset: "q" }}>
+      {items.map((it, i) => (
+        <li key={i} style={{ display: "flex", gap: 18, padding: "20px 0", borderBottom: i < items.length - 1 ? `1px solid ${BORDER}` : "none", alignItems: "flex-start" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: AMBER, letterSpacing: "0.06em", minWidth: 28, marginTop: 3, fontVariantNumeric: "tabular-nums" }}>Q{i + 1}</div>
+          <div style={{ flex: 1, fontSize: 15.5, lineHeight: 1.7, color: TEXT }}>{it}</div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function StatusBlock({ title, color, items }: { title: string; color: string; items: React.ReactNode[] }) {
+  return (
+    <div style={{ marginBottom: 24, padding: "24px 28px", border: `1px solid ${BORDER}`, borderLeft: `4px solid ${color}`, borderRadius: 10, background: "#FFFFFF" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+        <h3 style={{ fontSize: 17, fontWeight: 700, color: INK, margin: 0, letterSpacing: "-0.01em" }}>{title}</h3>
+      </div>
+      <Bullets items={items} />
     </div>
   );
 }

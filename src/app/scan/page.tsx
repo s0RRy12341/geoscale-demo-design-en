@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 // ============================================================
 // GEOSCALE SCAN ANALYSIS — Full Brand Scan Results Page
@@ -1005,6 +1005,19 @@ export default function ScanPage() {
   const [chartPeriod, setChartPeriod] = useState<"7" | "30" | "90">("30");
   const [productFilter, setProductFilter] = useState<"all" | "service" | "product">("all");
   const [contentQueue, setContentQueue] = useState<number[]>([]);
+  // Custom queries the agency adds manually — per Inna call 2026-05-05 ("AI may have missed
+  // something the agency wants to target"). Stored in component state, persisted in localStorage.
+  type CustomQuery = { id: number; text: string; persona: string; stage: string; gpt: boolean; gemini: boolean; gptSnippet: string; geminiSnippet: string };
+  const [customQueries, setCustomQueries] = useState<CustomQuery[]>([]);
+  const [showAddQueryModal, setShowAddQueryModal] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { const raw = localStorage.getItem("geoscale-scan-custom-queries"); if (raw) setCustomQueries(JSON.parse(raw)); } catch { /* noop */ }
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { localStorage.setItem("geoscale-scan-custom-queries", JSON.stringify(customQueries)); } catch { /* noop */ }
+  }, [customQueries]);
 
   // ── ScalePublish basket: queries the user has queued from this scan ──
   // Up to 5 queries form one external article. Persists across tabs and reloads.
@@ -1070,11 +1083,13 @@ export default function ScanPage() {
 
   const theme = darkMode ? DARK_THEME : LIGHT_THEME;
 
-  const gptMentioned = QUERIES.filter((q) => q.gpt).length;
-  const geminiMentioned = QUERIES.filter((q) => q.gemini).length;
-  const totalQueries = QUERIES.length;
+  // Combined query pool: built-in scan results + agency-added custom queries
+  const allQueries = useMemo(() => [...QUERIES, ...customQueries], [customQueries]);
+  const gptMentioned = allQueries.filter((q) => q.gpt).length;
+  const geminiMentioned = allQueries.filter((q) => q.gemini).length;
+  const totalQueries = allQueries.length;
 
-  const filteredQueries = QUERIES.filter((q) => {
+  const filteredQueries = allQueries.filter((q) => {
     if (queryFilter === "mentioned" && !(q.gpt || q.gemini)) return false;
     if (queryFilter === "missing" && (q.gpt || q.gemini)) return false;
     if (queryFilter === "negative") return false;
@@ -1083,9 +1098,9 @@ export default function ScanPage() {
   });
 
   const filterCounts = {
-    all: QUERIES.length,
-    mentioned: QUERIES.filter((q) => q.gpt || q.gemini).length,
-    missing: QUERIES.filter((q) => !q.gpt && !q.gemini).length,
+    all: allQueries.length,
+    mentioned: allQueries.filter((q) => q.gpt || q.gemini).length,
+    missing: allQueries.filter((q) => !q.gpt && !q.gemini).length,
     negative: 0,
   };
 
@@ -1883,8 +1898,32 @@ export default function ScanPage() {
                     </HoverButton>
                   ))}
                 </div>
+                <div style={{ flex: 1 }} />
+                {/* Add custom query — per Inna call 2026-05-05: agency can add a query AI may have missed */}
+                <button onClick={() => setShowAddQueryModal(true)} style={{ padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "#10A37F", background: "transparent", border: `1px solid #10A37F`, borderRadius: 9, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
+                  Add custom query
+                </button>
               </div>
             </div>
+            {customQueries.length > 0 && (
+              <div style={{ marginBottom: 14, padding: "10px 14px", background: "#10A37F08", border: "1px dashed #10A37F40", borderRadius: 9, fontSize: 13, color: theme.textSecondary, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <span><strong style={{ color: "#10A37F" }}>{customQueries.length}</strong> custom {customQueries.length === 1 ? "query" : "queries"} added by you · they appear in the table below alongside the AI-discovered ones</span>
+                <button onClick={() => { setCustomQueries([]); }} style={{ padding: "5px 11px", fontSize: 12, fontWeight: 600, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 6, cursor: "pointer" }}>Clear all custom</button>
+              </div>
+            )}
+            {showAddQueryModal && (
+              <AddCustomQueryModal
+                theme={theme}
+                isMobile={isMobile}
+                onClose={() => setShowAddQueryModal(false)}
+                onAdd={(q) => {
+                  const nextId = Math.max(0, ...allQueries.map((x) => x.id)) + 1;
+                  setCustomQueries([...customQueries, { ...q, id: nextId }]);
+                  setShowAddQueryModal(false);
+                }}
+              />
+            )}
 
             <div style={{ ...card, overflow: "hidden" }}>
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
@@ -2457,6 +2496,83 @@ export default function ScanPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// ADD CUSTOM QUERY MODAL — per Inna call 2026-05-05
+// ============================================================
+function AddCustomQueryModal({ theme, isMobile, onClose, onAdd }: { theme: any; isMobile: boolean; onClose: () => void; onAdd: (q: { text: string; persona: string; stage: string; gpt: boolean; gemini: boolean; gptSnippet: string; geminiSnippet: string }) => void }) {
+  const [text, setText] = useState("");
+  const [persona, setPersona] = useState(PERSONAS[0]?.id ?? "maya");
+  const [stage, setStage] = useState<"Awareness" | "Research" | "Decision" | "Support">("Research");
+  const canAdd = text.trim().length >= 6;
+
+  const submit = () => {
+    if (!canAdd) return;
+    onAdd({
+      text: text.trim(),
+      persona,
+      stage,
+      gpt: false,
+      gemini: false,
+      gptSnippet: "Custom query — coverage not yet checked. Run a re-scan to test against ChatGPT.",
+      geminiSnippet: "Custom query — coverage not yet checked. Run a re-scan to test against Gemini.",
+    });
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.55)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 1000 }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", background: theme.cardBg, borderRadius: 14, border: `1px solid ${theme.border}`, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding: isMobile ? "16px 18px" : "20px 24px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#10A37F", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Add custom query</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.3 }}>Track a query AI may have missed</div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", padding: 6, fontSize: 18 }}>×</button>
+        </div>
+
+        <div style={{ padding: isMobile ? "16px 18px" : "22px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55 }}>
+            Add a query you want to track that AI didn't surface during the automatic scan. It joins the table below — you can queue it for ScalePublish or generate own-site content like any other query.
+          </div>
+
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Query text</label>
+            <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. Best therapeutic riding programs for autism in Tel Aviv 2026" rows={3} style={{ width: "100%", padding: "11px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5 }} />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Persona</label>
+              <select value={persona} onChange={(e) => setPersona(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", cursor: "pointer" }}>
+                {PERSONAS.map((p) => <option key={p.id} value={p.id}>{p.name} — {p.role}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Journey stage</label>
+              <select value={stage} onChange={(e) => setStage(e.target.value as "Awareness" | "Research" | "Decision" | "Support")} style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", cursor: "pointer" }}>
+                <option value="Awareness">Awareness</option>
+                <option value="Research">Research</option>
+                <option value="Decision">Decision</option>
+                <option value="Support">Support</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ padding: "12px 14px", background: "#10A37F08", border: `1px solid #10A37F30`, borderLeft: `3px solid #10A37F`, borderRadius: 7, fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>
+            <strong style={{ color: "#10A37F" }}>How it works:</strong> The query is added as "Missing" (AI hasn't seen it yet). You can immediately use it in ScalePublish or to generate own-site content. To test real AI coverage, re-run the scan.
+          </div>
+
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
+            <button onClick={onClose} style={{ padding: "11px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 9, cursor: "pointer" }}>Cancel</button>
+            <button onClick={submit} disabled={!canAdd} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: canAdd ? "#10A37F" : theme.barTrack, color: canAdd ? "#fff" : theme.textMuted, border: "none", borderRadius: 9, cursor: canAdd ? "pointer" : "not-allowed" }}>
+              Add query to scan
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -22,16 +22,21 @@ const LIGHT_THEME: Theme = {
   tableBg: "#FFFFFF", tableHeaderBg: "#FAFAFA", badgeBg: "#F9F9F9", inputBg: "#FFFFFF",
   barTrack: "#E5E5E5", logoFill: "#141414", logoStroke: "#ABABAB",
 };
+// DARK_THEME tuned 2026-05-06 (Alexei feedback): textSecondary + textMuted bumped lighter so
+// labels and small text don't disappear on the #0D1117 bg. Big numbers always use `text` (#E6EDF3).
 const DARK_THEME: Theme = {
-  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#9DA5B0",
-  textMuted: "#7B8590", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
+  bg: "#0D1117", cardBg: "#161B22", border: "#30363D", text: "#E6EDF3", textSecondary: "#B0B8C2",
+  textMuted: "#94A3B0", headerBg: "rgba(13,17,23,0.96)", hoverBg: "#1C2128",
   tableBg: "#161B22", tableHeaderBg: "#1C2128", badgeBg: "#1C2128", inputBg: "#0D1117",
   barTrack: "#30363D", logoFill: "#E6EDF3", logoStroke: "#484F58",
 };
 
 const BRAND_GREEN = "#10A37F";
 const BRAND_AMBER = "#B45309";
-const BRAND_BLUE = "#1D4ED8";
+// BRAND_BLUE was #1D4ED8 royal blue (Alexei feedback 2026-05-06: "blue doesn't fit GeoScale").
+// Replaced with cyan-700 — distinctly cool, aligns with GeoScale name, plays well with green/amber.
+// Usage: neutral info pills, in-progress status, target-URL link color.
+const BRAND_BLUE = "#0891B2";
 
 // ── SVG Icons ──
 function IconSearch({ size = 14, color = "#A2A9B0" }: { size?: number; color?: string }) {
@@ -155,12 +160,12 @@ function GeoNote({ text, enabled = true, label = "GEO" }: { text: string; enable
   };
   const close = () => setShow(false);
   return (
-    <span ref={ref} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", background: "#10A37F1F", color: "#047857", fontSize: 12, fontWeight: 800, borderRadius: 6, letterSpacing: 0.5, textTransform: "uppercase", border: "1.5px solid #10A37F", cursor: "help", verticalAlign: "middle", marginLeft: 6, lineHeight: 1.4, flexShrink: 0, boxShadow: "0 1px 3px rgba(16,163,127,0.2)" }}>
+    <span ref={ref} onMouseEnter={open} onMouseLeave={close} onClick={(e) => { e.stopPropagation(); show ? close() : open(); }} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", background: "#10A37F1F", color: "#047857", fontSize: 12, fontWeight: 700, borderRadius: 6, letterSpacing: 0.5, textTransform: "uppercase", border: "1.5px solid #10A37F", cursor: "help", verticalAlign: "middle", marginLeft: 6, lineHeight: 1.4, flexShrink: 0, boxShadow: "0 1px 3px rgba(16,163,127,0.2)" }}>
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
       {label}
       {show && (
         <span style={{ position: "fixed", top: pos.top, left: Math.min(Math.max(pos.left, 180), (typeof window !== "undefined" ? window.innerWidth : 1200) - 180), transform: "translate(-50%, -100%)", background: "#0F172A", color: "#fff", fontSize: 13, fontWeight: 400, lineHeight: 1.55, padding: "12px 16px", borderRadius: 9, whiteSpace: "normal", maxWidth: 340, width: "max-content", zIndex: 99999, pointerEvents: "none", boxShadow: "0 12px 30px rgba(0,0,0,0.35)", textTransform: "none", letterSpacing: 0, textAlign: "left" }}>
-          <span style={{ display: "block", fontSize: 11, fontWeight: 800, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Why this matters for GEO</span>
+          <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#10A37F", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Why this matters for GEO</span>
           {text}
           <span style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 10, height: 10, background: "#0F172A" }} />
         </span>
@@ -306,6 +311,27 @@ type Order = {
   // Publisher counter-offer: when Yedioth wants to renegotiate, they edit per-section prices and
   // optionally add a note. Agency sees the badge + revised total + note in their orders view.
   counterOffer?: { adjustedSections: { sectionId: string; price: number }[]; adjustedTotal: number; note?: string; sentAt: string };
+  // Backlink (Alexei 2026-05-05): every article ALWAYS carries a do-follow link. Agency specifies
+  // target URL + anchor text. If left blank, defaults to brand homepage with "click here" anchor.
+  // No premium — this is standard, not an upsell.
+  backlink?: { targetUrl: string; anchorText: string };
+  // Payment method: cash (invoice) or credits (article-bank prepaid). Hybrid splits across both
+  // when the cart total exceeds the available credit balance.
+  payment?: { method: "cash" | "credits" | "hybrid"; creditsUsed: number; cashAmount: number };
+  // Agency-to-client share: when the agency clicks "Share with client" on an order, we mint a
+  // shareId that becomes a deep-link URL. The client opens it and sees a clean review surface
+  // (article preview + sections + total). Their decision (approve / request changes) plus any
+  // comment thread is stored back here so the agency sees it in the same OrderCard.
+  clientShare?: {
+    shareId: string;
+    sharedAt: string;
+    clientName: string;
+    clientEmail: string;
+    message?: string;
+    status: "pending_review" | "approved" | "changes_requested";
+    decidedAt?: string;
+    comments: { id: string; from: "agency" | "client"; author: string; text: string; at: string }[];
+  };
 };
 
 type ArticleTracking = {
@@ -321,6 +347,30 @@ type ArticleTracking = {
   rankedQueries: { query: string; engine: "gpt" | "gemini" | "perplexity"; rank: number }[];
   views: number;
   impactScore: number;
+};
+
+// Article-bank top-up request (Alexei 2026-05-06): publishers sell the bank manually — they
+// arrange in meetings, agency pays via wire/invoice (not credit card). The agency uses this
+// "Request top-up" entry as a paper-trail. Publisher then either fulfills (sets credits to a
+// new value) or marks the request rejected. They can also adjust an agency's balance manually
+// without an inbound request.
+type TopUpRequest = {
+  id: string;
+  agencyName: string;
+  requestedCredits: number;
+  note?: string;
+  requestedAt: string;
+  status: "pending" | "fulfilled" | "rejected";
+  fulfilledAt?: string;
+  fulfilledCredits?: number; // What the publisher actually granted (may differ from request).
+};
+
+type CreditLedgerEntry = {
+  id: string;
+  at: string;
+  delta: number; // Positive = top-up, negative = order debit.
+  reason: string; // Free-text label visible in history.
+  by: "publisher" | "system";
 };
 
 // ============================================================
@@ -395,6 +445,17 @@ const DEMO_BRAND = {
   agency: "Just In Time Agency",
   agencyContact: "media@justintime.co.il",
 };
+
+// ── BRAND PORTFOLIO — what shows in the top-right brand-context selector ──
+// Per Inna call 2026-05-05: dropdown lists each brand the agency manages, ONE entry per brand
+// (latest scan only — never duplicates). Selecting routes to that brand's ScalePublish context.
+const BRAND_PORTFOLIO: { name: string; domain: string; lastScanDays: number; queries: number }[] = [
+  { name: "Bank Hapoalim", domain: "bankhapoalim.co.il", lastScanDays: 2, queries: 87 },
+  { name: "all4horses", domain: "all4horses.co.il", lastScanDays: 0, queries: 64 },
+  { name: "TechStart Israel", domain: "techstart.co.il", lastScanDays: 6, queries: 112 },
+  { name: "Paradise Gardening", domain: "paradise-gardening.co.il", lastScanDays: 3, queries: 49 },
+  { name: "Artisan Bread Co", domain: "artisan-bread.co.il", lastScanDays: 9, queries: 38 },
+];
 
 // ── DEMO QUERIES from a Bank Hapoalim brand scan ──
 const DEMO_QUERIES = [
@@ -483,6 +544,14 @@ const LS_KEY_USER_MODE = "geoscale-sp-user-mode";
 const LS_KEY_SITES = "geoscale-sp-sites-v1";
 const LS_KEY_SECTIONS = "geoscale-sp-sections-v1";
 const LS_KEY_DELETED_SECTIONS = "geoscale-sp-deleted-sections";
+const LS_KEY_CREDITS = "geoscale-sp-article-credits";
+const LS_KEY_TOPUP_REQUESTS = "geoscale-sp-topup-requests";
+const LS_KEY_CREDIT_LEDGER = "geoscale-sp-credit-ledger";
+
+// ── ARTICLE BANK ("בנק כתבות") ──
+// 1 credit = 1 article placement on any section. Balance is publisher-managed: Yedioth manually
+// updates each agency's credits in admin (no credit-card checkout in this surface). See the
+// `PublisherBankView` and `ArticleBankModal` (agency request form) below for the UI.
 
 function loadFromLS<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -584,6 +653,9 @@ export default function ScalePublishPage() {
   const [scanSource, setScanSource] = useState<{ domain: string; brand?: string } | null>(null);
   const [deepLinkedQueries, setDeepLinkedQueries] = useState<DeepQuery[] | null>(null);
   const [deepLinkedQueryText, setDeepLinkedQueryText] = useState<string | null>(null);
+  // Client-review deep-link: when the agency shares an order, the client opens this page with
+  // ?clientShare=<shareId>. We swap the entire dashboard for a clean ClientReviewView.
+  const [clientShareId, setClientShareId] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -608,6 +680,8 @@ export default function ScalePublishPage() {
       setDeepLinkedQueryText(queryText);
       setUserMode("agency");
     }
+    const cs = params.get("clientShare");
+    if (cs) setClientShareId(cs);
   }, []);
 
   // ── Cross-view shared state ──
@@ -616,6 +690,13 @@ export default function ScalePublishPage() {
   const [tracking, setTracking] = useState<ArticleTracking[]>([]);
   const [sites, setSites] = useState<PublisherSite[]>(YEDIOTH_SITES);
   const [sections, setSections] = useState<PublisherSection[]>(YEDIOTH_SECTIONS);
+  // Article-bank credit balance (agency only). Publisher-managed: only the publisher can grant
+  // credits. Demo seed: 8 credits so "pay with credits" is demo-able without first asking the
+  // publisher to top up. Persisted per-browser.
+  const [articleCredits, setArticleCredits] = useState<number>(8);
+  const [topUpRequests, setTopUpRequests] = useState<TopUpRequest[]>([]);
+  const [creditLedger, setCreditLedger] = useState<CreditLedgerEntry[]>([]);
+  const [bankModalOpen, setBankModalOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -624,6 +705,11 @@ export default function ScalePublishPage() {
     setTracking(loadFromLS<ArticleTracking[]>(LS_KEY_TRACKING, SEED_TRACKING));
     setSites(loadFromLS<PublisherSite[]>(LS_KEY_SITES, YEDIOTH_SITES));
     setSections(loadFromLS<PublisherSection[]>(LS_KEY_SECTIONS, YEDIOTH_SECTIONS));
+    setTopUpRequests(loadFromLS<TopUpRequest[]>(LS_KEY_TOPUP_REQUESTS, []));
+    setCreditLedger(loadFromLS<CreditLedgerEntry[]>(LS_KEY_CREDIT_LEDGER, [
+      { id: "ledger-seed-1", at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(), delta: 8, reason: "Initial onboarding grant — manually added by Yedioth team", by: "publisher" },
+    ]));
+    setArticleCredits(loadFromLS<number>(LS_KEY_CREDITS, 8));
     setHydrated(true);
   }, []);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_ORDERS, orders); }, [orders, hydrated]);
@@ -631,6 +717,9 @@ export default function ScalePublishPage() {
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_TRACKING, tracking); }, [tracking, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_SITES, sites); }, [sites, hydrated]);
   useEffect(() => { if (hydrated) saveToLS(LS_KEY_SECTIONS, sections); }, [sections, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_CREDITS, articleCredits); }, [articleCredits, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_TOPUP_REQUESTS, topUpRequests); }, [topUpRequests, hydrated]);
+  useEffect(() => { if (hydrated) saveToLS(LS_KEY_CREDIT_LEDGER, creditLedger); }, [creditLedger, hydrated]);
 
   // ── Effective price (overrides + base) ──
   const getPrice = useCallback((section: PublisherSection) => prices[section.id] ?? section.pricePerArticle, [prices]);
@@ -659,6 +748,30 @@ export default function ScalePublishPage() {
     return DEMO_BRAND;
   }, [scanSource]);
 
+  // ── Client-review takeover ──
+  // When the agency shared this order with their client, the client opens ?clientShare=<id>.
+  // We swap the agency/publisher dashboard for a clean, agency-branded review surface so the
+  // client never sees Geoscale internals.
+  if (clientShareId && hydrated) {
+    const sharedOrder = orders.find((o) => o.clientShare?.shareId === clientShareId) ?? null;
+    return (
+      <ClientReviewView
+        order={sharedOrder}
+        orders={orders}
+        setOrders={setOrders}
+        sites={sites}
+        sections={sections}
+        theme={theme}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        isMobile={isMobile}
+        showToast={showToast}
+        toasts={toasts}
+        dismissToast={dismissToast}
+      />
+    );
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
       {/* ── Header ── */}
@@ -679,7 +792,10 @@ export default function ScalePublishPage() {
               <div style={{ justifySelf: "start" }}><GeoscaleLogo width={150} theme={theme} /></div>
               <nav style={{ display: "flex", alignItems: "center", gap: 32 }}>
                 <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Dashboard</a>
-                <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+                {/* Publishers don't manage scans — hide the link in publisher mode (per call with Inna 2026-05-05). */}
+                {userMode !== "publisher" && (
+                  <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none" }}>Scans</a>
+                )}
                 <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none" }}>ScalePublish</a>
                 <a href="/scale-publish-roadmap" style={{ fontSize: 15, fontWeight: 500, color: BRAND_GREEN, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: BRAND_GREEN }} />
@@ -698,7 +814,9 @@ export default function ScalePublishPage() {
         {isMobile && menuOpen && (
           <div style={{ background: theme.cardBg, borderBottom: `1px solid ${theme.border}`, padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
             <a href="/" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Dashboard</a>
-            <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
+            {userMode !== "publisher" && (
+              <a href="/scan" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Scans</a>
+            )}
             <a href="/scale-publish" style={{ fontSize: 15, fontWeight: 600, color: theme.text, textDecoration: "none", padding: "8px 0" }}>ScalePublish</a>
             <a href="/scale-publish-roadmap" style={{ fontSize: 15, fontWeight: 500, color: BRAND_GREEN, textDecoration: "none", padding: "8px 0" }}>● Spec for Inna</a>
             <a href="/editor" style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary, textDecoration: "none", padding: "8px 0" }}>Content Editor</a>
@@ -708,7 +826,7 @@ export default function ScalePublishPage() {
       </header>
 
       {/* ── User Mode Switcher ── */}
-      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} effectiveBrand={effectiveBrand} />
+      <UserModeSwitcher userMode={userMode} setUserMode={setUserMode} theme={theme} darkMode={darkMode} isMobile={isMobile} pendingOrderCount={orders.filter((o) => o.status === "pending").length} effectiveBrand={effectiveBrand} articleCredits={articleCredits} onOpenBank={() => setBankModalOpen(true)} />
 
       {/* ── Body ── */}
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "20px 12px 80px" : "32px 24px 80px", width: "100%", boxSizing: "border-box" }}>
@@ -728,6 +846,13 @@ export default function ScalePublishPage() {
             sections={sections}
             setSections={setSections}
             showToast={showToast}
+            articleCredits={articleCredits}
+            setArticleCredits={setArticleCredits}
+            topUpRequests={topUpRequests}
+            setTopUpRequests={setTopUpRequests}
+            creditLedger={creditLedger}
+            setCreditLedger={setCreditLedger}
+            agencyName={effectiveBrand.agency}
           />
         ) : (
           <AgencyDashboard
@@ -745,9 +870,32 @@ export default function ScalePublishPage() {
             deepLinkedQueryText={deepLinkedQueryText}
             deepLinkedQueries={deepLinkedQueries}
             clearDeepLink={() => { setDeepLinkedQueryText(null); setDeepLinkedQueries(null); }}
+            articleCredits={articleCredits}
+            setArticleCredits={setArticleCredits}
+            onOpenBank={() => setBankModalOpen(true)}
+            setCreditLedger={setCreditLedger}
           />
         )}
       </div>
+
+      {bankModalOpen && (
+        <ArticleBankModal
+          open={bankModalOpen}
+          onClose={() => setBankModalOpen(false)}
+          theme={theme}
+          isMobile={isMobile}
+          currentCredits={articleCredits}
+          ledger={creditLedger}
+          topUpRequests={topUpRequests}
+          agencyName={effectiveBrand.agency}
+          onSubmitRequest={(req) => {
+            const id = `topup-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+            setTopUpRequests((prev) => [{ id, agencyName: effectiveBrand.agency, requestedCredits: req.credits, note: req.note, requestedAt: new Date().toISOString(), status: "pending" }, ...prev]);
+            showToast(`Top-up request sent to Yedioth — ${req.credits} credits`, "success");
+            setBankModalOpen(false);
+          }}
+        />
+      )}
 
       <ToastHost toasts={toasts} onDismiss={dismissToast} />
     </div>
@@ -758,7 +906,7 @@ export default function ScalePublishPage() {
 // USER MODE SWITCHER (Agency / Publisher)
 // ============================================================
 
-function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND }) {
+function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand, articleCredits, onOpenBank }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND; articleCredits: number; onOpenBank: () => void }) {
   const isAgency = userMode === "agency";
   const userInfo = isAgency
     ? { name: effectiveBrand.agency, role: `Agency · Acting for: ${effectiveBrand.name}`, icon: <IconUsers size={16} /> }
@@ -777,18 +925,93 @@ function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pe
             <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>{userInfo.role}</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 4, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
-          <button onClick={() => setUserMode("agency")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: isAgency ? "#fff" : theme.textSecondary, background: isAgency ? BRAND_GREEN : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <IconUsers size={13} /> Agency View
-          </button>
-          <button onClick={() => setUserMode("publisher")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: !isAgency ? "#fff" : theme.textSecondary, background: !isAgency ? BRAND_AMBER : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
-            <IconBuilding size={13} /> Publisher View
-            {pendingOrderCount > 0 && userMode === "agency" && (
-              <span style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 8, minWidth: 16, textAlign: "center" }}>{pendingOrderCount}</span>
-            )}
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          {/* Article-bank credit widget — agency only. Click = open balance + top-up request modal. */}
+          {isAgency && (
+            <button onClick={onOpenBank} title="Article bank · publisher-managed balance" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: isMobile ? "8px 12px" : "8px 14px", background: theme.cardBg, border: `1px solid ${articleCredits > 0 ? `${BRAND_GREEN}50` : theme.border}`, borderRadius: 10, cursor: "pointer", color: theme.text }}>
+              <div style={{ textAlign: "left", lineHeight: 1.2 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase" }}>Article bank</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: articleCredits > 0 ? theme.text : theme.text, fontVariantNumeric: "tabular-nums" }}>
+                  <span style={{ color: articleCredits > 0 ? BRAND_GREEN : theme.text, fontWeight: 700 }}>{articleCredits}</span> {articleCredits === 1 ? "credit" : "credits"}
+                  <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSecondary, marginLeft: 8 }}>Request top-up</span>
+                </div>
+              </div>
+            </button>
+          )}
+          {/* Brand-context selector — agency only. Lists each managed brand with LATEST scan only. */}
+          {isAgency && <BrandContextSelector currentBrand={effectiveBrand} theme={theme} isMobile={isMobile} />}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 4, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
+            <button onClick={() => setUserMode("agency")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: isAgency ? "#fff" : theme.textSecondary, background: isAgency ? BRAND_GREEN : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <IconUsers size={13} /> Agency View
+            </button>
+            <button onClick={() => setUserMode("publisher")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: !isAgency ? "#fff" : theme.textSecondary, background: !isAgency ? BRAND_AMBER : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+              <IconBuilding size={13} /> Publisher View
+              {pendingOrderCount > 0 && userMode === "agency" && (
+                <span style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 8, minWidth: 16, textAlign: "center" }}>{pendingOrderCount}</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BrandContextSelector({ currentBrand, theme, isMobile }: { currentBrand: typeof DEMO_BRAND; theme: Theme; isMobile: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  const switchBrand = (b: typeof BRAND_PORTFOLIO[number]) => {
+    if (typeof window === "undefined") return;
+    const url = `/scale-publish?source=${encodeURIComponent(b.domain)}&brand=${encodeURIComponent(b.name)}`;
+    window.location.href = url;
+  };
+
+  const fmtAge = (days: number) => days === 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button onClick={() => setOpen(!open)} style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: isMobile ? "8px 12px" : "8px 14px", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10, cursor: "pointer", color: theme.text }}>
+        <Favicon domain={currentBrand.domain} size={18} />
+        <div style={{ textAlign: "left", lineHeight: 1.2 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase" }}>Brand</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: theme.text }}>{currentBrand.name}</div>
+        </div>
+        <span style={{ marginLeft: 6, color: theme.textMuted, fontSize: 11 }}>▾</span>
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 320, maxWidth: "92vw", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, boxShadow: "0 12px 32px rgba(0,0,0,0.15)", padding: 8, zIndex: 60, maxHeight: 460, overflowY: "auto" }}>
+          <div style={{ padding: "8px 10px 10px", borderBottom: `1px solid ${theme.border}`, marginBottom: 6 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 2 }}>Switch brand</div>
+            <div style={{ fontSize: 12, color: theme.textSecondary }}>Latest scan per brand · {BRAND_PORTFOLIO.length} brands managed</div>
+          </div>
+          {BRAND_PORTFOLIO.map((b) => {
+            const active = b.domain === currentBrand.domain;
+            return (
+              <button key={b.domain} onClick={() => switchBrand(b)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", background: active ? `${BRAND_GREEN}10` : "transparent", border: "none", borderRadius: 8, cursor: "pointer", textAlign: "left", color: theme.text }} onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = theme.tableHeaderBg; }} onMouseLeave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                <Favicon domain={b.domain} size={22} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: theme.text }}>{b.name}</span>
+                    {active && <span style={{ fontSize: 10, fontWeight: 700, color: BRAND_GREEN, padding: "1px 7px", background: `${BRAND_GREEN}20`, borderRadius: 999 }}>ACTIVE</span>}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 2 }}>{b.domain} · {b.queries} queries · scanned {fmtAge(b.lastScanDays)}</div>
+                </div>
+                {!active && <span style={{ color: theme.textMuted, fontSize: 11 }}>→</span>}
+              </button>
+            );
+          })}
+          <div style={{ padding: "8px 10px", borderTop: `1px solid ${theme.border}`, marginTop: 6 }}>
+            <a href="/new-scan" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: BRAND_GREEN, textDecoration: "none" }}>+ Add a new brand to scan</a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -797,16 +1020,18 @@ function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pe
 // PUBLISHER DASHBOARD
 // ============================================================
 
-type PublisherTab = "sites" | "inbox" | "articles" | "analytics";
+type PublisherTab = "sites" | "inbox" | "articles" | "analytics" | "bank";
 
-function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
+function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast, articleCredits, setArticleCredits, topUpRequests, setTopUpRequests, creditLedger, setCreditLedger, agencyName }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; creditLedger: CreditLedgerEntry[]; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>>; agencyName: string }) {
   const [tab, setTab] = useState<PublisherTab>("sites");
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const publishedCount = tracking.length + orders.filter((o) => o.status === "published").length;
+  const pendingTopUps = topUpRequests.filter((r) => r.status === "pending").length;
 
   const TABS: { key: PublisherTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: "sites", label: "Sites & Sections", icon: <IconBuilding size={14} /> },
     { key: "inbox", label: "Order Inbox", icon: <IconInbox size={14} />, badge: pendingCount },
+    { key: "bank", label: "Article Bank", icon: <IconCart size={14} />, badge: pendingTopUps },
     { key: "articles", label: "Articles & Tracking", icon: <IconChart size={14} />, badge: publishedCount },
     { key: "analytics", label: "Analytics", icon: <IconChart size={14} /> },
   ];
@@ -816,6 +1041,7 @@ function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPri
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as PublisherTab)} theme={theme} isMobile={isMobile} />
       {tab === "sites" && <PublisherSitesView theme={theme} isMobile={isMobile} prices={prices} setPrices={setPrices} getPrice={getPrice} sites={sites} setSites={setSites} sections={sections} setSections={setSections} showToast={showToast} />}
       {tab === "inbox" && <PublisherInboxView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} sites={sites} sections={sections} showToast={showToast} />}
+      {tab === "bank" && <PublisherBankView theme={theme} isMobile={isMobile} articleCredits={articleCredits} setArticleCredits={setArticleCredits} topUpRequests={topUpRequests} setTopUpRequests={setTopUpRequests} creditLedger={creditLedger} setCreditLedger={setCreditLedger} agencyName={agencyName} showToast={showToast} />}
       {tab === "articles" && <PublisherArticlesView theme={theme} isMobile={isMobile} tracking={tracking} setTracking={setTracking} sites={sites} sections={sections} showToast={showToast} />}
       {tab === "analytics" && <PublisherAnalyticsView theme={theme} isMobile={isMobile} orders={orders} tracking={tracking} getPrice={getPrice} sites={sites} sections={sections} />}
     </>
@@ -1205,16 +1431,17 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, section
 }
 
 // ── ORDER CARD (shared between Publisher inbox & Agency orders) ──
-function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCounterOffer, mode, sites, sections }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; onCounterOffer?: (id: string, adjusted: { sectionId: string; price: number }[], note: string) => void; mode: "publisher" | "agency"; sites: PublisherSite[]; sections: PublisherSection[] }) {
+function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCounterOffer, onShare, agencyName, mode, sites, sections }: { order: Order; theme: Theme; isMobile: boolean; expanded: boolean; onToggle: () => void; onUpdate: (id: string, status: Order["status"]) => void; onCounterOffer?: (id: string, adjusted: { sectionId: string; price: number }[], note: string) => void; onShare?: (id: string, payload: { clientName: string; clientEmail: string; message?: string }) => string; agencyName?: string; mode: "publisher" | "agency"; sites: PublisherSite[]; sections: PublisherSection[] }) {
   // Counter-offer editor: publisher can adjust each section's price + add a note before sending back
   const [counterEditing, setCounterEditing] = useState(false);
   const [adjustedPrices, setAdjustedPrices] = useState<Record<string, number>>(() => Object.fromEntries(order.sections.map((s) => [s.sectionId, s.price])));
   const [counterNote, setCounterNote] = useState("");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const adjustedTotal = order.sections.reduce((sum, s) => sum + (adjustedPrices[s.sectionId] ?? s.price), 0);
   const adjustedDelta = adjustedTotal - order.totalPrice;
   const STATUS_STYLES: Record<Order["status"], { bg: string; color: string; label: string }> = {
     pending: { bg: "#FEF3C7", color: "#B45309", label: "Pending approval" },
-    approved: { bg: "#DBEAFE", color: "#1D4ED8", label: "Approved" },
+    approved: { bg: "#CFFAFE", color: "#0E7490", label: "Approved" },
     in_progress: { bg: "#E0E7FF", color: "#5B21B6", label: "In progress" },
     published: { bg: "#D1FAE5", color: "#047857", label: "Published" },
     rejected: { bg: "#FEE2E2", color: "#B91C1C", label: "Rejected" },
@@ -1230,6 +1457,19 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
               <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 9px", fontSize: 11, fontWeight: 700, background: status.bg, color: status.color, borderRadius: 6, lineHeight: 1.4 }}>{status.label}</span>
               <span style={{ fontSize: 12, color: theme.textMuted, fontWeight: 600 }}>#{order.id.toUpperCase()}</span>
               <span style={{ fontSize: 12, color: theme.textMuted }}>· {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              {mode === "agency" && order.clientShare && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px", fontSize: 11, fontWeight: 700, borderRadius: 6, lineHeight: 1.4,
+                  background: order.clientShare.status === "approved" ? `${BRAND_GREEN}18` : order.clientShare.status === "changes_requested" ? `${BRAND_BLUE}18` : `${BRAND_AMBER}18`,
+                  color: order.clientShare.status === "approved" ? BRAND_GREEN : order.clientShare.status === "changes_requested" ? BRAND_BLUE : BRAND_AMBER }}>
+                  {order.clientShare.status === "approved" ? "✓ Client approved" : order.clientShare.status === "changes_requested" ? "Client requested changes" : "Awaiting client review"}
+                </span>
+              )}
+              {/* Payment badge — only show when credits were redeemed (i.e. non-default cash) */}
+              {order.payment && order.payment.creditsUsed > 0 && (
+                <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 9px", fontSize: 11, fontWeight: 700, borderRadius: 6, lineHeight: 1.4, background: `${BRAND_GREEN}18`, color: BRAND_GREEN }}>
+                  {order.payment.creditsUsed} {order.payment.creditsUsed === 1 ? "credit" : "credits"}{order.payment.cashAmount > 0 ? ` + cash` : ""}
+                </span>
+              )}
             </div>
             <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{order.title}</div>
             <div style={{ fontSize: 13, color: theme.textSecondary, display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -1243,7 +1483,7 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
             {order.counterOffer ? (
               <>
                 <div style={{ fontSize: 13, color: theme.textMuted, textDecoration: "line-through" }}>{fmtNIS(order.totalPrice)}</div>
-                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
                 <div style={{ fontSize: 11, color: BRAND_AMBER, marginTop: 2, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase" }}>Counter-offer</div>
               </>
             ) : (
@@ -1339,9 +1579,55 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
             </div>
           </Section>
 
+          {/* Backlink — every article carries one. Publisher uses this to embed the link. */}
+          {order.backlink && (
+            <Section title={mode === "publisher" ? "Backlink to embed (do-follow)" : "Do-follow backlink in every article"} theme={theme}>
+              <div style={{ padding: 14, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 9 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13.5, color: theme.text }}>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", minWidth: 78 }}>Target URL</span>
+                    <a href={order.backlink.targetUrl} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "monospace", fontSize: 13, color: BRAND_BLUE, textDecoration: "underline", wordBreak: "break-all" }}>{order.backlink.targetUrl}</a>
+                  </div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", minWidth: 78 }}>Anchor</span>
+                    <span style={{ fontWeight: 600 }}>{order.backlink.anchorText}</span>
+                  </div>
+                </div>
+                {mode === "publisher" && (
+                  <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 12, lineHeight: 1.5, padding: "8px 12px", background: theme.tableHeaderBg, borderRadius: 7 }}>
+                    Embed once per article in the 2nd or 3rd paragraph (no <code style={{ fontFamily: "monospace" }}>rel="nofollow"</code>).
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {/* Payment summary — only shown when there's actual payment metadata (newer orders). */}
+          {order.payment && (order.payment.creditsUsed > 0 || order.payment.cashAmount > 0) && (
+            <Section title="Payment" theme={theme}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                {order.payment.creditsUsed > 0 && (
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: `${BRAND_GREEN}15`, color: BRAND_GREEN, borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+                    {order.payment.creditsUsed} {order.payment.creditsUsed === 1 ? "credit" : "credits"} redeemed
+                  </span>
+                )}
+                {order.payment.cashAmount > 0 && (
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 14px", background: theme.tableHeaderBg, color: theme.text, borderRadius: 8, fontSize: 13, fontWeight: 700, border: `1px solid ${theme.border}` }}>
+                    {fmtNIS(order.payment.cashAmount)} cash
+                  </span>
+                )}
+              </div>
+            </Section>
+          )}
+
           <Section title="Agency contact" theme={theme}>
             <div style={{ fontSize: 13, color: theme.text }}>{order.agencyName} · {order.agencyContact}</div>
           </Section>
+
+          {/* Agency-only: share with client */}
+          {mode === "agency" && onShare && (
+            <ClientShareSection order={order} theme={theme} isMobile={isMobile} agencyName={agencyName ?? order.agencyName} onOpenShareModal={() => setShareModalOpen(true)} />
+          )}
 
           {/* Existing counter-offer banner (visible to both sides once sent) */}
           {order.counterOffer && (
@@ -1349,7 +1635,7 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
               <div style={{ padding: 14, background: `${BRAND_AMBER}10`, border: `1.5px solid ${BRAND_AMBER}50`, borderLeft: `4px solid ${BRAND_AMBER}`, borderRadius: 9 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
                   <div style={{ fontSize: 13, color: theme.textSecondary }}>Original: <s>{fmtNIS(order.totalPrice)}</s></div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: BRAND_AMBER }}>{fmtNIS(order.counterOffer.adjustedTotal)}</div>
                 </div>
                 {order.counterOffer.note && (
                   <div style={{ fontSize: 14, color: theme.text, lineHeight: 1.5, padding: "10px 12px", background: theme.cardBg, borderRadius: 7, border: `1px solid ${theme.border}` }}>
@@ -1389,7 +1675,7 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
                   <div style={{ fontSize: 13, color: theme.textSecondary }}>New total <strong style={{ color: theme.text }}>vs</strong> original</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontSize: 14, color: theme.textSecondary, textDecoration: "line-through" }}>{fmtNIS(order.totalPrice)}</span>
-                    <span style={{ fontSize: 20, fontWeight: 800, color: theme.text }}>{fmtNIS(adjustedTotal)}</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: theme.text }}>{fmtNIS(adjustedTotal)}</span>
                     {adjustedDelta !== 0 && (
                       <span style={{ fontSize: 13, fontWeight: 700, color: adjustedDelta > 0 ? BRAND_GREEN : "#DC2626", padding: "3px 9px", background: adjustedDelta > 0 ? `${BRAND_GREEN}15` : "#FEE2E2", borderRadius: 6 }}>{adjustedDelta > 0 ? "+" : ""}{fmtNIS(adjustedDelta)}</span>
                     )}
@@ -1437,7 +1723,97 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
           )}
         </div>
       )}
+      {shareModalOpen && onShare && (
+        <ShareWithClientModal
+          order={order}
+          theme={theme}
+          isMobile={isMobile}
+          agencyName={agencyName ?? order.agencyName}
+          brandName={order.brand}
+          onClose={() => setShareModalOpen(false)}
+          onShare={(payload) => onShare(order.id, payload)}
+        />
+      )}
     </div>
+  );
+}
+
+function ClientShareSection({ order, theme, isMobile, agencyName, onOpenShareModal }: { order: Order; theme: Theme; isMobile: boolean; agencyName: string; onOpenShareModal: () => void }) {
+  const cs = order.clientShare;
+  const [copied, setCopied] = useState(false);
+  const shareUrl = cs && typeof window !== "undefined" ? `${window.location.origin}/scale-publish?clientShare=${cs.shareId}` : "";
+  const copy = () => {
+    if (!shareUrl) return;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      }).catch(() => { /* noop */ });
+    }
+  };
+
+  if (!cs) {
+    return (
+      <Section title="Client review" theme={theme}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, padding: "14px 16px", background: `${BRAND_GREEN}06`, border: `1px dashed ${BRAND_GREEN}50`, borderRadius: 9 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: theme.text, marginBottom: 3 }}>Loop in your client before publishing</div>
+            <div style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>Generate a private review link for {order.brand}. They'll see the article preview, the publishers it's going to, and approve or request changes — all under your agency's brand.</div>
+          </div>
+          <button onClick={onOpenShareModal} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+            <IconUsers size={13} /> Share with client
+          </button>
+        </div>
+      </Section>
+    );
+  }
+
+  const STATUS_COPY: Record<typeof cs.status, { label: string; color: string; bg: string; sub: string }> = {
+    pending_review: { label: "Awaiting client review", color: BRAND_AMBER, bg: `${BRAND_AMBER}10`, sub: `Waiting for ${cs.clientName} to approve or request changes.` },
+    approved: { label: "Client approved ✓", color: BRAND_GREEN, bg: `${BRAND_GREEN}10`, sub: `${cs.clientName} approved this article${cs.decidedAt ? ` on ${new Date(cs.decidedAt).toLocaleDateString()}` : ""} — clear to send to publisher.` },
+    changes_requested: { label: "Client requested changes", color: BRAND_BLUE, bg: `${BRAND_BLUE}10`, sub: `${cs.clientName} left feedback — check the comments below and re-share once iterated.` },
+  };
+  const sc = STATUS_COPY[cs.status];
+
+  return (
+    <Section title="Client review" theme={theme}>
+      <div style={{ padding: 14, background: sc.bg, border: `1.5px solid ${sc.color}40`, borderLeft: `4px solid ${sc.color}`, borderRadius: 9, marginBottom: cs.comments.length > 0 ? 12 : 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: sc.color, marginBottom: 4 }}>{sc.label}</div>
+            <div style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>{sc.sub}</div>
+            <div style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 6 }}>Shared with <strong style={{ color: theme.text }}>{cs.clientName}</strong> · {cs.clientEmail} · {new Date(cs.sharedAt).toLocaleDateString()}</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <a href={shareUrl} target="_blank" rel="noopener noreferrer" style={{ padding: "8px 12px", fontSize: 12, fontWeight: 700, background: theme.cardBg, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5 }}>
+              Preview as client
+            </a>
+            <button onClick={copy} style={{ padding: "8px 12px", fontSize: 12, fontWeight: 700, background: copied ? BRAND_GREEN : theme.cardBg, color: copied ? "#fff" : theme.text, border: `1px solid ${copied ? BRAND_GREEN : theme.border}`, borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+              {copied ? "Copied ✓" : "Copy link"}
+            </button>
+            <button onClick={onOpenShareModal} style={{ padding: "8px 12px", fontSize: 12, fontWeight: 700, background: sc.color, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>
+              {cs.status === "changes_requested" ? "Re-share" : "Resend"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {cs.comments.length > 0 && (
+        <div style={{ padding: 12, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Conversation thread ({cs.comments.length})</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {cs.comments.map((c) => (
+              <div key={c.id} style={{ alignSelf: c.from === "agency" ? "flex-end" : "flex-start", maxWidth: isMobile ? "92%" : "78%", padding: "10px 13px", background: c.from === "agency" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `1px solid ${c.from === "agency" ? `${BRAND_GREEN}40` : theme.border}`, borderRadius: 10, fontSize: 13, color: theme.text, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: c.from === "agency" ? BRAND_GREEN : theme.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>
+                  {c.from === "agency" ? agencyName : c.author} · {new Date(c.at).toLocaleDateString()} {new Date(c.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </div>
+                <div>{c.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Section>
   );
 }
 
@@ -1643,7 +2019,7 @@ function ArticleTrackingRow({ tracking, theme, isMobile, sites, sections, showTo
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600 }}>IMPACT</div>
-          <div style={{ fontSize: isMobile ? 18 : 24, fontWeight: 700, color: tracking.impactScore >= 70 ? BRAND_GREEN : tracking.impactScore >= 40 ? BRAND_AMBER : theme.textSecondary }}>{tracking.impactScore}%</div>
+          <div style={{ fontSize: isMobile ? 18 : 24, fontWeight: 700, color: tracking.impactScore >= 70 ? BRAND_GREEN : tracking.impactScore >= 40 ? BRAND_AMBER : theme.text, fontVariantNumeric: "tabular-nums" }}>{tracking.impactScore}%</div>
         </div>
       </button>
       {expanded && (
@@ -2052,8 +2428,8 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
       {/* Strategy summary — visible only when annotations are ON */}
       {showGeoNotes && (
         <div style={{ background: "#10A37F08", border: "1px solid #10A37F30", borderLeft: "4px solid #10A37F", borderRadius: 9, padding: isMobile ? "12px 14px" : "14px 18px", marginBottom: 12, fontSize: 13, color: theme.text, lineHeight: 1.6 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: "#047857", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Why this article is structured this way</div>
-          Hover any <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "1px 7px", background: "#10A37F15", color: "#047857", fontSize: 10, fontWeight: 800, borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", border: "1px solid #10A37F40", verticalAlign: "middle" }}>GEO</span> badge below to see why each element was picked. Every choice — title format, byline, stat box, pull quotes, H2/H3 hierarchy, comparison table, conclusion — maps to a specific signal AI engines (ChatGPT, Gemini, Perplexity) and Google use to decide which source to cite.
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#047857", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Why this article is structured this way</div>
+          Hover any <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "1px 7px", background: "#10A37F15", color: "#047857", fontSize: 10, fontWeight: 700, borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", border: "1px solid #10A37F40", verticalAlign: "middle" }}>GEO</span> badge below to see why each element was picked. Every choice — title format, byline, stat box, pull quotes, H2/H3 hierarchy, comparison table, conclusion — maps to a specific signal AI engines (ChatGPT, Gemini, Perplexity) and Google use to decide which source to cite.
         </div>
       )}
 
@@ -2078,7 +2454,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
           </div>
 
           {/* Title (H1) — large, bold, tight line-height */}
-          <h1 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, color: "#0F172A", lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 14px", position: "relative" }}>
+          <h1 style={{ fontSize: isMobile ? 28 : 40, fontWeight: 700, color: "#0F172A", lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 14px", position: "relative" }}>
             {title || `Your article title appears here once you fill it in below`}
             <span style={{ display: "inline-flex", marginLeft: 8, fontWeight: 400 }}>
               <GeoNote enabled={showGeoNotes} text={`H1 was auto-generated from your highest-opportunity query + brand modifier ("${articleBrand.name}'s complete 2026 guide"). This format wins because: (1) contains the primary search query verbatim — direct match for AI extraction, (2) brand mention forces co-citation, (3) "complete guide" + year = freshness + comprehensiveness signal, (4) ~60-70 chars optimizes for Google's title-display window without truncation.`} />
@@ -2113,7 +2489,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
                   { num: stat4, label: "Words of coverage" },
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: isMobile ? "left" : "center" }}>
-                    <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 800, color: BRAND_GREEN, lineHeight: 1, letterSpacing: "-0.5px" }}>{s.num}</div>
+                    <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: BRAND_GREEN, lineHeight: 1, letterSpacing: "-0.5px" }}>{s.num}</div>
                     <div style={{ fontSize: 13, color: "#475569", marginTop: 6, fontWeight: 500 }}>{s.label}</div>
                   </div>
                 ))}
@@ -2143,7 +2519,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
                 const body = bodyByQuery(q, i);
                 return (
                   <section key={q.id} style={{ marginBottom: 36 }}>
-                    <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, letterSpacing: "-0.4px", margin: "0 0 6px", scrollMarginTop: 80, display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
+                    <h2 style={{ fontSize: isMobile ? 24 : 30, fontWeight: 700, color: "#0F172A", lineHeight: 1.25, letterSpacing: "-0.4px", margin: "0 0 6px", scrollMarginTop: 80, display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
                       <span style={{ flex: 1, minWidth: 0 }}>{q.text}</span>
                       <span style={{ fontWeight: 400, fontSize: 12, marginTop: 8 }}>
                         <GeoNote enabled={showGeoNotes} text={`H2 = the query verbatim ("${q.text}"). This is the most important GEO move — when a user asks ChatGPT or Gemini exactly this question, the engine looks for an article whose H2 matches it word-for-word. Direct H2 match = highest extraction probability. Audience: ${q.audience.slice(0, 2).join(" + ")}. Opportunity score: ${q.opportunity}/100.`} />
@@ -2249,7 +2625,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
               </div>
 
               {/* Conclusion */}
-              <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px", display: "inline-flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+              <h2 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: "#0F172A", lineHeight: 1.25, margin: "0 0 14px", display: "inline-flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                 The bottom line
                 <span style={{ fontWeight: 400, fontSize: 12 }}><GeoNote enabled={showGeoNotes} text="A final summary H2 with a 'bottom line' / 'TL;DR' / 'conclusion' label triggers AI engine recognition of the answer-summary pattern. Engines weight this section as the author's own short answer, and it gets cited at 1.6× the rate of the body when the user query is summary-style." /></span>
               </h2>
@@ -2273,7 +2649,7 @@ function ArticlePreview({ title, selectedQueries, theme, isMobile, mode = "agenc
 
 type AgencyTab = "queries" | "order-flow" | "orders" | "tracking";
 
-function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, effectiveBrand, deepLinkedQueryText, deepLinkedQueries, clearDeepLink }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; effectiveBrand: typeof DEMO_BRAND; deepLinkedQueryText?: string | null; deepLinkedQueries?: { id: string; text: string; persona?: string; stage?: string }[] | null; clearDeepLink?: () => void }) {
+function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPrice, sites, sections, showToast, scanSource, effectiveBrand, deepLinkedQueryText, deepLinkedQueries, clearDeepLink, articleCredits, setArticleCredits, onOpenBank, setCreditLedger }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; tracking: ArticleTracking[]; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; scanSource?: { domain: string; brand?: string } | null; effectiveBrand: typeof DEMO_BRAND; deepLinkedQueryText?: string | null; deepLinkedQueries?: { id: string; text: string; persona?: string; stage?: string }[] | null; clearDeepLink?: () => void; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>> }) {
   const [tab, setTab] = useState<AgencyTab>("queries");
   const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
@@ -2373,8 +2749,8 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", minWidth: 0, flex: 1 }}>
             <Favicon domain={scanSource.domain} size={32} />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>External content for</div>
-              <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 800, color: theme.text, lineHeight: 1.2 }}>{scanSource.brand ?? scanSource.domain}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>External content for</div>
+              <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, color: theme.text, lineHeight: 1.2 }}>{scanSource.brand ?? scanSource.domain}</div>
               <div style={{ fontSize: 14, color: theme.textSecondary, marginTop: 4, lineHeight: 1.5 }}>Every order placed here is added as a line item to your client proposal for this brand.</div>
             </div>
           </div>
@@ -2383,8 +2759,8 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
       )}
       <SubTabs tabs={TABS} active={tab} onChange={(k) => setTab(k as AgencyTab)} theme={theme} isMobile={isMobile} />
       {tab === "queries" && <AgencyQueriesView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} pinnedIds={pinnedIds} setPinnedIds={setPinnedIds} dismissedIds={dismissedIds} setDismissedIds={setDismissedIds} goToOrderFlow={() => setTab("order-flow")} allQueries={allQueries} customQueryIds={new Set(customQueries.map((q) => q.id))} scanSourceDomain={scanSource?.domain} effectiveBrand={effectiveBrand} />}
-      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} allQueries={allQueries} effectiveBrand={effectiveBrand} />}
-      {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} sites={sites} sections={sections} />}
+      {tab === "order-flow" && <AgencyOrderFlowView theme={theme} isMobile={isMobile} selectedIds={selectedQueryIds} setSelectedIds={setSelectedQueryIds} orders={orders} setOrders={setOrders} getPrice={getPrice} goToOrders={() => setTab("orders")} goToQueries={() => setTab("queries")} sites={sites} sections={sections} showToast={showToast} allQueries={allQueries} effectiveBrand={effectiveBrand} articleCredits={articleCredits} setArticleCredits={setArticleCredits} onOpenBank={onOpenBank} setCreditLedger={setCreditLedger} />}
+      {tab === "orders" && <AgencyOrdersView theme={theme} isMobile={isMobile} orders={orders} setOrders={setOrders} sites={sites} sections={sections} agencyName={effectiveBrand.agency} showToast={showToast} />}
       {tab === "tracking" && <AgencyTrackingView theme={theme} isMobile={isMobile} tracking={tracking} sites={sites} sections={sections} showToast={showToast} />}
     </>
   );
@@ -2548,7 +2924,7 @@ function AgencyQueriesView({ theme, isMobile, selectedIds, setSelectedIds, pinne
 // AGENCY · Order Flow (matching sites + cart + submit)
 // ============================================================
 
-function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast, allQueries, effectiveBrand }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; allQueries?: typeof DEMO_QUERIES; effectiveBrand?: typeof DEMO_BRAND }) {
+function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, orders, setOrders, getPrice, goToOrders, goToQueries, sites, sections, showToast, allQueries, effectiveBrand, articleCredits, setArticleCredits, onOpenBank, setCreditLedger }: { theme: Theme; isMobile: boolean; selectedIds: string[]; setSelectedIds: (v: string[]) => void; orders: Order[]; setOrders: (v: Order[]) => void; getPrice: (s: PublisherSection) => number; goToOrders: () => void; goToQueries: () => void; sites: PublisherSite[]; sections: PublisherSection[]; showToast: (text: string, kind?: "success" | "info" | "warn") => void; allQueries?: typeof DEMO_QUERIES; effectiveBrand?: typeof DEMO_BRAND; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; onOpenBank: () => void; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>> }) {
   const queryPool = allQueries ?? DEMO_QUERIES;
   const brand = effectiveBrand ?? DEMO_BRAND;
   const selectedQueries = queryPool.filter((q) => selectedIds.includes(q.id));
@@ -2558,12 +2934,31 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   const [cartSectionIds, setCartSectionIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // I-provide-copy mode editor state (per Inna call 2026-05-05)
+  const [providedCopy, setProvidedCopy] = useState<string>("");
+  const [copyView, setCopyView] = useState<"visual" | "code">("visual");
+  const [aiScanRunning, setAiScanRunning] = useState(false);
+  const [aiScanResult, setAiScanResult] = useState<{ covered: { query: string; coverage: number }[]; missing: { query: string }[]; recommendations: string[] } | null>(null);
+  // AI-draft body editor — agency can override AI-generated section text (title stays locked)
+  const [draftEdits, setDraftEdits] = useState<Record<string, string>>({});
+  const [editDraftMode, setEditDraftMode] = useState(false);
+  // Submit success simulation (SMS to publisher director)
+  const [smsSimulation, setSmsSimulation] = useState<{ to: string; body: string; sentAt: string } | null>(null);
+  // Order summary for after-submit screen (so we can keep showing the SMS card)
+  const [submittedOrderRef, setSubmittedOrderRef] = useState<{ id: string; total: number } | null>(null);
   // Publisher-site filter (Step 4): empty Set = show all sites; non-empty = restrict to chosen sites.
   const [siteFilter, setSiteFilter] = useState<Set<string>>(new Set());
   // Category (תחום) filter (Step 4): empty Set = all categories; non-empty = restrict by section category.
   const [categoryFilter, setCategoryFilter] = useState<Set<string>>(new Set());
   // Wizard step (1..5). Each step has its own panel + Back/Continue footer.
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  // Backlink (Alexei 2026-05-05): every article ALWAYS carries a do-follow link. Agency picks the
+  // target URL (defaults to brand homepage) + anchor text (defaults to brand name).
+  const [backlinkUrl, setBacklinkUrl] = useState<string>("");
+  const [backlinkAnchor, setBacklinkAnchor] = useState<string>("");
+  // Payment method selected at checkout. "cash" = invoice. "credits" = redeem from article-bank.
+  // "hybrid" = mix when cart count > available balance (some sections billed in cash).
+  const [payMethod, setPayMethod] = useState<"cash" | "credits" | "hybrid">("cash");
 
   // Auto-suggest title from first query
   useEffect(() => {
@@ -2609,6 +3004,29 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 
   const cart = matchedSections.filter((m) => cartSectionIds.includes(m.section.id));
   const cartTotal = cart.reduce((s, m) => s + getPrice(m.section), 0);
+  // Payment math: each cart section costs 1 credit. If credits cover all sections, pay 100% in
+  // credits (cash = 0). Otherwise hybrid: spend N credits, bill remaining sections in cash.
+  const cartCreditCount = cart.length; // each section = 1 article = 1 credit
+  const creditsAvailable = articleCredits;
+  const canPayAllCredits = creditsAvailable >= cartCreditCount && cartCreditCount > 0;
+  // Computed payment breakdown based on selected method
+  const paymentBreakdown = useMemo(() => {
+    if (cartCreditCount === 0) return { creditsUsed: 0, cashAmount: cartTotal };
+    if (payMethod === "cash") return { creditsUsed: 0, cashAmount: cartTotal };
+    if (payMethod === "credits" && canPayAllCredits) return { creditsUsed: cartCreditCount, cashAmount: 0 };
+    // hybrid (or credits-when-insufficient): apply available credits to highest-priced sections first
+    const sortedByPriceDesc = [...cart].sort((a, b) => getPrice(b.section) - getPrice(a.section));
+    const creditsUsed = Math.min(creditsAvailable, cartCreditCount);
+    const sectionsCovered = sortedByPriceDesc.slice(0, creditsUsed);
+    const cashSectionsCost = cart.filter((m) => !sectionsCovered.some((c) => c.section.id === m.section.id)).reduce((s, m) => s + getPrice(m.section), 0);
+    return { creditsUsed, cashAmount: cashSectionsCost };
+  }, [payMethod, cartCreditCount, creditsAvailable, cartTotal, cart, canPayAllCredits, getPrice]);
+  // Auto-correct invalid pay method when credits change or cart changes
+  useEffect(() => {
+    if (payMethod === "credits" && !canPayAllCredits) {
+      setPayMethod(creditsAvailable > 0 && cartCreditCount > 0 ? "hybrid" : "cash");
+    }
+  }, [canPayAllCredits, creditsAvailable, cartCreditCount, payMethod]);
 
   const toggleCart = (id: string) => {
     if (cartSectionIds.includes(id)) {
@@ -2621,6 +3039,9 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
   const submitOrder = () => {
     setSubmitting(true);
     setTimeout(() => {
+      // Backlink defaults: if URL blank → brand homepage. If anchor blank → brand name.
+      const finalBacklinkUrl = backlinkUrl.trim() || `https://${brand.domain}`;
+      const finalAnchorText = backlinkAnchor.trim() || brand.name;
       const newOrder: Order = {
         id: `ord-${Date.now().toString(36)}`,
         createdAt: new Date().toISOString(),
@@ -2634,11 +3055,25 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
         sections: cart.map((m) => ({ sectionId: m.section.id, siteId: m.section.siteId, price: getPrice(m.section) })),
         totalPrice: cartTotal,
         status: "pending",
+        backlink: { targetUrl: finalBacklinkUrl, anchorText: finalAnchorText },
+        payment: { method: payMethod, creditsUsed: paymentBreakdown.creditsUsed, cashAmount: paymentBreakdown.cashAmount },
       };
       setOrders([newOrder, ...orders]);
+      // Deduct credits from balance now and log a ledger entry so publisher + agency see history
+      if (paymentBreakdown.creditsUsed > 0) {
+        setArticleCredits((prev) => Math.max(0, prev - paymentBreakdown.creditsUsed));
+        setCreditLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta: -paymentBreakdown.creditsUsed, reason: `Order ${newOrder.id.toUpperCase()} · ${cart.length} placement${cart.length === 1 ? "" : "s"}`, by: "system" }, ...prev]);
+      }
+      // Static SMS simulation (per Alexei's request — live demo gold for the Ynet meeting)
+      const siteNames = Array.from(new Set(cart.map((m) => sites.find((s) => s.id === m.section.siteId)?.name).filter(Boolean))).join(", ");
+      const payLabel = paymentBreakdown.creditsUsed > 0 ? `\nPayment: ${paymentBreakdown.creditsUsed} credits${paymentBreakdown.cashAmount > 0 ? ` + ${fmtNIS(paymentBreakdown.cashAmount)} cash` : ""}` : `\nPayment: ${fmtNIS(cartTotal)} cash`;
+      const smsBody = `Geoscale ScalePublish · New order #${newOrder.id.toUpperCase()}\nAgency: ${brand.agency} (acting for ${brand.name})\nSites: ${siteNames}\nSections: ${cart.length} · Total: ${fmtNIS(cartTotal)}${payLabel}\nReview at geoscale.ai/publisher`;
+      setSmsSimulation({ to: "+972-50-XXX-XXXX (Alexei · Yedioth)", body: smsBody, sentAt: new Date().toISOString() });
+      setSubmittedOrderRef({ id: newOrder.id, total: cartTotal });
       setSubmitting(false);
       setSubmitted(true);
-      showToast(`Order ${newOrder.id.toUpperCase()} sent to Yedioth · ${fmtNIS(cartTotal)}`, "success");
+      const creditsMsg = paymentBreakdown.creditsUsed > 0 ? ` · ${paymentBreakdown.creditsUsed} credits redeemed` : "";
+      showToast(`Order ${newOrder.id.toUpperCase()} sent to Yedioth${creditsMsg} · SMS dispatched`, "success");
     }, 800);
   };
 
@@ -2654,34 +3089,41 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 
   if (submitted) {
     return (
-      <div style={{ padding: 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
-        <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-          <IconCheck size={28} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ padding: isMobile ? 32 : 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${BRAND_GREEN}20`, color: BRAND_GREEN, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+            <IconCheck size={28} />
+          </div>
+          <div style={{ fontSize: isMobile ? 19 : 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Order submitted to Yedioth Ahronoth</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 18, maxWidth: 520, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>Yedioth's sales team will contact <strong style={{ color: theme.text }}>{brand.agencyContact}</strong> to confirm and collect payment. Estimated upload time: ~3 days per article. Tracking will appear under "Article Tracking" once published.</div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => { setSubmitted(false); setSmsSimulation(null); setSubmittedOrderRef(null); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToOrders(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>View my orders</button>
+            <button onClick={() => { setSubmitted(false); setSmsSimulation(null); setSubmittedOrderRef(null); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToQueries(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Place another order</button>
+          </div>
         </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Order submitted to Yedioth Ahronoth</div>
-        <div style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 18, maxWidth: 520, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>Yedioth's sales team will contact <strong style={{ color: theme.text }}>{brand.agencyContact}</strong> to confirm and collect payment. Estimated upload time: ~3 days per article. Tracking will appear under "Article Tracking" once published.</div>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => { setSubmitted(false); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToOrders(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>View my orders</button>
-          <button onClick={() => { setSubmitted(false); setSelectedIds([]); setCartSectionIds([]); setTitle(""); goToQueries(); }} style={{ padding: "10px 22px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Place another order</button>
-        </div>
+
+        {/* Live SMS simulation — shown for Ynet demo per Alexei's ask */}
+        {smsSimulation && (
+          <SmsSentCard sms={smsSimulation} theme={theme} isMobile={isMobile} orderRef={submittedOrderRef} />
+        )}
       </div>
     );
   }
 
-  // Wizard steps metadata for the progress header. Labels stay short so the bar fits one row on
-  // desktop and wraps gracefully on mobile.
+  // Wizard steps metadata for the progress header. Per agreement with Inna (call 2026-05-05),
+  // Sites is now step 3 (BEFORE content) so the content engine can tailor copy per chosen site.
   const STEPS = [
     { num: 1, label: "Queries" },
     { num: 2, label: "Title" },
-    { num: 3, label: "Content" },
-    { num: 4, label: "Sections" },
+    { num: 3, label: "Sections" },
+    { num: 4, label: "Content" },
     { num: 5, label: "Review" },
   ] as const;
   const canContinue = (() => {
     if (currentStep === 1) return selectedQueries.length > 0;
     if (currentStep === 2) return title.trim().length > 3;
-    if (currentStep === 3) return true;
-    if (currentStep === 4) return cart.length > 0;
+    if (currentStep === 3) return cart.length > 0;
+    if (currentStep === 4) return true;
     return false;
   })();
   const goNext = () => { if (currentStep < 5) setCurrentStep((currentStep + 1) as 1 | 2 | 3 | 4 | 5); };
@@ -2762,34 +3204,83 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       </>
       )}
 
-      {/* STEP 3 · Content mode */}
+      {/* STEP 3 · Pick Yedioth sections (now BEFORE content — per call with Inna 2026-05-05) */}
       {currentStep === 3 && (
-      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 18 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 3 · How is the content produced?</div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => setContentMode("generate")} style={{ flex: 1, minWidth: 220, padding: 14, background: contentMode === "generate" ? `${BRAND_GREEN}10` : "transparent", border: `1.5px solid ${contentMode === "generate" ? BRAND_GREEN : theme.border}`, borderRadius: 10, cursor: "pointer", textAlign: "left", color: theme.text }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <IconSparkle size={14} />
-              <span style={{ fontSize: 14, fontWeight: 700 }}>AI-generated draft</span>
-            </div>
-            <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>We generate the article content from the selected queries. Yedioth's editor reviews and publishes.</div>
-          </button>
-          <button onClick={() => setContentMode("empty")} style={{ flex: 1, minWidth: 220, padding: 14, background: contentMode === "empty" ? `${BRAND_AMBER}10` : "transparent", border: `1.5px solid ${contentMode === "empty" ? BRAND_AMBER : theme.border}`, borderRadius: 10, cursor: "pointer", textAlign: "left", color: theme.text }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <IconEdit size={14} />
-              <span style={{ fontSize: 14, fontWeight: 700 }}>I'll provide the copy</span>
-            </div>
-            <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>You write the article (or your client does). We just place it on the chosen Yedioth sections.</div>
-          </button>
-        </div>
-      </div>
-      )}
-
-      {/* STEP 4 · Pick Yedioth sections */}
-      {currentStep === 4 && (
       <div style={{ marginBottom: 18 }}>
+        {/* Backlink panel — every article carries a do-follow link by default. The agency just */}
+        {/* picks the destination. URL defaults to brand homepage; anchor defaults to brand name. */}
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap", marginBottom: 12 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Backlink destination</div>
+              <div style={{ fontSize: 14, color: theme.text, lineHeight: 1.5 }}>Every article includes one do-follow link to your client's site. Pick where it points and what it says. Optional — leave blank to default to <strong style={{ color: theme.text }}>{brand.domain}</strong> with anchor "{brand.name}".</div>
+            </div>
+            <div style={{ padding: "5px 11px", fontSize: 11, fontWeight: 700, color: BRAND_GREEN, background: `${BRAND_GREEN}15`, borderRadius: 999, letterSpacing: 0.6, whiteSpace: "nowrap" }}>Always do-follow</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.5fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: theme.textSecondary, display: "block", marginBottom: 4 }}>Target URL <span style={{ color: theme.textMuted, fontWeight: 400 }}>· optional</span></label>
+              <input value={backlinkUrl} onChange={(e) => setBacklinkUrl(e.target.value)} placeholder={`https://${brand.domain}`} type="url" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "monospace", background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: theme.textSecondary, display: "block", marginBottom: 4 }}>Anchor text <span style={{ color: theme.textMuted, fontWeight: 400 }}>· optional</span></label>
+              <input value={backlinkAnchor} onChange={(e) => setBacklinkAnchor(e.target.value)} placeholder={brand.name} style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 8, lineHeight: 1.5 }}>The publisher embeds the link once per article in the 2nd or 3rd paragraph for natural placement. No price impact — backlinks are standard on every article.</div>
+        </div>
+        {/* AI top-3 site recommendations banner */}
+        {matchedSections.length >= 3 && (() => {
+          const top3 = matchedSections.slice(0, 3);
+          const allSelected = top3.every((m) => cartSectionIds.includes(m.section.id));
+          return (
+            <div style={{ padding: isMobile ? 14 : 18, marginBottom: 12, background: `linear-gradient(135deg, ${BRAND_GREEN}10, ${BRAND_BLUE}08)`, border: `1.5px solid ${BRAND_GREEN}40`, borderLeft: `5px solid ${BRAND_GREEN}`, borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 5 }}>AI recommends · top 3 fit</div>
+                  <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: theme.text, marginBottom: 6, lineHeight: 1.4 }}>Based on your queries, brand audience, and article title — these 3 are the strongest fit:</div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    {top3.map((m) => {
+                      const site = sites.find((s) => s.id === m.section.siteId);
+                      if (!site) return null;
+                      return (
+                        <div key={m.section.id} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "6px 11px", background: theme.cardBg, border: `1px solid ${BRAND_GREEN}50`, borderRadius: 8 }}>
+                          <Favicon domain={site.domain} size={16} />
+                          <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{site.name}</span>
+                          <span style={{ fontSize: 12, color: theme.textSecondary }}>· {m.section.name}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, marginLeft: 4 }}>{m.score}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button onClick={() => setCartSectionIds(allSelected ? cartSectionIds.filter((id) => !top3.some((m) => m.section.id === id)) : Array.from(new Set([...cartSectionIds, ...top3.map((m) => m.section.id)])))} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: allSelected ? "transparent" : BRAND_GREEN, color: allSelected ? BRAND_GREEN : "#fff", border: `1.5px solid ${BRAND_GREEN}`, borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  {allSelected ? "✓ Top 3 selected" : "Use AI's pick"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+        {/* Multi-site warning — fires when 2+ sites are added to the cart */}
+        {(() => {
+          const cartSiteIds = new Set(cart.map((m) => m.section.siteId));
+          if (cartSiteIds.size < 2) return null;
+          const cartSiteNames = Array.from(cartSiteIds).map((id) => sites.find((s) => s.id === id)?.name).filter(Boolean);
+          return (
+            <div style={{ padding: isMobile ? 14 : 16, marginBottom: 12, background: `${BRAND_AMBER}10`, border: `1.5px solid ${BRAND_AMBER}50`, borderLeft: `5px solid ${BRAND_AMBER}`, borderRadius: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND_AMBER, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16, fontWeight: 700 }}>!</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: BRAND_AMBER, marginBottom: 4 }}>Multi-site order · each site gets a uniquely-rewritten article</div>
+                  <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.55, marginBottom: 6 }}>You've selected sections across <strong>{cartSiteIds.size} sites</strong> ({cartSiteNames.join(" + ")}). Same intent, different wording — every query is rephrased and every answer reworded so each site gets its own version.</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}><strong style={{ color: theme.text }}>Why:</strong> Google penalizes duplicate content across domains. Same article on multiple sites = wasted spend. We rewrite per site so each placement keeps its own SEO value.</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 4 · Yedioth sections matched to your queries (sorted by fit)</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Step 3 · Yedioth sections matched to your queries (sorted by fit)</div>
           <div style={{ fontSize: 13, color: theme.textSecondary }}>{(() => { const visible = matchedSections.filter((m) => (siteFilter.size === 0 || siteFilter.has(m.section.siteId)) && (categoryFilter.size === 0 || categoryFilter.has(m.section.category))); return `${visible.length} of ${matchedSections.length} matches · ${cartSectionIds.length} selected`; })()}</div>
         </div>
         {/* Site filter chips — let agency narrow to specific Yedioth properties (Ynet, Calcalist, Mako…) */}
@@ -2861,7 +3352,10 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
                   </div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600 }}>FIT SCORE</div>
+                  <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    MATCH SCORE
+                    <span title={`How well this site/section matches your queries, brand audience, and article title. ${m.score >= 70 ? "Strong match — recommended." : m.score >= 40 ? "Decent match." : "Weak match — consider another section."}`} style={{ display: "inline-flex", cursor: "help", color: theme.textMuted }}>ⓘ</span>
+                  </div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: m.score >= 70 ? BRAND_GREEN : m.score >= 40 ? BRAND_AMBER : theme.textSecondary }}>{m.score}</div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0, minWidth: 100 }}>
@@ -2883,6 +3377,34 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
       </div>
       )}
 
+      {/* STEP 4 · Content mode (now AFTER sections, so each site can get its own tailored draft) */}
+      {currentStep === 4 && (
+      <ContentStep
+        theme={theme}
+        isMobile={isMobile}
+        contentMode={contentMode}
+        setContentMode={setContentMode}
+        cart={cart}
+        sites={sites}
+        title={title}
+        selectedQueries={selectedQueries}
+        brand={brand}
+        providedCopy={providedCopy}
+        setProvidedCopy={setProvidedCopy}
+        copyView={copyView}
+        setCopyView={setCopyView}
+        aiScanRunning={aiScanRunning}
+        setAiScanRunning={setAiScanRunning}
+        aiScanResult={aiScanResult}
+        setAiScanResult={setAiScanResult}
+        draftEdits={draftEdits}
+        setDraftEdits={setDraftEdits}
+        editDraftMode={editDraftMode}
+        setEditDraftMode={setEditDraftMode}
+        showToast={showToast}
+      />
+      )}
+
       {/* STEP 5 · Review & submit */}
       {currentStep === 5 && (
       <div style={{ background: theme.cardBg, border: `1.5px solid ${cart.length > 0 ? BRAND_GREEN : theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 22 }}>
@@ -2901,7 +3423,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
         </div>
         {cart.length === 0 ? (
           <div style={{ fontSize: 14, color: theme.textSecondary, textAlign: "center", padding: 20, background: `${BRAND_AMBER}10`, border: `1px solid ${BRAND_AMBER}40`, borderRadius: 9 }}>
-            <strong style={{ color: BRAND_AMBER }}>No sections selected yet.</strong> Go back to Step 4 to add Yedioth sections to this order.
+            <strong style={{ color: BRAND_AMBER }}>No sections selected yet.</strong> Go back to Step 3 to add Yedioth sections to this order.
           </div>
         ) : (
           <>
@@ -2919,14 +3441,73 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
                 );
               })}
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10, padding: "14px 16px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 9 }}>
-              <div style={{ fontSize: 14, color: theme.text, fontWeight: 600 }}>{cart.length} {cart.length === 1 ? "section" : "sections"} · {selectedQueries.length} queries · 1 article</div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: theme.textMuted, fontWeight: 700, letterSpacing: 1 }}>TOTAL</div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: theme.text }}>{fmtNIS(cartTotal)}</div>
+            {/* Backlink summary — preview of what publisher will embed */}
+            <div style={{ marginBottom: 14, padding: "10px 14px", background: theme.tableHeaderBg, borderRadius: 9 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Do-follow backlink (every article)</div>
+              <div style={{ fontSize: 13.5, color: theme.text, lineHeight: 1.5 }}>
+                <span style={{ fontFamily: "monospace", color: BRAND_BLUE, wordBreak: "break-all" }}>{backlinkUrl.trim() || `https://${brand.domain}`}</span>
+                <span style={{ color: theme.textMuted, margin: "0 8px" }}>·</span>
+                anchor: <strong>"{backlinkAnchor.trim() || brand.name}"</strong>
               </div>
             </div>
-            <button onClick={submitOrder} disabled={submitting || !title.trim()} style={{ width: "100%", padding: "16px 22px", fontSize: 16, fontWeight: 700, background: submitting ? theme.barTrack : BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: submitting ? "wait" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {/* Pricing summary */}
+            <div style={{ marginBottom: 14, padding: "12px 14px", background: `${BRAND_GREEN}06`, border: `1px solid ${BRAND_GREEN}25`, borderRadius: 9, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <span style={{ fontSize: 13, color: theme.textSecondary }}>{cart.length} {cart.length === 1 ? "section" : "sections"} · {selectedQueries.length} queries · 1 article</span>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase" }}>Total</div>
+                <div style={{ fontSize: 26, fontWeight: 700, color: theme.text, lineHeight: 1.1 }}>{fmtNIS(cartTotal)}</div>
+              </div>
+            </div>
+
+            {/* Payment method selector */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Payment method</div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12.5, color: theme.textSecondary }}>
+                  Available: <strong style={{ color: articleCredits > 0 ? BRAND_GREEN : theme.textMuted }}>{articleCredits} credits</strong>
+                  <button onClick={onOpenBank} style={{ padding: "3px 9px", fontSize: 11.5, fontWeight: 700, background: "transparent", color: BRAND_GREEN, border: `1px solid ${BRAND_GREEN}`, borderRadius: 6, cursor: "pointer" }}>Buy more</button>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 8 }}>
+                {/* Cash */}
+                <button onClick={() => setPayMethod("cash")} style={{ textAlign: "left", padding: 12, background: payMethod === "cash" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "cash" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: "pointer" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Cash invoice</span>
+                    {payMethod === "cash" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Pay {fmtNIS(cartTotal)} on the master proposal — standard 30-day terms.</div>
+                </button>
+                {/* Credits */}
+                <button onClick={() => articleCredits > 0 && cartCreditCount > 0 && canPayAllCredits && setPayMethod("credits")} disabled={!canPayAllCredits || articleCredits === 0 || cartCreditCount === 0} style={{ textAlign: "left", padding: 12, background: payMethod === "credits" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "credits" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: canPayAllCredits ? "pointer" : "not-allowed", opacity: canPayAllCredits && articleCredits > 0 ? 1 : 0.5 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Pay with credits</span>
+                    {payMethod === "credits" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>
+                    {canPayAllCredits ? <>Use {cartCreditCount} of {articleCredits} credits — no cash on this order.</> : <>Need {cartCreditCount} credits, have {articleCredits}. <button onClick={(e) => { e.stopPropagation(); onOpenBank(); }} style={{ background: "none", border: "none", color: BRAND_GREEN, fontWeight: 700, padding: 0, cursor: "pointer", textDecoration: "underline" }}>Buy more</button>.</>}
+                  </div>
+                </button>
+                {/* Hybrid */}
+                <button onClick={() => articleCredits > 0 && cartCreditCount > 0 && setPayMethod("hybrid")} disabled={articleCredits === 0 || cartCreditCount === 0} style={{ textAlign: "left", padding: 12, background: payMethod === "hybrid" ? `${BRAND_GREEN}10` : theme.tableHeaderBg, border: `2px solid ${payMethod === "hybrid" ? BRAND_GREEN : "transparent"}`, borderRadius: 9, cursor: articleCredits > 0 ? "pointer" : "not-allowed", opacity: articleCredits > 0 && cartCreditCount > 0 ? 1 : 0.5 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Credits + cash</span>
+                    {payMethod === "hybrid" && <span style={{ marginLeft: "auto", color: BRAND_GREEN }}><IconCheck size={13} /></span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.4 }}>Spend all {Math.min(articleCredits, cartCreditCount)} available credits, bill the rest in cash.</div>
+                </button>
+              </div>
+
+              {/* Live payment math summary */}
+              {(payMethod === "credits" || payMethod === "hybrid") && paymentBreakdown.creditsUsed > 0 && (
+                <div style={{ marginTop: 10, padding: "10px 14px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 8, fontSize: 13, color: theme.text, lineHeight: 1.6 }}>
+                  <strong style={{ color: BRAND_GREEN }}>You'll pay:</strong> {paymentBreakdown.creditsUsed} {paymentBreakdown.creditsUsed === 1 ? "credit" : "credits"}
+                  {paymentBreakdown.cashAmount > 0 && <> + {fmtNIS(paymentBreakdown.cashAmount)} cash</>}
+                  <span style={{ color: theme.textSecondary, marginLeft: 8 }}>· balance after order: <strong style={{ color: theme.text }}>{Math.max(0, articleCredits - paymentBreakdown.creditsUsed)} credits</strong></span>
+                </div>
+              )}
+            </div>
+
+            <button onClick={submitOrder} disabled={submitting || !title.trim()} style={{ width: "100%", padding: "16px 22px", fontSize: 16, fontWeight: 700, background: submitting ? theme.barTrack : BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: submitting ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {submitting ? "Adding to client proposal..." : <>Add to client proposal &amp; send to Yedioth <IconArrowRight size={14} /></>}
             </button>
             <div style={{ fontSize: 13, color: theme.textSecondary, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>This becomes a line item on your master client proposal. Yedioth's sales team contacts you to confirm. ~3 days per article.</div>
@@ -2963,9 +3544,37 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
 // AGENCY · My Orders
 // ============================================================
 
-function AgencyOrdersView({ theme, isMobile, orders, sites, sections }: { theme: Theme; isMobile: boolean; orders: Order[]; sites: PublisherSite[]; sections: PublisherSection[] }) {
+function AgencyOrdersView({ theme, isMobile, orders, setOrders, sites, sections, agencyName, showToast }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; sites: PublisherSite[]; sections: PublisherSection[]; agencyName: string; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const allOrders = orders;
+
+  const handleShare = (orderId: string, payload: { clientName: string; clientEmail: string; message?: string }): string => {
+    const target = orders.find((o) => o.id === orderId);
+    const existingShareId = target?.clientShare?.shareId;
+    const shareId = existingShareId ?? `cs-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const now = new Date().toISOString();
+    setOrders(orders.map((o) => {
+      if (o.id !== orderId) return o;
+      const existing = o.clientShare;
+      if (existing) {
+        return { ...o, clientShare: { ...existing, clientName: payload.clientName, clientEmail: payload.clientEmail, message: payload.message ?? existing.message, sharedAt: now } };
+      }
+      return {
+        ...o,
+        clientShare: {
+          shareId,
+          sharedAt: now,
+          clientName: payload.clientName,
+          clientEmail: payload.clientEmail,
+          message: payload.message,
+          status: "pending_review",
+          comments: [],
+        },
+      };
+    }));
+    showToast(existingShareId ? "Share link refreshed for client" : "Share link generated — copy & send to client", "success");
+    return shareId;
+  };
 
   const totalSpend = allOrders.reduce((s, o) => s + o.totalPrice, 0);
   const pending = allOrders.filter((o) => o.status === "pending").length;
@@ -2989,7 +3598,7 @@ function AgencyOrdersView({ theme, isMobile, orders, sites, sections }: { theme:
             <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Submit an order from the Order Flow tab.</div>
           </div>
         ) : allOrders.map((o) => (
-          <OrderCard key={o.id} order={o} theme={theme} isMobile={isMobile} expanded={openId === o.id} onToggle={() => setOpenId(openId === o.id ? null : o.id)} onUpdate={() => { /* agency cannot update */ }} mode="agency" sites={sites} sections={sections} />
+          <OrderCard key={o.id} order={o} theme={theme} isMobile={isMobile} expanded={openId === o.id} onToggle={() => setOpenId(openId === o.id ? null : o.id)} onUpdate={() => { /* agency cannot update */ }} onShare={handleShare} agencyName={agencyName} mode="agency" sites={sites} sections={sections} />
         ))}
       </div>
     </div>
@@ -3086,6 +3695,919 @@ function AgencyTrackingView({ theme, isMobile, tracking, sites, sections, showTo
 
       <div style={{ marginTop: 24, padding: 14, background: `${BRAND_BLUE}08`, border: `1px solid ${BRAND_BLUE}25`, borderRadius: 9, fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>
         <strong style={{ color: BRAND_BLUE }}>Why this matters:</strong> Today, agencies buy articles from publishers without ever knowing if they got picked up. Geoscale ScalePublish monitors every item — if your client's article on Ynet gets cited by ChatGPT, you can prove it. That converts to repeat purchases.
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SHARE WITH CLIENT MODAL (agency)
+// ============================================================
+// Triggered from any AgencyOrderCard. Captures the client's name + email + an optional message,
+// mints a shareId, persists it on the order, and copies the share URL to clipboard so the agency
+// can drop it in WhatsApp / email immediately.
+
+function ShareWithClientModal({ order, theme, isMobile, onClose, onShare, agencyName, brandName }: { order: Order; theme: Theme; isMobile: boolean; onClose: () => void; onShare: (payload: { clientName: string; clientEmail: string; message?: string }) => string; agencyName: string; brandName: string }) {
+  const [clientName, setClientName] = useState(order.clientShare?.clientName ?? "");
+  const [clientEmail, setClientEmail] = useState(order.clientShare?.clientEmail ?? "");
+  const [message, setMessage] = useState(order.clientShare?.message ?? `Hi, this is the article we built for ${brandName} — placed on premium publishers like Ynet & Calcalist. Take a look and let us know if anything should be tweaked before we send it to the publisher.`);
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(order.clientShare ? `${typeof window !== "undefined" ? window.location.origin : ""}/scale-publish?clientShare=${order.clientShare.shareId}` : null);
+  const canSubmit = clientName.trim().length >= 2 && /\S+@\S+\.\S+/.test(clientEmail);
+
+  const submit = () => {
+    if (!canSubmit) return;
+    const shareId = onShare({ clientName: clientName.trim(), clientEmail: clientEmail.trim(), message: message.trim() || undefined });
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/scale-publish?clientShare=${shareId}`;
+    setGeneratedUrl(url);
+  };
+
+  const copyUrl = () => {
+    if (!generatedUrl) return;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(generatedUrl).catch(() => { /* noop */ });
+    }
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.55)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 1000 }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, maxHeight: "92vh", overflowY: "auto", background: theme.cardBg, borderRadius: 14, border: `1px solid ${theme.border}`, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding: isMobile ? "16px 18px" : "20px 24px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Share with client</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: theme.text, lineHeight: 1.25 }}>{order.title}</div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", padding: 6 }}><IconX size={18} /></button>
+        </div>
+
+        <div style={{ padding: isMobile ? "16px 18px" : "22px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+          {!generatedUrl ? (
+            <>
+              <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55 }}>
+                Send this article to your client at <strong style={{ color: theme.text }}>{brandName}</strong> for review before it goes to the publisher. They'll see the article preview, the publishers it's going to, and the price — and can approve or request changes.
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Client contact name</label>
+                <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. Tomer Levi (Marketing Lead)" style={{ width: "100%", padding: "11px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Client email</label>
+                <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} placeholder={`tomer@${brandName.toLowerCase().replace(/\s+/g, "")}.com`} style={{ width: "100%", padding: "11px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Message to the client (optional)</label>
+                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} style={{ width: "100%", padding: "11px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5 }} />
+              </div>
+
+              <div style={{ padding: "12px 14px", background: `${BRAND_GREEN}08`, border: `1px solid ${BRAND_GREEN}30`, borderLeft: `3px solid ${BRAND_GREEN}`, borderRadius: 7, fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>
+                <strong style={{ color: BRAND_GREEN }}>Heads up:</strong> the client view shows your agency branding ({agencyName}) — they never see Geoscale internals or the publisher's pricing breakdown.
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
+                <button onClick={onClose} style={{ padding: "11px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 9, cursor: "pointer" }}>Cancel</button>
+                <button onClick={submit} disabled={!canSubmit} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: canSubmit ? BRAND_GREEN : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 9, cursor: canSubmit ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  Generate share link <IconArrowRight size={13} />
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ padding: 16, background: `${BRAND_GREEN}10`, border: `1.5px solid ${BRAND_GREEN}50`, borderLeft: `4px solid ${BRAND_GREEN}`, borderRadius: 10 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: BRAND_GREEN, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><IconCheck size={14} /></div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>Share link ready</div>
+                </div>
+                <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.55 }}>Send this link to <strong style={{ color: theme.text }}>{clientName}</strong> ({clientEmail}). Anyone with the link can review the article and respond.</div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 }}>Share link</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input readOnly value={generatedUrl} style={{ flex: 1, minWidth: 0, padding: "11px 14px", fontSize: 13, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, monospace" }} onFocus={(e) => e.currentTarget.select()} />
+                  <button onClick={copyUrl} style={{ padding: "11px 18px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap" }}>Copy</button>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <a href={`https://wa.me/?text=${encodeURIComponent(`${message}\n\n${generatedUrl}`)}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 700, background: "#25D366", color: "#fff", border: "none", borderRadius: 9, textDecoration: "none" }}>WhatsApp</a>
+                <a href={`mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(`Article preview · ${order.title}`)}&body=${encodeURIComponent(`${message}\n\n${generatedUrl}`)}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 700, background: BRAND_BLUE, color: "#fff", border: "none", borderRadius: 9, textDecoration: "none" }}>Email</a>
+                <a href={generatedUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 700, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 9, textDecoration: "none" }}>Preview as client →</a>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
+                <button onClick={onClose} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: theme.text, color: theme.bg, border: "none", borderRadius: 9, cursor: "pointer" }}>Done</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CLIENT REVIEW VIEW (full-page takeover)
+// ============================================================
+// What the agency's client sees when they open ?clientShare=<id>. No agency/publisher switcher,
+// no Geoscale internals — just an agency-branded review surface.
+
+function ClientReviewView({ order, orders, setOrders, sites, sections, theme, darkMode, setDarkMode, isMobile, showToast, toasts, dismissToast }: { order: Order | null; orders: Order[]; setOrders: (v: Order[]) => void; sites: PublisherSite[]; sections: PublisherSection[]; theme: Theme; darkMode: boolean; setDarkMode: (v: boolean) => void; isMobile: boolean; showToast: (text: string, kind?: "success" | "info" | "warn") => void; toasts: ToastMsg[]; dismissToast: (id: string) => void }) {
+  const [commentDraft, setCommentDraft] = useState("");
+  const [requestChangesNote, setRequestChangesNote] = useState("");
+  const [showRequestPanel, setShowRequestPanel] = useState(false);
+
+  if (!order || !order.clientShare) {
+    return (
+      <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ textAlign: "center", maxWidth: 440 }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${BRAND_AMBER}15`, color: BRAND_AMBER, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}><IconX size={28} /></div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, marginBottom: 8 }}>This share link is not active</div>
+          <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.55 }}>The agency may have revoked the link or the article is no longer available. Please contact the agency for an updated link.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const cs = order.clientShare;
+  const STATUS_STYLES: Record<typeof cs.status, { bg: string; color: string; label: string; icon: React.ReactNode }> = {
+    pending_review: { bg: `${BRAND_AMBER}15`, color: BRAND_AMBER, label: "Awaiting your review", icon: <IconClock size={13} /> },
+    approved: { bg: `${BRAND_GREEN}15`, color: BRAND_GREEN, label: "Approved by you", icon: <IconCheck size={13} /> },
+    changes_requested: { bg: `${BRAND_BLUE}15`, color: BRAND_BLUE, label: "Changes requested", icon: <IconEdit size={13} /> },
+  };
+  const status = STATUS_STYLES[cs.status];
+
+  const updateOrder = (updater: (o: Order) => Order) => {
+    setOrders(orders.map((o) => (o.id === order.id ? updater(o) : o)));
+  };
+
+  const addComment = (from: "client" | "agency", author: string, text: string) => {
+    if (!text.trim()) return;
+    const newComment = { id: `c-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, from, author, text: text.trim(), at: new Date().toISOString() };
+    updateOrder((o) => ({ ...o, clientShare: o.clientShare ? { ...o.clientShare, comments: [...o.clientShare.comments, newComment] } : o.clientShare }));
+  };
+
+  const approve = () => {
+    updateOrder((o) => ({ ...o, clientShare: o.clientShare ? { ...o.clientShare, status: "approved", decidedAt: new Date().toISOString() } : o.clientShare }));
+    showToast("Approval sent to your agency", "success");
+    setShowRequestPanel(false);
+  };
+
+  const requestChanges = () => {
+    if (!requestChangesNote.trim()) return;
+    updateOrder((o) => {
+      if (!o.clientShare) return o;
+      const newComment = { id: `c-${Date.now()}`, from: "client" as const, author: o.clientShare.clientName, text: requestChangesNote.trim(), at: new Date().toISOString() };
+      return { ...o, clientShare: { ...o.clientShare, status: "changes_requested" as const, decidedAt: new Date().toISOString(), comments: [...o.clientShare.comments, newComment] } };
+    });
+    setRequestChangesNote("");
+    setShowRequestPanel(false);
+    showToast("Changes request sent to your agency", "success");
+  };
+
+  const sendComment = () => {
+    if (!commentDraft.trim()) return;
+    addComment("client", cs.clientName, commentDraft);
+    setCommentDraft("");
+    showToast("Comment sent to your agency", "success");
+  };
+
+  // Build a queries shape the ArticlePreview understands (synthesize for queries that aren't in DEMO_QUERIES)
+  const previewQueries = order.queries.map((qText, i) => {
+    const found = DEMO_QUERIES.find((dq) => dq.text === qText);
+    if (found) return found;
+    const lower = qText.toLowerCase();
+    const inferredCategory = lower.includes("bank") || lower.includes("invest") || lower.includes("fund") || lower.includes("pension") || lower.includes("credit") ? "Finance"
+      : lower.includes("real estate") || lower.includes("mortgage") || lower.includes("housing") ? "Real Estate"
+      : lower.includes("tech") || lower.includes("ai") || lower.includes("cloud") || lower.includes("saas") || lower.includes("startup") ? "Tech"
+      : lower.includes("therapy") || lower.includes("therapeutic") || lower.includes("riding") || lower.includes("horse") ? "Therapy"
+      : lower.includes("insurance") ? "Insurance"
+      : "Editorial";
+    return { id: `cs-${order.id}-q${i}`, text: qText, category: inferredCategory, audience: ["Decision-makers", "B2B"], gpt: false, gemini: false, perplexity: false, opportunity: 80 };
+  });
+
+  const sectionGroups = (() => {
+    const grouped: Record<string, { siteName: string; siteDomain: string; sections: { name: string; hebrewName: string; category: string }[] }> = {};
+    for (const s of order.sections) {
+      const sec = sections.find((x) => x.id === s.sectionId);
+      const site = sites.find((x) => x.id === s.siteId);
+      if (!sec || !site) continue;
+      if (!grouped[site.id]) grouped[site.id] = { siteName: site.name, siteDomain: site.domain, sections: [] };
+      grouped[site.id].sections.push({ name: sec.name, hebrewName: sec.hebrewName, category: sec.category });
+    }
+    return Object.values(grouped);
+  })();
+
+  return (
+    <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", color: theme.text }} dir="ltr">
+      {/* Agency-branded header (NO Geoscale logo) */}
+      <header style={{ background: theme.headerBg, borderBottom: `1px solid ${theme.border}`, padding: isMobile ? "14px 16px" : "16px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: `linear-gradient(135deg, ${BRAND_GREEN}, ${BRAND_BLUE})`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700, fontSize: 16 }}>
+              {order.agencyName.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>{order.agencyName} · for review</div>
+              <div style={{ fontSize: isMobile ? 15 : 17, fontWeight: 700, color: theme.text, lineHeight: 1.2 }}>Article preview for {order.brand}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", fontSize: 12, fontWeight: 700, background: status.bg, color: status.color, borderRadius: 999 }}>{status.icon} {status.label}</span>
+            <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          </div>
+        </div>
+      </header>
+
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "20px 12px 80px" : "32px 24px 80px" }}>
+        {/* Greeting + agency message */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, lineHeight: 1.2, marginBottom: 8 }}>Hi {cs.clientName.split(" ")[0] || cs.clientName} 👋</div>
+          <div style={{ fontSize: isMobile ? 14 : 15.5, color: theme.textSecondary, lineHeight: 1.65, maxWidth: 720 }}>
+            {cs.message ? cs.message : `${order.agencyName} prepared an article for ${order.brand}, scheduled to be placed on premium publishers. Take a look at the article preview, the publishers it will run on, and let us know if everything looks good before we send it to publication.`}
+          </div>
+        </div>
+
+        {/* Decision panel */}
+        {cs.status === "pending_review" && !showRequestPanel && (
+          <div style={{ background: theme.cardBg, border: `2px solid ${BRAND_GREEN}40`, borderRadius: 14, padding: isMobile ? 18 : 22, marginBottom: 24, boxShadow: "0 4px 12px rgba(16, 163, 127, 0.08)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>Your decision</div>
+            <div style={{ fontSize: isMobile ? 15 : 17, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Does this article look good to publish?</div>
+            <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55, marginBottom: 16 }}>If yes, the agency will send it to the publisher right away. If something feels off, request changes and we'll iterate before publication.</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button onClick={approve} style={{ padding: "13px 24px", fontSize: 15, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 2px 8px rgba(16,163,127,0.25)" }}>
+                <IconCheck size={14} /> Approve &amp; send to publisher
+              </button>
+              <button onClick={() => setShowRequestPanel(true)} style={{ padding: "13px 22px", fontSize: 15, fontWeight: 700, background: "transparent", color: BRAND_BLUE, border: `1.5px solid ${BRAND_BLUE}`, borderRadius: 10, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <IconEdit size={13} /> Request changes
+              </button>
+            </div>
+          </div>
+        )}
+
+        {cs.status === "pending_review" && showRequestPanel && (
+          <div style={{ background: theme.cardBg, border: `2px solid ${BRAND_BLUE}40`, borderRadius: 14, padding: isMobile ? 18 : 22, marginBottom: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>Request changes</div>
+            <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.55, marginBottom: 12 }}>Tell the agency what to fix. Be specific — they'll iterate and re-share when ready.</div>
+            <textarea value={requestChangesNote} onChange={(e) => setRequestChangesNote(e.target.value)} placeholder={`e.g. "Section 3 mentions a competitor by name — please remove. Also the title feels generic, can we lean into the [specific angle]?"`} rows={5} style={{ width: "100%", padding: "12px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5 }} />
+            <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+              <button onClick={requestChanges} disabled={!requestChangesNote.trim()} style={{ padding: "12px 22px", fontSize: 14, fontWeight: 700, background: requestChangesNote.trim() ? BRAND_BLUE : theme.barTrack, color: requestChangesNote.trim() ? "#fff" : theme.textMuted, border: "none", borderRadius: 9, cursor: requestChangesNote.trim() ? "pointer" : "not-allowed", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                Send to agency <IconArrowRight size={13} />
+              </button>
+              <button onClick={() => { setShowRequestPanel(false); setRequestChangesNote(""); }} style={{ padding: "12px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 9, cursor: "pointer" }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {cs.status === "approved" && (
+          <div style={{ background: `${BRAND_GREEN}10`, border: `1.5px solid ${BRAND_GREEN}50`, borderLeft: `5px solid ${BRAND_GREEN}`, borderRadius: 12, padding: isMobile ? 18 : 22, marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND_GREEN, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><IconCheck size={16} /></div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: theme.text }}>You approved this article</div>
+            </div>
+            <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55 }}>{cs.decidedAt ? `Approved ${new Date(cs.decidedAt).toLocaleDateString()} at ${new Date(cs.decidedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.` : ""} {order.agencyName} has been notified and will send it to the publisher.</div>
+          </div>
+        )}
+
+        {cs.status === "changes_requested" && (
+          <div style={{ background: `${BRAND_BLUE}10`, border: `1.5px solid ${BRAND_BLUE}50`, borderLeft: `5px solid ${BRAND_BLUE}`, borderRadius: 12, padding: isMobile ? 18 : 22, marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND_BLUE, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><IconEdit size={14} /></div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: theme.text }}>Changes requested</div>
+              </div>
+              <button onClick={approve} style={{ padding: "9px 18px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <IconCheck size={12} /> Approve anyway
+              </button>
+            </div>
+            <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55 }}>The agency will iterate based on your feedback and re-share when ready.</div>
+          </div>
+        )}
+
+        {/* What we're reviewing */}
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 14, padding: isMobile ? 18 : 24, marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>The article we built for you</div>
+          <div style={{ fontSize: isMobile ? 19 : 23, fontWeight: 700, color: theme.text, lineHeight: 1.25, marginBottom: 14 }}>{order.title}</div>
+          <div style={{ display: "flex", gap: isMobile ? 14 : 24, flexWrap: "wrap", marginBottom: 18 }}>
+            <ClientFact label="Brand" value={order.brand} theme={theme} />
+            <ClientFact label="Topics covered" value={`${order.queries.length} ${order.queries.length === 1 ? "query" : "queries"}`} theme={theme} />
+            <ClientFact label="Publisher placements" value={`${order.sections.length} ${order.sections.length === 1 ? "section" : "sections"}`} theme={theme} />
+            <ClientFact label="Total investment" value={fmtNIS(order.counterOffer ? order.counterOffer.adjustedTotal : order.totalPrice)} theme={theme} accent={BRAND_GREEN} />
+          </div>
+
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>Topics this article targets</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {order.queries.map((q, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN, minWidth: 22 }}>{i + 1}.</span>
+                  <span style={{ fontSize: 13.5, color: theme.text }}>{q}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 22 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>Where this article will run</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {sectionGroups.map((g, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 9 }}>
+                  <Favicon domain={g.siteDomain} size={28} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{g.siteName}</div>
+                    <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>{g.sections.map((s) => s.name).join(" · ")}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Backlink callout — every article carries a do-follow link */}
+          {order.backlink && (
+            <div style={{ marginTop: 22, padding: 14, background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 9 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Do-follow backlink</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13.5 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", minWidth: 78 }}>Linking to</span>
+                  <span style={{ fontFamily: "monospace", color: BRAND_BLUE, wordBreak: "break-all" }}>{order.backlink.targetUrl}</span>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", minWidth: 78 }}>Anchor</span>
+                  <span style={{ fontWeight: 600, color: theme.text }}>{order.backlink.anchorText}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Article preview */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>Article preview</div>
+          <ArticlePreview
+            title={order.title}
+            selectedQueries={previewQueries}
+            theme={theme}
+            isMobile={isMobile}
+            mode="agency"
+            brand={{ name: order.brand, domain: order.brandDomain, agency: order.agencyName, agencyContact: order.agencyContact }}
+          />
+        </div>
+
+        {/* Comment thread */}
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 14, padding: isMobile ? 18 : 22, marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 12 }}>Conversation with {order.agencyName}</div>
+          {cs.comments.length === 0 ? (
+            <div style={{ padding: 18, background: theme.tableHeaderBg, border: `1px dashed ${theme.border}`, borderRadius: 9, fontSize: 13, color: theme.textSecondary, textAlign: "center" }}>No messages yet — leave a question or note below.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+              {cs.comments.map((c) => (
+                <div key={c.id} style={{ alignSelf: c.from === "client" ? "flex-end" : "flex-start", maxWidth: "85%", padding: "11px 14px", background: c.from === "client" ? `${BRAND_GREEN}12` : theme.tableHeaderBg, border: `1px solid ${c.from === "client" ? `${BRAND_GREEN}40` : theme.border}`, borderRadius: 11, fontSize: 13.5, color: theme.text, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: c.from === "client" ? BRAND_GREEN : theme.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>
+                    {c.author} · {new Date(c.at).toLocaleDateString()} {new Date(c.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                  <div>{c.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+            <textarea value={commentDraft} onChange={(e) => setCommentDraft(e.target.value)} placeholder="Leave a comment for the agency..." rows={2} style={{ flex: 1, padding: "10px 14px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5 }} />
+            <button onClick={sendComment} disabled={!commentDraft.trim()} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: commentDraft.trim() ? theme.text : theme.barTrack, color: commentDraft.trim() ? theme.bg : theme.textMuted, border: "none", borderRadius: 9, cursor: commentDraft.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Send</button>
+          </div>
+        </div>
+
+        <div style={{ fontSize: 12, color: theme.textMuted, textAlign: "center", padding: "14px 8px", lineHeight: 1.55 }}>
+          Shared by {order.agencyName} · {new Date(cs.sharedAt).toLocaleDateString()} · This is a private review link, do not forward.
+        </div>
+      </div>
+
+      <ToastHost toasts={toasts} onDismiss={dismissToast} />
+    </div>
+  );
+}
+
+function ClientFact({ label, value, theme, accent }: { label: string; value: string; theme: Theme; accent?: string }) {
+  return (
+    <div style={{ minWidth: 130 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: accent ?? theme.text, lineHeight: 1.25 }}>{value}</div>
+    </div>
+  );
+}
+
+// ============================================================
+// CONTENT STEP (step 4 of Order Flow) — per Inna call 2026-05-05
+// ============================================================
+type Cart = { section: PublisherSection; score: number; reasons: { type: "audience" | "category" | "query"; label: string }[] }[];
+
+function ContentStep({ theme, isMobile, contentMode, setContentMode, cart, sites, title, selectedQueries, brand, providedCopy, setProvidedCopy, copyView, setCopyView, aiScanRunning, setAiScanRunning, aiScanResult, setAiScanResult, draftEdits, setDraftEdits, editDraftMode, setEditDraftMode, showToast }: {
+  theme: Theme; isMobile: boolean;
+  contentMode: "empty" | "generate"; setContentMode: (v: "empty" | "generate") => void;
+  cart: Cart; sites: PublisherSite[];
+  title: string; selectedQueries: typeof DEMO_QUERIES; brand: typeof DEMO_BRAND;
+  providedCopy: string; setProvidedCopy: (v: string) => void;
+  copyView: "visual" | "code"; setCopyView: (v: "visual" | "code") => void;
+  aiScanRunning: boolean; setAiScanRunning: (v: boolean) => void;
+  aiScanResult: { covered: { query: string; coverage: number }[]; missing: { query: string }[]; recommendations: string[] } | null; setAiScanResult: (v: { covered: { query: string; coverage: number }[]; missing: { query: string }[]; recommendations: string[] } | null) => void;
+  draftEdits: Record<string, string>; setDraftEdits: (v: Record<string, string>) => void;
+  editDraftMode: boolean; setEditDraftMode: (v: boolean) => void;
+  showToast: (text: string, kind?: "success" | "info" | "warn") => void;
+}) {
+  const cartSiteIds = Array.from(new Set(cart.map((m) => m.section.siteId)));
+  const cartSites = cartSiteIds.map((id) => sites.find((s) => s.id === id)).filter(Boolean) as PublisherSite[];
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleWordUpload = (file: File) => {
+    // Demo-grade Word import: parse as plain text. Never inject HTML — we only use textarea views,
+    // so there's no XSS attack surface. We construct a plain-text preamble using string interpolation
+    // (no innerHTML, no dangerouslySetInnerHTML anywhere in this component).
+    const reader = new FileReader();
+    reader.onload = () => {
+      const safeName = file.name.replace(/[<>"'`]/g, "");
+      const fakeExtracted = `[Extracted from ${safeName} — ${Math.round(file.size / 1024)} KB · ~${Math.round(file.size / 5)} words]\n\n${title || "Article draft"}\n\nYour uploaded copy was parsed and inserted here. Edit freely, then click "Let AI scan my content" to verify it covers the selected queries.`;
+      setProvidedCopy(fakeExtracted);
+      setAiScanResult(null);
+      showToast(`Imported "${safeName}" into editor`, "success");
+    };
+    reader.readAsText(file);
+  };
+
+  const runAiScan = () => {
+    if (!providedCopy.trim()) {
+      showToast("Editor is empty — paste content or upload a Word file first", "warn");
+      return;
+    }
+    setAiScanRunning(true);
+    setTimeout(() => {
+      const lower = providedCopy.toLowerCase();
+      const covered: { query: string; coverage: number }[] = [];
+      const missing: { query: string }[] = [];
+      for (const q of selectedQueries) {
+        const words = q.text.toLowerCase().split(/\s+/).filter((w) => w.length >= 4);
+        if (words.length === 0) { covered.push({ query: q.text, coverage: 100 }); continue; }
+        const hits = words.filter((w) => lower.includes(w)).length;
+        const coverage = Math.round((hits / words.length) * 100);
+        if (coverage >= 60) covered.push({ query: q.text, coverage });
+        else missing.push({ query: q.text });
+      }
+      const recommendations: string[] = [];
+      if (missing.length > 0) recommendations.push(`Expand on: ${missing.slice(0, 2).map((m) => `"${m.query}"`).join(" and ")} — add at least one section answering each.`);
+      if (!lower.includes(brand.name.toLowerCase())) recommendations.push(`Mention ${brand.name} at least once — currently the article doesn't reference the brand.`);
+      if (providedCopy.length < 1500) recommendations.push("Article is short. AI engines prefer 800-1500 words for citation depth.");
+      if (recommendations.length === 0) recommendations.push("Coverage looks strong. Consider adding a comparison table or pull quote for richer citations.");
+      setAiScanResult({ covered, missing, recommendations });
+      setAiScanRunning(false);
+      const verdict = missing.length === 0 ? "All queries covered ✓" : `${missing.length} ${missing.length === 1 ? "query" : "queries"} need work`;
+      showToast(`AI scan complete — ${verdict}`, missing.length === 0 ? "success" : "warn");
+    }, 1400);
+  };
+
+  return (
+    <div style={{ marginBottom: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+      {cartSites.length >= 2 && (
+        <div style={{ padding: isMobile ? 14 : 16, background: `${BRAND_BLUE}08`, border: `1.5px solid ${BRAND_BLUE}40`, borderLeft: `4px solid ${BRAND_BLUE}`, borderRadius: 11 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>Per-site rewriting · {cartSites.length} unique drafts</div>
+          <div style={{ fontSize: 13.5, color: theme.text, lineHeight: 1.55, marginBottom: 10 }}>Each site receives its own tailored version of the article. Same query intents, different phrasing — no duplicate-content penalty.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {cartSites.map((s, i) => (
+              <div key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 12px", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
+                <Favicon domain={s.domain} size={16} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{s.name}</span>
+                <span style={{ fontSize: 11, color: theme.textMuted }}>· Variant {String.fromCharCode(65 + i)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Step 4 · How is the content produced?</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={() => setContentMode("generate")} style={{ flex: 1, minWidth: 220, padding: 14, background: contentMode === "generate" ? `${BRAND_GREEN}10` : "transparent", border: `1.5px solid ${contentMode === "generate" ? BRAND_GREEN : theme.border}`, borderRadius: 10, cursor: "pointer", textAlign: "left", color: theme.text }}>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>AI-generated draft</div>
+            <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>We generate the article from your selected queries. Editable below. Title stays AI-controlled to keep ranking signals.</div>
+          </button>
+          <button onClick={() => setContentMode("empty")} style={{ flex: 1, minWidth: 220, padding: 14, background: contentMode === "empty" ? `${BRAND_AMBER}10` : "transparent", border: `1.5px solid ${contentMode === "empty" ? BRAND_AMBER : theme.border}`, borderRadius: 10, cursor: "pointer", textAlign: "left", color: theme.text }}>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>I'll provide the copy</div>
+            <div style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Paste your own copy or upload a Word file. AI scans it against your queries before we accept it.</div>
+          </button>
+        </div>
+      </div>
+
+      {contentMode === "generate" && (
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>AI-generated draft (preview)</div>
+              <div style={{ fontSize: 13, color: theme.textSecondary }}>Title is AI-locked to preserve GEO ranking signals. Body sections are editable below.</div>
+            </div>
+            <button onClick={() => setEditDraftMode(!editDraftMode)} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 700, background: editDraftMode ? BRAND_GREEN : "transparent", color: editDraftMode ? "#fff" : theme.text, border: `1.5px solid ${BRAND_GREEN}`, borderRadius: 8, cursor: "pointer" }}>
+              {editDraftMode ? "✓ Editing on" : "Edit draft sections"}
+            </button>
+          </div>
+
+          {editDraftMode && (
+            <div style={{ marginBottom: 14, padding: 12, background: `${BRAND_GREEN}06`, border: `1px dashed ${BRAND_GREEN}50`, borderRadius: 9 }}>
+              <div style={{ fontSize: 12.5, color: theme.text, lineHeight: 1.5 }}>Edit each section below — your overrides replace the AI text in the published article.</div>
+              {selectedQueries.map((q, i) => (
+                <div key={q.id} style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 5 }}>H2 #{i + 1} — {q.text}</div>
+                  <textarea value={draftEdits[q.id] ?? ""} onChange={(e) => setDraftEdits({ ...draftEdits, [q.id]: e.target.value })} placeholder={`AI will write this section answering "${q.text}". Override here to use your own copy.`} rows={3} style={{ width: "100%", padding: "9px 12px", fontSize: 13.5, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5 }} />
+                </div>
+              ))}
+              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
+                <button onClick={() => { setDraftEdits({}); showToast("Cleared overrides — AI text restored", "info"); }} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Clear overrides</button>
+                <span style={{ fontSize: 12, color: theme.textMuted }}>{Object.values(draftEdits).filter((v) => v.trim()).length} of {selectedQueries.length} sections overridden</span>
+              </div>
+            </div>
+          )}
+
+          <ArticlePreview title={title} selectedQueries={selectedQueries} theme={theme} isMobile={isMobile} brand={brand} />
+        </div>
+      )}
+
+      {contentMode === "empty" && (
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 14 : 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>Your article — paste or upload</div>
+              <div style={{ fontSize: 13, color: theme.textSecondary }}>Switch between Visual and Code views. Upload .docx to import a Word file. Hit "Let AI scan my content" before continuing.</div>
+            </div>
+            <input ref={fileInputRef} type="file" accept=".docx,.doc,.txt,.html" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleWordUpload(f); }} style={{ display: "none" }} />
+            <button onClick={() => fileInputRef.current?.click()} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 700, background: "transparent", color: theme.text, border: `1.5px solid ${theme.border}`, borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              📄 Upload Word file
+            </button>
+          </div>
+
+          <div style={{ display: "inline-flex", background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 3, marginBottom: 10 }}>
+            <button onClick={() => setCopyView("visual")} style={{ padding: "7px 14px", fontSize: 13, fontWeight: 700, background: copyView === "visual" ? theme.cardBg : "transparent", color: copyView === "visual" ? theme.text : theme.textSecondary, border: "none", borderRadius: 6, cursor: "pointer" }}>Visual</button>
+            <button onClick={() => setCopyView("code")} style={{ padding: "7px 14px", fontSize: 13, fontWeight: 700, background: copyView === "code" ? theme.cardBg : "transparent", color: copyView === "code" ? theme.text : theme.textSecondary, border: "none", borderRadius: 6, cursor: "pointer" }}>HTML code</button>
+          </div>
+
+          {/* Plain-text/HTML editor — both modes are textareas. No innerHTML, no XSS surface.
+              Visual mode: roomy serif-style textarea. Code mode: monospace HTML view. */}
+          {copyView === "visual" ? (
+            <textarea
+              value={providedCopy}
+              onChange={(e) => { setProvidedCopy(e.target.value); setAiScanResult(null); }}
+              placeholder={`Start writing your article here, or upload a Word file above.\n\nYou can use markdown-style headings (## My heading) — formatting will be applied automatically when the article is published. Type freely.`}
+              rows={14}
+              style={{ width: "100%", minHeight: 360, padding: "18px 20px", fontSize: 15, lineHeight: 1.7, background: theme.inputBg, border: `1.5px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "Georgia, 'Times New Roman', serif", resize: "vertical" }}
+            />
+          ) : (
+            <textarea
+              value={providedCopy}
+              onChange={(e) => { setProvidedCopy(e.target.value); setAiScanResult(null); }}
+              placeholder={`<h1>${title}</h1>\n<p>Paste raw HTML here, or use the Visual tab for plain-text writing.</p>`}
+              rows={14}
+              style={{ width: "100%", minHeight: 360, padding: "14px 16px", fontSize: 13, background: theme.inputBg, border: `1.5px solid ${theme.border}`, borderRadius: 9, color: theme.text, outline: "none", boxSizing: "border-box", fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", resize: "vertical", lineHeight: 1.6 }}
+            />
+          )}
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginTop: 12 }}>
+            <div style={{ fontSize: 12, color: theme.textMuted }}>
+              {providedCopy.replace(/<[^>]+>/g, "").trim().split(/\s+/).filter(Boolean).length} words · {providedCopy.length} characters
+            </div>
+            <button onClick={runAiScan} disabled={aiScanRunning} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: aiScanRunning ? theme.barTrack : BRAND_BLUE, color: aiScanRunning ? theme.textMuted : "#fff", border: "none", borderRadius: 9, cursor: aiScanRunning ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {aiScanRunning ? "⟳ Scanning your content vs queries…" : "🔍 Let AI scan my content"}
+            </button>
+          </div>
+
+          {aiScanResult && (
+            <div style={{ marginTop: 14, padding: 14, background: aiScanResult.missing.length === 0 ? `${BRAND_GREEN}08` : `${BRAND_AMBER}08`, border: `1.5px solid ${aiScanResult.missing.length === 0 ? BRAND_GREEN : BRAND_AMBER}50`, borderLeft: `4px solid ${aiScanResult.missing.length === 0 ? BRAND_GREEN : BRAND_AMBER}`, borderRadius: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: aiScanResult.missing.length === 0 ? BRAND_GREEN : BRAND_AMBER, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 8 }}>
+                AI scan result · {aiScanResult.missing.length === 0 ? "Approved ✓" : `${aiScanResult.missing.length} ${aiScanResult.missing.length === 1 ? "issue" : "issues"} found`}
+              </div>
+
+              {aiScanResult.covered.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_GREEN, marginBottom: 6 }}>✓ Queries covered ({aiScanResult.covered.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {aiScanResult.covered.map((c, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: theme.text }}>
+                        <span style={{ width: 16, height: 16, borderRadius: "50%", background: BRAND_GREEN, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>✓</span>
+                        <span style={{ flex: 1 }}>{c.query}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN }}>{c.coverage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {aiScanResult.missing.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND_AMBER, marginBottom: 6 }}>✗ Queries missing or weak ({aiScanResult.missing.length})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {aiScanResult.missing.map((m, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: theme.text }}>
+                        <span style={{ width: 16, height: 16, borderRadius: "50%", background: BRAND_AMBER, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>!</span>
+                        <span style={{ flex: 1 }}>{m.query}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {aiScanResult.recommendations.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Recommendations</div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: theme.textSecondary, lineHeight: 1.6 }}>
+                    {aiScanResult.recommendations.map((r, i) => <li key={i}>{r}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// SMS-SENT CARD (post-submit demo gold)
+// ============================================================
+function SmsSentCard({ sms, theme, isMobile, orderRef }: { sms: { to: string; body: string; sentAt: string }; theme: Theme; isMobile: boolean; orderRef: { id: string; total: number } | null }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr", gap: 16, padding: isMobile ? 16 : 22, background: `linear-gradient(135deg, ${BRAND_BLUE}08, ${BRAND_GREEN}06)`, border: `1.5px solid ${BRAND_BLUE}40`, borderRadius: 14 }}>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_BLUE, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 6 }}>Live notification dispatched</div>
+        <div style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, color: theme.text, lineHeight: 1.25, marginBottom: 6 }}>SMS sent to publisher director</div>
+        <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.55, marginBottom: 12 }}>The moment you submit, the publisher's decision-maker gets a phone alert with the full order summary. They can approve from the SMS link without logging into anything.</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: theme.text }}>
+          <div><strong style={{ color: theme.textMuted, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", marginRight: 8 }}>To</strong>{sms.to}</div>
+          <div><strong style={{ color: theme.textMuted, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", marginRight: 8 }}>Sent</strong>{new Date(sms.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</div>
+          {orderRef && <div><strong style={{ color: theme.textMuted, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", marginRight: 8 }}>Order</strong>#{orderRef.id.toUpperCase()} · {fmtNIS(orderRef.total)}</div>}
+        </div>
+      </div>
+
+      <div style={{ background: "#1F2937", borderRadius: 24, padding: 14, border: `4px solid #0F172A`, position: "relative", maxWidth: 320, justifySelf: isMobile ? "stretch" : "end", width: "100%" }}>
+        <div style={{ height: 6, width: 56, background: "#0F172A", borderRadius: 3, margin: "0 auto 10px" }} />
+        <div style={{ background: "#10B981", color: "#fff", borderRadius: 16, padding: "10px 14px", fontSize: 12.5, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+          {sms.body}
+        </div>
+        <div style={{ textAlign: "center", marginTop: 8, fontSize: 10, color: "#94A3B8" }}>Geoscale · just now</div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// PUBLISHER · ARTICLE BANK ADMIN
+// Where Yedioth manages each agency's prepaid balance manually. Pending top-up requests from
+// agencies surface here; the publisher fulfils (sets the credits) or declines. They can also
+// adjust the balance directly without an inbound request — e.g. after a cash deposit settles.
+// ============================================================
+function PublisherBankView({ theme, isMobile, articleCredits, setArticleCredits, topUpRequests, setTopUpRequests, creditLedger, setCreditLedger, agencyName, showToast }: { theme: Theme; isMobile: boolean; articleCredits: number; setArticleCredits: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; creditLedger: CreditLedgerEntry[]; setCreditLedger: React.Dispatch<React.SetStateAction<CreditLedgerEntry[]>>; agencyName: string; showToast: (text: string, kind?: "success" | "info" | "warn") => void }) {
+  const [adjustValue, setAdjustValue] = useState<string>("");
+  const [adjustNote, setAdjustNote] = useState<string>("");
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
+  const [grantOverride, setGrantOverride] = useState<string>("");
+
+  const pendingRequests = topUpRequests.filter((r) => r.status === "pending");
+  const recentLedger = creditLedger.slice(0, 12);
+
+  const grant = (delta: number, reason: string) => {
+    setArticleCredits((prev) => Math.max(0, prev + delta));
+    setCreditLedger((prev) => [{ id: `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), delta, reason, by: "publisher" }, ...prev]);
+  };
+
+  const fulfilRequest = (req: TopUpRequest, granted: number) => {
+    grant(granted, `Top-up fulfilled · request from ${req.agencyName}${req.note ? ` (${req.note})` : ""}`);
+    setTopUpRequests((prev) => prev.map((r) => r.id === req.id ? { ...r, status: "fulfilled", fulfilledAt: new Date().toISOString(), fulfilledCredits: granted } : r));
+    setEditingRequestId(null);
+    setGrantOverride("");
+    showToast(`+${granted} credits granted to ${req.agencyName}`, "success");
+  };
+
+  const rejectRequest = (req: TopUpRequest) => {
+    setTopUpRequests((prev) => prev.map((r) => r.id === req.id ? { ...r, status: "rejected", fulfilledAt: new Date().toISOString() } : r));
+    showToast(`Request from ${req.agencyName} declined`, "info");
+  };
+
+  const submitManualAdjust = () => {
+    const n = parseInt(adjustValue, 10);
+    if (isNaN(n) || n === 0) return;
+    grant(n, adjustNote.trim() || (n > 0 ? "Manual top-up by Yedioth" : "Manual deduction by Yedioth"));
+    setAdjustValue("");
+    setAdjustNote("");
+    showToast(`Balance ${n > 0 ? "increased" : "decreased"} by ${Math.abs(n)} credits`, "success");
+  };
+
+  return (
+    <div>
+      {/* Header strip */}
+      <div style={{ background: `linear-gradient(135deg, ${BRAND_AMBER}10 0%, ${BRAND_AMBER}03 100%)`, border: `1px solid ${BRAND_AMBER}30`, borderRadius: 12, padding: isMobile ? 14 : 22, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_AMBER, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Article Bank · Admin</div>
+          <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: theme.text, marginBottom: 4, letterSpacing: "-0.01em" }}>Manage agency balances</div>
+          <div style={{ fontSize: 13.5, color: theme.textSecondary, lineHeight: 1.5, maxWidth: 620 }}>You sell the bank manually — agree on the budget with the agency, then update their balance here. Inbound top-up requests surface below for fulfilment.</div>
+        </div>
+      </div>
+
+      {/* Pending top-up requests */}
+      {pendingRequests.length > 0 && (
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+            <span>Pending top-up requests</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND_AMBER, background: `${BRAND_AMBER}15`, padding: "2px 8px", borderRadius: 999 }}>{pendingRequests.length}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pendingRequests.map((req) => {
+              const isEditing = editingRequestId === req.id;
+              const overrideInt = parseInt(grantOverride, 10);
+              const grantAmount = isEditing && !isNaN(overrideInt) && overrideInt > 0 ? overrideInt : req.requestedCredits;
+              return (
+                <div key={req.id} style={{ padding: 14, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 14.5, fontWeight: 600, color: theme.text, lineHeight: 1.3 }}>{req.agencyName}</div>
+                      <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 2 }}>{new Date(req.requestedAt).toLocaleString()}{req.note ? ` · ${req.note}` : ""}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{req.requestedCredits}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginTop: 3 }}>credits requested</div>
+                    </div>
+                  </div>
+                  {isEditing ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Grant credits</label>
+                        <input value={grantOverride} onChange={(e) => setGrantOverride(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder={String(req.requestedCredits)} style={{ width: 110, padding: "8px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums" }} autoFocus />
+                      </div>
+                      <button onClick={() => fulfilRequest(req, grantAmount)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Confirm · grant {grantAmount}</button>
+                      <button onClick={() => { setEditingRequestId(null); setGrantOverride(""); }} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Cancel</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button onClick={() => fulfilRequest(req, req.requestedCredits)} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Approve · grant {req.requestedCredits}</button>
+                      <button onClick={() => { setEditingRequestId(req.id); setGrantOverride(String(req.requestedCredits)); }} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Adjust amount</button>
+                      <button onClick={() => rejectRequest(req)} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: "pointer" }}>Decline</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Agency balances grid (single agency in demo, but layout supports multi) */}
+      <div style={{ marginBottom: 22 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Agency balances</div>
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: isMobile ? 16 : 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, lineHeight: 1.3 }}>{agencyName}</div>
+              <div style={{ fontSize: 12.5, color: theme.textSecondary, marginTop: 3 }}>Demo agency · single tenant</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>Balance</div>
+              <div style={{ fontSize: 32, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{articleCredits}</div>
+              <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 3 }}>{articleCredits === 1 ? "credit" : "credits"}</div>
+            </div>
+          </div>
+          {/* Manual adjust */}
+          <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 8 }}>Manual adjustment</div>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "120px 1fr auto auto", gap: 8, alignItems: "stretch" }}>
+              <input value={adjustValue} onChange={(e) => setAdjustValue(e.target.value.replace(/[^0-9-]/g, ""))} type="text" inputMode="numeric" placeholder="±N" style={{ padding: "9px 10px", fontSize: 14, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none", fontVariantNumeric: "tabular-nums" }} />
+              <input value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} type="text" placeholder="Reason (e.g. wire received Q2-2026)" style={{ padding: "9px 10px", fontSize: 13, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 7, color: theme.text, outline: "none" }} />
+              <button onClick={submitManualAdjust} disabled={!adjustValue || parseInt(adjustValue, 10) === 0} style={{ padding: "9px 16px", fontSize: 13, fontWeight: 600, background: adjustValue && parseInt(adjustValue, 10) !== 0 ? BRAND_AMBER : theme.barTrack, color: adjustValue && parseInt(adjustValue, 10) !== 0 ? "#fff" : theme.textMuted, border: "none", borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) !== 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Apply</button>
+              <button onClick={() => { const target = parseInt(adjustValue, 10); if (!isNaN(target) && target >= 0) { const delta = target - articleCredits; if (delta === 0) return; grant(delta, adjustNote.trim() || `Balance set to ${target} by Yedioth`); setAdjustValue(""); setAdjustNote(""); showToast(`Balance set to ${target} credits`, "success"); } }} disabled={!adjustValue || isNaN(parseInt(adjustValue, 10)) || parseInt(adjustValue, 10) < 0} style={{ padding: "9px 14px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 7, cursor: adjustValue && parseInt(adjustValue, 10) >= 0 ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>Set to N</button>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Apply = add/subtract relative (use negative to deduct). Set to N = make balance exactly N. Both write a ledger entry.</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ledger */}
+      {recentLedger.length > 0 && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Credit ledger</div>
+          <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden" }}>
+            {recentLedger.map((entry, i) => (
+              <div key={entry.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "11px 14px", background: i % 2 === 0 ? theme.cardBg : theme.tableHeaderBg, borderBottom: i < recentLedger.length - 1 ? `1px solid ${theme.border}` : "none" }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, lineHeight: 1.4 }}>{entry.reason}</div>
+                  <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(entry.at).toLocaleString()} · {entry.by}</div>
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${entry.delta}` : entry.delta}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// ARTICLE BANK MODAL — agency-side balance + top-up request form
+// Per Alexei (2026-05-06): publishers sell the bank manually — they meet with the agency, agree
+// on a budget, then update the agency's credit balance directly in admin. There is NO credit-card
+// checkout. The agency's role here is to (a) see their balance + history, (b) submit a top-up
+// REQUEST that the publisher fulfils manually. Bundle/tier pricing was removed — pricing is
+// negotiated offline.
+// ============================================================
+function ArticleBankModal({ open, onClose, theme, isMobile, currentCredits, ledger, topUpRequests, agencyName, onSubmitRequest }: { open: boolean; onClose: () => void; theme: Theme; isMobile: boolean; currentCredits: number; ledger: CreditLedgerEntry[]; topUpRequests: TopUpRequest[]; agencyName: string; onSubmitRequest: (r: { credits: number; note: string }) => void }) {
+  const [requestCredits, setRequestCredits] = useState<string>("10");
+  const [requestNote, setRequestNote] = useState<string>("");
+  if (!open) return null;
+  const myRequests = topUpRequests.filter((r) => r.agencyName === agencyName).slice(0, 5);
+  const myLedger = ledger.slice(0, 8);
+  const parsedCredits = parseInt(requestCredits, 10);
+  const canSubmit = !isNaN(parsedCredits) && parsedCredits > 0 && parsedCredits <= 1000;
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 100, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: isMobile ? "16px 12px" : "40px 20px", overflowY: "auto" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 16, maxWidth: 760, width: "100%", padding: isMobile ? 18 : 26, boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", background: `${BRAND_GREEN}15`, color: BRAND_GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", borderRadius: 999, marginBottom: 10 }}>
+              Article bank · בנק כתבות
+            </div>
+            <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: theme.text, lineHeight: 1.2, marginBottom: 6, letterSpacing: "-0.01em" }}>Your prepaid balance with Yedioth</div>
+            <div style={{ fontSize: 14, color: theme.textSecondary, lineHeight: 1.55, maxWidth: 620 }}>
+              The publisher manages your bank manually. You can request a top-up here — Yedioth's
+              account team will follow up to agree on the budget and add the credits to your balance.
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, width: 34, height: 34, cursor: "pointer", color: theme.textSecondary, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <IconX size={16} />
+          </button>
+        </div>
+
+        {/* Balance card */}
+        <div style={{ padding: "18px 20px", background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12, marginBottom: 18 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Current balance</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontSize: 40, fontWeight: 700, color: theme.text, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{currentCredits}</span>
+            <span style={{ fontSize: 15, fontWeight: 500, color: theme.textSecondary }}>{currentCredits === 1 ? "credit available" : "credits available"}</span>
+          </div>
+          <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 6, lineHeight: 1.5 }}>1 credit = 1 article placement on any Yedioth section. Each article carries a do-follow backlink — standard, not an upsell.</div>
+        </div>
+
+        {/* Request top-up form */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 10 }}>Request a top-up</div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "150px 1fr auto", gap: 10, alignItems: "stretch" }}>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginBottom: 4 }}>Credits</label>
+              <input value={requestCredits} onChange={(e) => setRequestCredits(e.target.value.replace(/[^0-9]/g, ""))} type="text" inputMode="numeric" placeholder="10" style={{ width: "100%", padding: "10px 12px", fontSize: 15, fontWeight: 600, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box", fontVariantNumeric: "tabular-nums" }} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: theme.textSecondary, marginBottom: 4 }}>Note for Yedioth (optional)</label>
+              <input value={requestNote} onChange={(e) => setRequestNote(e.target.value)} type="text" placeholder="Q3 campaign for Bank Hapoalim" style={{ width: "100%", padding: "10px 12px", fontSize: 14, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <button onClick={() => canSubmit && onSubmitRequest({ credits: parsedCredits, note: requestNote.trim() })} disabled={!canSubmit} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: canSubmit ? BRAND_GREEN : theme.barTrack, color: canSubmit ? "#fff" : theme.textMuted, border: "none", borderRadius: 8, cursor: canSubmit ? "pointer" : "not-allowed", whiteSpace: "nowrap", width: isMobile ? "100%" : undefined }}>Send request</button>
+            </div>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: theme.textSecondary, lineHeight: 1.5 }}>Yedioth will reach out to confirm the budget. Pricing is negotiated offline. Credits land in your balance once they fulfil the request.</div>
+        </div>
+
+        {/* Recent requests */}
+        {myRequests.length > 0 && (
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 8 }}>Your recent top-up requests</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {myRequests.map((r) => {
+                const statusColor = r.status === "fulfilled" ? BRAND_GREEN : r.status === "rejected" ? "#9CA3AF" : BRAND_AMBER;
+                const statusLabel = r.status === "fulfilled" ? `Fulfilled · +${r.fulfilledCredits ?? r.requestedCredits} credits` : r.status === "rejected" ? "Declined" : "Awaiting publisher";
+                return (
+                  <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 12px", background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{r.requestedCredits} credits requested{r.note ? ` · ${r.note}` : ""}</div>
+                      <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(r.requestedAt).toLocaleString()}</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: statusColor, background: `${statusColor}15`, padding: "3px 8px", borderRadius: 999, whiteSpace: "nowrap" }}>{statusLabel}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Ledger / history */}
+        {myLedger.length > 0 && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 8 }}>Balance history</div>
+            <div style={{ border: `1px solid ${theme.border}`, borderRadius: 9, overflow: "hidden" }}>
+              {myLedger.map((entry, i) => (
+                <div key={entry.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 14px", background: i % 2 === 0 ? theme.cardBg : theme.tableHeaderBg, borderBottom: i < myLedger.length - 1 ? `1px solid ${theme.border}` : "none" }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, lineHeight: 1.4 }}>{entry.reason}</div>
+                    <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>{new Date(entry.at).toLocaleString()}</div>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: entry.delta > 0 ? BRAND_GREEN : theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{entry.delta > 0 ? `+${entry.delta}` : entry.delta}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
