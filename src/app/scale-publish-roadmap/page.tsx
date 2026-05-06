@@ -4,12 +4,13 @@ import React from "react";
 
 // ============================================================
 // SCALEPUBLISH ROADMAP — for Inna (designer)
-// Clean docs-style layout. Updated 2026-05-05.
+// Clean docs-style layout. Updated 2026-05-06 with Alexei's rejection round.
 // ============================================================
 
 const GREEN = "#10A37F";
 const AMBER = "#B45309";
-const BLUE = "#1D4ED8";
+// Cyan-700 (was royal blue #1D4ED8). Alexei 2026-05-06: blue clashed with the GeoScale palette.
+const BLUE = "#0891B2";
 const INK = "#0B1220";
 const TEXT = "#1F2937";
 const MUTED = "#6B7280";
@@ -34,10 +35,10 @@ export default function ScalePublishRoadmapPage() {
 
         {/* ── TITLE BLOCK ── */}
         <header style={{ marginBottom: 56 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: GREEN, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 14 }}>Updated · 5 May 2026</div>
-          <h1 style={{ fontSize: 44, fontWeight: 800, margin: "0 0 16px", lineHeight: 1.1, letterSpacing: "-0.025em", color: INK }}>What changed since our last call</h1>
+          <div style={{ fontSize: 13, fontWeight: 600, color: GREEN, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 14 }}>Updated · 6 May 2026</div>
+          <h1 style={{ fontSize: 44, fontWeight: 700, margin: "0 0 16px", lineHeight: 1.1, letterSpacing: "-0.025em", color: INK }}>What changed since our last call</h1>
           <p style={{ fontSize: 19, lineHeight: 1.6, color: MUTED, margin: 0, fontWeight: 400 }}>
-            Every decision from our meeting is now live in the demo, plus the article bank and SEO backlink Alexei asked for. Read straight through, then click any <em>See it live</em> link to jump into the actual screen.
+            Every decision from our meeting is now live in the demo. Alexei sent a rejection round on 6 May, and that is also reflected. Read straight through, then click any <em>See it live</em> link to jump into the actual screen.
           </p>
         </header>
 
@@ -50,7 +51,8 @@ export default function ScalePublishRoadmapPage() {
         <Toc items={[
           { href: "#meeting", label: "Decisions from our call", count: 11 },
           { href: "#alexei", label: "Alexei's additions", count: 4 },
-          { href: "#questions", label: "Open design questions", count: 7 },
+          { href: "#alexei-fixes", label: "Alexei's rejection round (6 May)", count: 3 },
+          { href: "#questions", label: "Open design questions", count: 6 },
           { href: "#status", label: "Built · Next sprint" },
         ]} />
 
@@ -138,22 +140,21 @@ export default function ScalePublishRoadmapPage() {
         </Item>
 
         {/* ── ALEXEI'S ADDITIONS ── */}
-        <SectionHeader id="alexei" eyebrow="Section 2" title="Alexei's additions" subtitle="Two things on top of the meeting items: prepaid article credits, and a do-follow backlink in every article." />
+        <SectionHeader id="alexei" eyebrow="Section 2" title="Alexei's additions" subtitle="Article bank, do-follow backlink, payment selector. Reflects the latest 6 May behaviour, not the original credit-tier proposal." />
 
-        <Item n={1} title="Article Bank — prepaid credit bundles">
-          <p>Agencies pre-buy articles like credits. Each credit redeems for one placement on any Yedioth section — Ynet, Calcalist, Sport5, Mynet, the lot. Credits are fully interchangeable.</p>
-          <PriceTable rows={[
-            { name: "Starter", credits: 5, perCredit: "₪7,500", badge: null },
-            { name: "Growth", credits: 15, perCredit: "₪6,500", badge: { label: "Most popular", color: GREEN } },
-            { name: "Scale", credits: 50, perCredit: "₪5,500", badge: { label: "Best value · 41% off", color: BLUE } },
-            { name: "Enterprise", credits: 150, perCredit: "₪4,800", badge: { label: "49% off", color: MUTED } },
+        <Item n={1} title="Article Bank — prepaid balance, publisher-managed (NIS, not credits)">
+          <p>Agencies hold a prepaid balance with Yedioth, denominated in NIS. Yedioth sells the bank manually (meetings, wire/invoice), then updates the balance directly in their admin. There is no credit-card checkout in the demo.</p>
+          <Bullets items={[
+            <><strong>Agency view</strong> — balance widget in the header (live NIS amount). Click opens the bank modal: balance, request top-up form (preset chips ₪25K / ₪50K / ₪100K / ₪250K / ₪500K plus free input), top-up history, full balance ledger.</>,
+            <><strong>Publisher view</strong> — new <strong>Article Bank</strong> tab. Pending agency requests appear as cards: Approve · Adjust amount · Decline. Each agency has a manual adjustment row: <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>Apply ±₪N</code> (relative) and <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>Set to ₪N</code> (absolute). Both write a ledger entry with the publisher's reason note.</>,
+            <><strong>Bank ledger</strong> — every grant, every order debit, every manual adjustment. Visible to both sides. Both sides know what the balance came from at any point in time.</>,
           ]} />
-          <p>The credits widget is pinned in the agency header next to the brand selector. Clicking it opens the bank modal. Demo seed: every agency starts with 8 credits so the &ldquo;Pay with credits&rdquo; flow can be demoed without buying first.</p>
-          <SeeLive href="/scale-publish" label="Click the credits widget in the agency header" />
+          <p>Demo seed: each agency starts with ₪50,000 (covers about five articles at the avg ₪9,400 anchor price), so the &ldquo;Pay from bank&rdquo; flow can be demoed without first asking the publisher to top up.</p>
+          <SeeLive href="/scale-publish" label="Agency: bank widget in the header. Publisher: Article Bank tab" />
         </Item>
 
         <Item n={2} title="Do-follow backlink in every article">
-          <p>Every article carries one do-follow link to the client&rsquo;s site. Standard, not an upsell. The agency just picks where the link points and what it says — both fields are optional with sensible defaults:</p>
+          <p>Every article carries one do-follow link to the client&rsquo;s site. Standard, not an upsell. The agency just picks where the link points and what it says, both fields are optional with sensible defaults:</p>
           <Bullets items={[
             <><strong>Target URL</strong> — defaults to the brand&rsquo;s homepage if left blank</>,
             <><strong>Anchor text</strong> — defaults to the brand name if left blank</>,
@@ -162,41 +163,73 @@ export default function ScalePublishRoadmapPage() {
         </Item>
 
         <Item n={3} title="Payment selector at checkout">
-          <p>Step 5 (Review) has three payment options:</p>
+          <p>Step 5 (Review) has three payment options, all denominated in NIS:</p>
           <Bullets items={[
-            <><strong>Cash invoice</strong> — pay the full amount on the master proposal, 30-day terms</>,
-            <><strong>Pay with credits</strong> — redeem from the article bank when the balance covers all sections</>,
-            <><strong>Credits + cash</strong> — spend all available credits, bill the rest in cash</>,
+            <><strong>Cash invoice</strong> — pay {`{cartTotal}`} on the master proposal, 30-day terms</>,
+            <><strong>Pay from bank</strong> — deduct {`{cartTotal}`} from the prepaid balance, no cash on this order. Disabled when balance &lt; cart total.</>,
+            <><strong>Bank + cash</strong> — bank covers what it can (highest priority), the remainder is invoiced. Live math summary shows what comes from each.</>,
           ]} />
-          <p>Credits-only and the hybrid option auto-disable when the balance is too low or the cart is empty. A live math summary shows: <em>&ldquo;You&rsquo;ll pay 3 credits + ₪9,800 cash · balance after order: 5 credits.&rdquo;</em></p>
-          <Note>Credits are deducted from the agency&rsquo;s balance the moment the order is submitted.</Note>
+          <p>Live summary example: <em>&ldquo;You&rsquo;ll pay ₪32,000 from bank + ₪9,800 cash · balance after order: ₪18,000.&rdquo;</em></p>
+          <Note>The bank is debited the moment the order is submitted. A ledger entry is written with the order ID and section count.</Note>
         </Item>
 
         <Item n={4} title="Order metadata flows everywhere">
           <p>Backlink + payment info appears in:</p>
           <Bullets items={[
-            <>The agency&rsquo;s order list (badge: &ldquo;3 credits redeemed&rdquo;)</>,
+            <>The agency&rsquo;s order list (badge: &ldquo;₪32,000 from bank + cash&rdquo;)</>,
             "The publisher's order inbox (full embed instructions)",
             "The client review page (target URL + anchor for transparency)",
             "The post-submit SMS to the publisher director",
           ]} />
         </Item>
 
+        {/* ── ALEXEI'S REJECTION ROUND (6 MAY) ── */}
+        <SectionHeader id="alexei-fixes" eyebrow="Section 3" title="Alexei's rejection round (6 May)" subtitle="Three rejections after he saw the first build. All three are addressed in the live demo." />
+
+        <Item n={1} title="Article Bank: money, not credits. Publisher-managed, not credit-card checkout">
+          <p>Original build: 4-tier credit bundle cards (Starter / Growth / Scale / Enterprise) with a &ldquo;Buy now&rdquo; checkout. Alexei&rsquo;s feedback: <em>&ldquo;They sell the bank themselves manually. People don&rsquo;t buy it with credit card. They&rsquo;ll arrange in meetings, the publisher updates the budget in admin, the agency can mark a request and that goes to the publisher.&rdquo;</em></p>
+          <p>What we changed:</p>
+          <Bullets items={[
+            <>Removed all 4 bundle cards and the credit-tier pricing. The bank is now denominated in <strong>NIS, not credits</strong>. Each article&rsquo;s price deducts from the balance directly.</>,
+            <>The agency modal is now a <strong>request top-up form</strong> (preset NIS amounts + free input + optional note). Submitting creates a <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>TopUpRequest</code> that lands in the publisher&rsquo;s inbox.</>,
+            <>The publisher gets a new <strong>Article Bank</strong> tab where they manually approve / adjust / decline each request, plus a row to set any agency&rsquo;s balance directly (Apply ±₪N or Set to ₪N).</>,
+            <>Order debits in NIS go into the same ledger that publisher top-ups go into, so both sides see one continuous money trail.</>,
+          ]} />
+          <SeeLive href="/scale-publish" label="Publisher view → Article Bank tab" />
+        </Item>
+
+        <Item n={2} title="Blue replaced with cyan">
+          <p>Alexei: <em>&ldquo;The blue colour doesn&rsquo;t look good in GeoScale.&rdquo;</em> The old <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>#1D4ED8</code> royal blue clashed with the green/amber palette.</p>
+          <Bullets items={[
+            <><strong>BRAND_BLUE</strong> changed to <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>#0891B2</code> (cyan-700). Distinctly cool, fits the GeoScale name, plays well with brand green/amber.</>,
+            <>Approved-status pill, target-URL link colour, AI-engine pills, in-progress button, tracking module header, and best-value badge: all moved to the new cyan automatically through the constant.</>,
+          ]} />
+        </Item>
+
+        <Item n={3} title="Greyscale contrast + typography pass">
+          <p>Alexei: <em>&ldquo;The grey on black is hard to see, the font can&rsquo;t be grey inside black, big numbers can&rsquo;t be grey, reduce the bold a bit, have smaller fonts, not just regular and bold.&rdquo;</em></p>
+          <Bullets items={[
+            <><strong>Dark-theme tokens bumped lighter</strong> — <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textSecondary</code> from <code style={{ fontSize: 13 }}>#9DA5B0</code> to <code style={{ fontSize: 13 }}>#B0B8C2</code>; <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textMuted</code> from <code style={{ fontSize: 13 }}>#7B8590</code> to <code style={{ fontSize: 13 }}>#94A3B0</code>. Single-point fix, every existing usage benefits.</>,
+            <><strong>Big numbers stay on the brightest text colour</strong>. Impact-score below 40 was rendering in <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textSecondary</code>; now uses <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>theme.text</code>.</>,
+            <><strong>Bold density reduced</strong>. Every <code style={{ fontSize: 13 }}>fontWeight: 700</code> moved to <code style={{ fontSize: 13 }}>700</code> (51 instances). Hierarchy now uses 500 / 600 / 700 instead of 600 / 700 / 800.</>,
+            <><strong>Tabular numerals</strong> on every balance, ledger amount, KPI, and request total, so digits align cleanly between rows.</>,
+          ]} />
+        </Item>
+
         {/* ── OPEN QUESTIONS ── */}
-        <SectionHeader id="questions" eyebrow="Section 3" title="Open design questions" subtitle="Where I'd love your eye before Thursday." />
+        <SectionHeader id="questions" eyebrow="Section 4" title="Open design questions" subtitle="Where I'd love your eye before Thursday." />
 
         <QuestionList items={[
-          <><strong>Article bank visual</strong> — the 4 packages are equal-weight cards right now. Should &ldquo;Most popular&rdquo; (Growth) and &ldquo;Best value&rdquo; (Scale) be visually larger, or is the badge enough?</>,
-          <><strong>Credits widget in header</strong> — sits next to the brand selector. On mobile it wraps below. Worth giving it a dedicated icon button instead of text?</>,
+          <><strong>Bank balance widget in header</strong> — currently shows the full NIS amount with the &ldquo;Request top-up&rdquo; CTA inline. On mobile it wraps below the user role row. Worth giving it a dedicated icon-only button on small screens?</>,
+          <><strong>Publisher Article Bank tab layout</strong> — pending requests at the top, agency balances in the middle, ledger at the bottom. Is that the right priority order, or should the always-visible balance row be the hero?</>,
           <><strong>Backlink panel placement</strong> — lives at the top of Step 3. Would it feel better as a collapsed accordion (open by default) so the section list is the focus?</>,
-          <><strong>Payment selector</strong> — 3 buttons in a row. Should the disabled options (when balance is 0) hide entirely, or stay visible greyed-out?</>,
+          <><strong>Payment selector</strong> — 3 tiles in a row (cash / bank / hybrid). Should disabled tiles (when balance is 0 or insufficient) hide entirely, or stay visible greyed-out?</>,
           <><strong>Hero / feature image</strong> — still open from the last call. Editor uploads, AI generates from title, or agency provides?</>,
           <><strong>RTL Hebrew UI</strong> — needed for Yedioth&rsquo;s editor team, or English-LTR fine?</>,
-          <><strong>Mobile order placement</strong> — realistic, or always desktop? Decides how much we polish the mobile Order Flow.</>,
         ]} />
 
         {/* ── STATUS ── */}
-        <SectionHeader id="status" eyebrow="Section 4" title="Built · Next sprint" subtitle="Where we are honestly." />
+        <SectionHeader id="status" eyebrow="Section 5" title="Built · Next sprint" subtitle="Where we are honestly." />
 
         <StatusBlock title="Built and live" color={GREEN} items={[
           "Two-user toggle with shared state (Agency ↔ Publisher)",
@@ -207,9 +240,10 @@ export default function ScalePublishRoadmapPage() {
           "Full Analytics view · per-domain filters · KPI tooltips · light/dark mode",
           "All 11 meeting decisions (steps reordered, multi-site warning, AI top-3, match-score tooltip, brand selector, content tabs, AI draft editing, SMS card, custom queries, hidden Scans link, client sharing)",
           "Client sharing flow end-to-end (mint, share, review, decision, comment thread)",
-          "Article bank (4 bundles, balance widget, redeem at checkout)",
+          "Article Bank, publisher-managed in NIS: agency widget, request-top-up modal, publisher admin tab with approve / adjust / decline + manual ±N / Set-to-N, full bank ledger",
           "Do-follow backlink in every article (target + anchor with defaults)",
-          "Payment selector (cash / credits / hybrid) with live math",
+          "Payment selector (cash / pay from bank / bank + cash) with live NIS math",
+          "Cyan-700 instead of royal blue everywhere. Dark-theme tokens bumped lighter for contrast. Bold density reduced (51 places). Tabular numerals on balances, KPIs, ledger rows.",
           "Mobile responsive across all views",
         ]} />
 
@@ -218,13 +252,13 @@ export default function ScalePublishRoadmapPage() {
           "Real engine-check pipeline (replace simulated re-check with actual GPT/Gemini/Perplexity calls)",
           "Hebrew UI option for the editor team",
           "Multi-brand agency support · approval comments · email/Slack notifications",
-          "Stripe / Tranzila for credit-bundle purchases (right now it's localStorage demo)",
+          "Multi-tenant agency directory in the publisher Article Bank tab (right now it's a single-row demo)",
           "Editor in-line citation suggestions when articles aren't getting cited",
         ]} />
 
         {/* ── BOTTOM ── */}
         <div style={{ marginTop: 80, padding: "40px 32px", background: SOFT_BG, border: `1px solid ${BORDER}`, borderRadius: 14, textAlign: "center" }}>
-          <h3 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px", color: INK, letterSpacing: "-0.01em" }}>That&rsquo;s the whole update.</h3>
+          <h3 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px", color: INK, letterSpacing: "-0.01em" }}>That&rsquo;s the whole update.</h3>
           <p style={{ fontSize: 16, color: MUTED, margin: "0 0 22px", lineHeight: 1.55 }}>Open the live demo and toggle Agency ↔ Publisher in the header.</p>
           <a href="/scale-publish" style={{ display: "inline-block", padding: "12px 28px", background: GREEN, color: "#fff", borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.01em" }}>Open the live demo</a>
         </div>
@@ -268,7 +302,7 @@ function SectionHeader({ id, eyebrow, title, subtitle }: { id: string; eyebrow: 
   return (
     <div id={id} style={{ marginTop: 80, marginBottom: 32, paddingTop: 32, borderTop: `1px solid ${BORDER}`, scrollMarginTop: 80 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>{eyebrow}</div>
-      <h2 style={{ fontSize: 32, fontWeight: 800, margin: "0 0 10px", color: INK, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{title}</h2>
+      <h2 style={{ fontSize: 32, fontWeight: 700, margin: "0 0 10px", color: INK, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{title}</h2>
       {subtitle && <p style={{ fontSize: 17, color: MUTED, margin: 0, lineHeight: 1.55, fontWeight: 400 }}>{subtitle}</p>}
     </div>
   );
@@ -325,28 +359,6 @@ function SeeLive({ href, label }: { href: string; label?: string }) {
       See it live{label ? ` · ${label}` : ""}
       <span style={{ color: MUTED, marginLeft: 2 }}>→</span>
     </a>
-  );
-}
-
-function PriceTable({ rows }: { rows: { name: string; credits: number; perCredit: string; badge: { label: string; color: string } | null }[] }) {
-  return (
-    <div style={{ margin: "16px 0", border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", padding: "10px 16px", background: SOFT_BG, borderBottom: `1px solid ${BORDER}`, fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        <div>Bundle</div>
-        <div>Credits</div>
-        <div style={{ textAlign: "right" }}>Per credit</div>
-      </div>
-      {rows.map((r, i) => (
-        <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", padding: "14px 16px", borderBottom: i < rows.length - 1 ? `1px solid ${BORDER}` : "none", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: INK }}>{r.name}</div>
-            {r.badge && <div style={{ marginTop: 3, display: "inline-block", padding: "2px 8px", background: `${r.badge.color}15`, color: r.badge.color, fontSize: 11, fontWeight: 700, borderRadius: 999, letterSpacing: "0.02em" }}>{r.badge.label}</div>}
-          </div>
-          <div style={{ fontSize: 15, color: TEXT, fontVariantNumeric: "tabular-nums" }}>{r.credits}</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: INK, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.perCredit}</div>
-        </div>
-      ))}
-    </div>
   );
 }
 
