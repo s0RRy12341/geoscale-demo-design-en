@@ -51,7 +51,7 @@ export default function ScalePublishRoadmapPage() {
         <Toc items={[
           { href: "#meeting", label: "Decisions from our call", count: 11 },
           { href: "#alexei", label: "Alexei's additions", count: 4 },
-          { href: "#alexei-fixes", label: "Alexei's rejection round (6 May)", count: 3 },
+          { href: "#alexei-fixes", label: "Alexei's rejection round (6 May)", count: 4 },
           { href: "#questions", label: "Open design questions", count: 6 },
           { href: "#status", label: "Built · Next sprint" },
         ]} />
@@ -184,18 +184,18 @@ export default function ScalePublishRoadmapPage() {
         </Item>
 
         {/* ── ALEXEI'S REJECTION ROUND (6 MAY) ── */}
-        <SectionHeader id="alexei-fixes" eyebrow="Section 3" title="Alexei's rejection round (6 May)" subtitle="Three rejections after he saw the first build. All three are addressed in the live demo." />
+        <SectionHeader id="alexei-fixes" eyebrow="Section 3" title="Alexei's rejection round (6 May)" subtitle="Four rejection items after he saw the first build. Every one is addressed in the live demo." />
 
         <Item n={1} title="Article Bank: money, not credits. Publisher-managed, not credit-card checkout">
           <p>Original build: 4-tier credit bundle cards (Starter / Growth / Scale / Enterprise) with a &ldquo;Buy now&rdquo; checkout. Alexei&rsquo;s feedback: <em>&ldquo;They sell the bank themselves manually. People don&rsquo;t buy it with credit card. They&rsquo;ll arrange in meetings, the publisher updates the budget in admin, the agency can mark a request and that goes to the publisher.&rdquo;</em></p>
-          <p>What we changed:</p>
+          <p>What we changed (now the publisher&rsquo;s default landing tab so the new flow is impossible to miss):</p>
           <Bullets items={[
             <>Removed all 4 bundle cards and the credit-tier pricing. The bank is now denominated in <strong>NIS, not credits</strong>. Each article&rsquo;s price deducts from the balance directly.</>,
-            <>The agency modal is now a <strong>request top-up form</strong> (preset NIS amounts + free input + optional note). Submitting creates a <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>TopUpRequest</code> that lands in the publisher&rsquo;s inbox.</>,
-            <>The publisher gets a new <strong>Article Bank</strong> tab where they manually approve / adjust / decline each request, plus a row to set any agency&rsquo;s balance directly (Apply ±₪N or Set to ₪N).</>,
-            <>Order debits in NIS go into the same ledger that publisher top-ups go into, so both sides see one continuous money trail.</>,
+            <>The agency modal is now a <strong>request top-up form</strong> (preset NIS amounts + free input + optional note). No checkout. Submitting creates a <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>TopUpRequest</code> that lands in the publisher&rsquo;s inbox for manual fulfilment.</>,
+            <>The publisher gets a new <strong>Article Bank</strong> admin tab (defaulted as the first tab now) with three sections: pending top-up requests with Approve / Adjust / Decline, an agency balance row with manual <strong>Apply ±₪N</strong> and <strong>Set to ₪N</strong> controls, and the full bank ledger.</>,
+            <>Order debits in NIS go into the same ledger that publisher top-ups go into, so both sides see one continuous money trail. Each entry shows reason and who made it (publisher / system).</>,
           ]} />
-          <SeeLive href="/scale-publish" label="Publisher view → Article Bank tab" />
+          <SeeLive href="/scale-publish" label="Publisher view → Article Bank tab (default)" />
         </Item>
 
         <Item n={2} title="Blue replaced with cyan">
@@ -206,13 +206,23 @@ export default function ScalePublishRoadmapPage() {
           ]} />
         </Item>
 
-        <Item n={3} title="Greyscale contrast + typography pass">
+        <Item n={3} title="Dark-mode contrast + typography pass">
           <p>Alexei: <em>&ldquo;The grey on black is hard to see, the font can&rsquo;t be grey inside black, big numbers can&rsquo;t be grey, reduce the bold a bit, have smaller fonts, not just regular and bold.&rdquo;</em></p>
           <Bullets items={[
-            <><strong>Dark-theme tokens bumped lighter</strong> — <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textSecondary</code> from <code style={{ fontSize: 13 }}>#9DA5B0</code> to <code style={{ fontSize: 13 }}>#B0B8C2</code>; <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textMuted</code> from <code style={{ fontSize: 13 }}>#7B8590</code> to <code style={{ fontSize: 13 }}>#94A3B0</code>. Single-point fix, every existing usage benefits.</>,
+            <><strong>Dark-theme tokens bumped lighter</strong>, <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textSecondary</code> from <code style={{ fontSize: 13 }}>#9DA5B0</code> to <code style={{ fontSize: 13 }}>#B0B8C2</code>; <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textMuted</code> from <code style={{ fontSize: 13 }}>#7B8590</code> to <code style={{ fontSize: 13 }}>#94A3B0</code>. Single-point fix, every existing usage benefits.</>,
             <><strong>Big numbers stay on the brightest text colour</strong>. Impact-score below 40 was rendering in <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>textSecondary</code>; now uses <code style={{ fontSize: 13, padding: "1px 5px", background: SOFT_BG, borderRadius: 4 }}>theme.text</code>.</>,
-            <><strong>Bold density reduced</strong>. Every <code style={{ fontSize: 13 }}>fontWeight: 700</code> moved to <code style={{ fontSize: 13 }}>700</code> (51 instances). Hierarchy now uses 500 / 600 / 700 instead of 600 / 700 / 800.</>,
+            <><strong>Bold density reduced</strong>. Every <code style={{ fontSize: 13 }}>fontWeight: 800</code> dropped to <code style={{ fontSize: 13 }}>700</code> (51 instances). Hierarchy now reads 500 / 600 / 700 instead of 600 / 700 / 800.</>,
             <><strong>Tabular numerals</strong> on every balance, ledger amount, KPI, and request total, so digits align cleanly between rows.</>,
+          ]} />
+        </Item>
+
+        <Item n={4} title="Decorative icons stripped from the demo chrome">
+          <p>Alexei (in passing, after seeing the build): <em>&ldquo;Lose the icons in GeoScale, they&rsquo;re ugly.&rdquo;</em> The demo had a leftover ChatGPT-feeling iconography (briefcase, cart, inbox, chart, sparkle, users, building) attached to nearly every chip and tab.</p>
+          <Bullets items={[
+            <>Tab rows in both views (Sites &amp; Sections, Order Inbox, Article Bank, Articles &amp; Tracking, Analytics on the publisher side, plus My Queries / Order Flow / My Orders / Article Tracking on the agency side) now render label-only.</>,
+            <>Logged-in card no longer puts an SVG inside a coloured square; it now shows the brand or publisher initial in a neutral monogram tile.</>,
+            <>Empty-state cards (no orders yet, no orders to show) lost the giant inbox glyph; copy alone now carries the state.</>,
+            <>Action buttons (Share with client, Export CSV, Export client report, Export report, content-mode chip) and the section card&rsquo;s upload-time chip dropped their leading icon. Functional UX icons (chevrons, search field, close X, pin marker, the navigation arrow on Continue / Back) stay because they carry meaning.</>,
           ]} />
         </Item>
 
@@ -243,7 +253,9 @@ export default function ScalePublishRoadmapPage() {
           "Article Bank, publisher-managed in NIS: agency widget, request-top-up modal, publisher admin tab with approve / adjust / decline + manual ±N / Set-to-N, full bank ledger",
           "Do-follow backlink in every article (target + anchor with defaults)",
           "Payment selector (cash / pay from bank / bank + cash) with live NIS math",
-          "Cyan-700 instead of royal blue everywhere. Dark-theme tokens bumped lighter for contrast. Bold density reduced (51 places). Tabular numerals on balances, KPIs, ledger rows.",
+          "Cyan-700 instead of royal blue everywhere (also fixed the News pill on /scan). Dark-theme tokens bumped lighter for contrast. Bold density reduced (51 places). Tabular numerals on balances, KPIs, ledger rows.",
+          "Decorative icons stripped from publisher and agency tabs, logged-in card, empty states, and export / share buttons. Functional icons (chevron, search, close, pin, arrow on Continue/Back) kept.",
+          "Publisher view now defaults to the Article Bank tab so Alexei's new admin flow is the first thing visible after switching to Publisher View.",
           "Mobile responsive across all views",
         ]} />
 

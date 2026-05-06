@@ -916,15 +916,15 @@ export default function ScalePublishPage() {
 function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pendingOrderCount, effectiveBrand, bankBalance, onOpenBank }: { userMode: "agency" | "publisher"; setUserMode: (v: "agency" | "publisher") => void; theme: Theme; darkMode: boolean; isMobile: boolean; pendingOrderCount: number; effectiveBrand: typeof DEMO_BRAND; bankBalance: number; onOpenBank: () => void }) {
   const isAgency = userMode === "agency";
   const userInfo = isAgency
-    ? { name: effectiveBrand.agency, role: `Agency · Acting for: ${effectiveBrand.name}`, icon: <IconUsers size={16} /> }
-    : { name: "Yedioth Ahronoth Group", role: "Publisher · 8 sites · 30 sections", icon: <IconBuilding size={16} /> };
+    ? { name: effectiveBrand.agency, role: `Agency · Acting for: ${effectiveBrand.name}`, initial: (effectiveBrand.agency || "A").trim().charAt(0).toUpperCase() }
+    : { name: "Yedioth Ahronoth Group", role: "Publisher · 8 sites · 30 sections", initial: "Y" };
 
   return (
     <div style={{ background: darkMode ? "#0F1217" : "#FAFBFC", borderBottom: `1px solid ${theme.border}`, padding: isMobile ? "16px" : "20px 24px" }}>
       <div style={{ maxWidth: 1300, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: isAgency ? `${BRAND_GREEN}15` : `${BRAND_AMBER}15`, color: isAgency ? BRAND_GREEN : BRAND_AMBER, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {userInfo.icon}
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: isAgency ? `${BRAND_GREEN}15` : `${BRAND_AMBER}15`, color: isAgency ? BRAND_GREEN : BRAND_AMBER, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18, fontWeight: 700, letterSpacing: "-0.01em" }}>
+            {userInfo.initial}
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 2 }}>Logged in as</div>
@@ -948,11 +948,11 @@ function UserModeSwitcher({ userMode, setUserMode, theme, darkMode, isMobile, pe
           {/* Brand-context selector — agency only. Lists each managed brand with LATEST scan only. */}
           {isAgency && <BrandContextSelector currentBrand={effectiveBrand} theme={theme} isMobile={isMobile} />}
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 4, background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10 }}>
-            <button onClick={() => setUserMode("agency")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: isAgency ? "#fff" : theme.textSecondary, background: isAgency ? BRAND_GREEN : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <IconUsers size={13} /> Agency View
+            <button onClick={() => setUserMode("agency")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: isAgency ? "#fff" : theme.textSecondary, background: isAgency ? BRAND_GREEN : "transparent", border: "none", borderRadius: 7, cursor: "pointer" }}>
+              Agency View
             </button>
-            <button onClick={() => setUserMode("publisher")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: !isAgency ? "#fff" : theme.textSecondary, background: !isAgency ? BRAND_AMBER : "transparent", border: "none", borderRadius: 7, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
-              <IconBuilding size={13} /> Publisher View
+            <button onClick={() => setUserMode("publisher")} style={{ padding: isMobile ? "8px 14px" : "8px 18px", fontSize: 13, fontWeight: 600, color: !isAgency ? "#fff" : theme.textSecondary, background: !isAgency ? BRAND_AMBER : "transparent", border: "none", borderRadius: 7, cursor: "pointer", position: "relative" }}>
+              Publisher View
               {pendingOrderCount > 0 && userMode === "agency" && (
                 <span style={{ position: "absolute", top: -4, right: -4, background: "#DC2626", color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 5px", borderRadius: 8, minWidth: 16, textAlign: "center" }}>{pendingOrderCount}</span>
               )}
@@ -1030,17 +1030,17 @@ function BrandContextSelector({ currentBrand, theme, isMobile }: { currentBrand:
 type PublisherTab = "sites" | "inbox" | "articles" | "analytics" | "bank";
 
 function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPrices, tracking, setTracking, getPrice, sites, setSites, sections, setSections, showToast, bankBalance, setBankBalance, topUpRequests, setTopUpRequests, bankLedger, setBankLedger, agencyName }: { theme: Theme; isMobile: boolean; orders: Order[]; setOrders: (v: Order[]) => void; prices: Record<string, number>; setPrices: (v: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void; tracking: ArticleTracking[]; setTracking: (v: ArticleTracking[]) => void; getPrice: (s: PublisherSection) => number; sites: PublisherSite[]; setSites: (v: PublisherSite[]) => void; sections: PublisherSection[]; setSections: (v: PublisherSection[]) => void; showToast: (text: string, kind?: "success" | "info" | "warn") => void; bankBalance: number; setBankBalance: React.Dispatch<React.SetStateAction<number>>; topUpRequests: TopUpRequest[]; setTopUpRequests: React.Dispatch<React.SetStateAction<TopUpRequest[]>>; bankLedger: BankLedgerEntry[]; setBankLedger: React.Dispatch<React.SetStateAction<BankLedgerEntry[]>>; agencyName: string }) {
-  const [tab, setTab] = useState<PublisherTab>("sites");
+  const [tab, setTab] = useState<PublisherTab>("bank");
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const publishedCount = tracking.length + orders.filter((o) => o.status === "published").length;
   const pendingTopUps = topUpRequests.filter((r) => r.status === "pending").length;
 
-  const TABS: { key: PublisherTab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "sites", label: "Sites & Sections", icon: <IconBuilding size={14} /> },
-    { key: "inbox", label: "Order Inbox", icon: <IconInbox size={14} />, badge: pendingCount },
-    { key: "bank", label: "Article Bank", icon: <IconCart size={14} />, badge: pendingTopUps },
-    { key: "articles", label: "Articles & Tracking", icon: <IconChart size={14} />, badge: publishedCount },
-    { key: "analytics", label: "Analytics", icon: <IconChart size={14} /> },
+  const TABS: { key: PublisherTab; label: string; badge?: number }[] = [
+    { key: "bank", label: "Article Bank", badge: pendingTopUps },
+    { key: "sites", label: "Sites & Sections" },
+    { key: "inbox", label: "Order Inbox", badge: pendingCount },
+    { key: "articles", label: "Articles & Tracking", badge: publishedCount },
+    { key: "analytics", label: "Analytics" },
   ];
 
   return (
@@ -1056,13 +1056,12 @@ function PublisherDashboard({ theme, isMobile, orders, setOrders, prices, setPri
 }
 
 // ── SUB TABS COMPONENT (shared) ──
-function SubTabs<T extends string>({ tabs, active, onChange, theme, isMobile }: { tabs: { key: T; label: string; icon?: React.ReactNode; badge?: number }[]; active: T; onChange: (k: T) => void; theme: Theme; isMobile: boolean }) {
+function SubTabs<T extends string>({ tabs, active, onChange, theme, isMobile }: { tabs: { key: T; label: string; badge?: number }[]; active: T; onChange: (k: T) => void; theme: Theme; isMobile: boolean }) {
   return (
     <div style={{ borderBottom: `1px solid ${theme.border}`, marginBottom: 24, marginLeft: isMobile ? -12 : -24, marginRight: isMobile ? -12 : -24, marginTop: -32, paddingTop: 16 }}>
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", display: "flex", alignItems: "center", gap: 0, overflowX: "auto", whiteSpace: "nowrap" }}>
         {tabs.map((t) => (
           <button key={t.key} onClick={() => onChange(t.key)} style={{ padding: isMobile ? "10px 14px" : "12px 22px", fontSize: isMobile ? 13 : 14, fontWeight: active === t.key ? 600 : 500, color: active === t.key ? theme.text : theme.textSecondary, background: "none", border: "none", borderBottom: active === t.key ? `2px solid ${theme.text}` : "2px solid transparent", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {t.icon}
             {t.label}
             {t.badge !== undefined && t.badge > 0 && (
               <span style={{ background: active === t.key ? `${BRAND_GREEN}15` : `${theme.textMuted}30`, color: active === t.key ? BRAND_GREEN : theme.textSecondary, fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 10 }}>{t.badge}</span>
@@ -1214,7 +1213,7 @@ function PublisherSitesView({ theme, isMobile, prices, setPrices, getPrice, site
                           <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
                             <span>{fmtNum(sec.monthlyReadership)} readers</span>
                             <span>·</span>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><IconClock size={11} /> ~{sec.estimatedUploadDays} days upload</span>
+                            <span>~{sec.estimatedUploadDays} days upload</span>
                           </div>
                           <div style={{ marginTop: 6, display: "flex", gap: 4, flexWrap: "wrap" }}>
                             {sec.audience.map((a) => <Pill key={a} bg={`${theme.textMuted}20`} color={theme.textSecondary} small>{a}</Pill>)}
@@ -1422,8 +1421,7 @@ function PublisherInboxView({ theme, isMobile, orders, setOrders, sites, section
       {/* Orders list */}
       {filtered.length === 0 ? (
         <div style={{ padding: 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
-          <IconInbox size={32} />
-          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginTop: 12 }}>No orders to show</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>No orders to show</div>
           <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Orders appear here when agencies submit them.</div>
         </div>
       ) : (
@@ -1582,7 +1580,7 @@ function OrderCard({ order, theme, isMobile, expanded, onToggle, onUpdate, onCou
 
           <Section title="Content mode" theme={theme}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", background: order.contentMode === "generate" ? `${BRAND_GREEN}15` : `${BRAND_AMBER}15`, color: order.contentMode === "generate" ? BRAND_GREEN : BRAND_AMBER, borderRadius: 8, fontSize: 13, fontWeight: 600 }}>
-              {order.contentMode === "generate" ? <><IconSparkle size={13} /> AI-generated draft</> : <><IconEdit size={13} /> Empty — agency provides copy</>}
+              {order.contentMode === "generate" ? "AI-generated draft" : "Empty, agency provides copy"}
             </div>
           </Section>
 
@@ -1768,7 +1766,7 @@ function ClientShareSection({ order, theme, isMobile, agencyName, onOpenShareMod
             <div style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>Generate a private review link for {order.brand}. They'll see the article preview, the publishers it's going to, and approve or request changes — all under your agency's brand.</div>
           </div>
           <button onClick={onOpenShareModal} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
-            <IconUsers size={13} /> Share with client
+Share with client
           </button>
         </div>
       </Section>
@@ -1935,7 +1933,7 @@ function PublisherArticlesView({ theme, isMobile, tracking, setTracking, sites, 
           {rechecking ? "Re-checking..." : "Re-check engines"}
         </button>
         <button onClick={exportCSV} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px", fontSize: 13, fontWeight: 600, background: BRAND_BLUE, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
-          <IconDownload size={13} /> Export CSV
+Export CSV
         </button>
       </div>
 
@@ -2064,7 +2062,7 @@ function ArticleTrackingRow({ tracking, theme, isMobile, sites, sections, showTo
               <span style={{ display: "inline-flex", animation: rechecking ? "spin 1s linear infinite" : "none" }}><IconRefresh size={12} /></span> {rechecking ? "Checking..." : "Re-check engines"}
             </button>
             <button onClick={exportOne} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, background: theme.cardBg, border: `1px solid ${theme.border}`, color: theme.text, borderRadius: 7, cursor: "pointer" }}>
-              <IconDownload size={12} /> Export report
+Export report
             </button>
           </div>
         </div>
@@ -2742,11 +2740,11 @@ function AgencyDashboard({ theme, isMobile, orders, setOrders, tracking, getPric
 
   const myOrdersCount = orders.length;
 
-  const TABS: { key: AgencyTab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "queries", label: "My Queries", icon: <IconBookmark size={14} /> },
-    { key: "order-flow", label: "Order Flow", icon: <IconCart size={14} />, badge: selectedQueryIds.length },
-    { key: "orders", label: "My Orders", icon: <IconInbox size={14} />, badge: myOrdersCount },
-    { key: "tracking", label: "Article Tracking", icon: <IconChart size={14} /> },
+  const TABS: { key: AgencyTab; label: string; badge?: number }[] = [
+    { key: "queries", label: "My Queries" },
+    { key: "order-flow", label: "Order Flow", badge: selectedQueryIds.length },
+    { key: "orders", label: "My Orders", badge: myOrdersCount },
+    { key: "tracking", label: "Article Tracking" },
   ];
 
   return (
@@ -3353,7 +3351,7 @@ function AgencyOrderFlowView({ theme, isMobile, selectedIds, setSelectedIds, ord
                   <div style={{ marginTop: 6, fontSize: 12, color: theme.textMuted, display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <span>{fmtNum(m.section.monthlyReadership)} readers</span>
                     <span>·</span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><IconClock size={11} /> ~{m.section.estimatedUploadDays} days upload</span>
+                    <span>~{m.section.estimatedUploadDays} days upload</span>
                   </div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -3598,8 +3596,7 @@ function AgencyOrdersView({ theme, isMobile, orders, setOrders, sites, sections,
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {allOrders.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12 }}>
-            <IconInbox size={32} />
-            <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, marginTop: 12 }}>No orders yet</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>No orders yet</div>
             <div style={{ fontSize: 13, color: theme.textSecondary, marginTop: 4 }}>Submit an order from the Order Flow tab.</div>
           </div>
         ) : allOrders.map((o) => (
@@ -3658,7 +3655,7 @@ function AgencyTrackingView({ theme, isMobile, tracking, sites, sections, showTo
           <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.6, maxWidth: 720 }}>Each ordered article is monitored individually: did it get crawled, did it get indexed, which AI engines cite it, which queries does it rank for. Export a report for your client to prove ROI.</div>
         </div>
         <button onClick={exportClientReport} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", fontSize: 13, fontWeight: 700, background: BRAND_BLUE, color: "#fff", border: "none", borderRadius: 9, cursor: "pointer" }}>
-          <IconDownload size={13} /> Export client report
+Export client report
         </button>
       </div>
 
