@@ -671,7 +671,7 @@ const CITATION_SOURCES: { key: string; label: string; brand?: boolean; rows: Cit
 const KIND_STYLES: Record<SourceKind, { bg: string; color: string; border: string }> = {
   Publication: { bg: "#ECFDF5", color: "#047857", border: "#A7F3D0" },
   Social:      { bg: "#FEF2F2", color: "#B45309", border: "#FECACA" },
-  News:        { bg: "#EFF6FF", color: "#1D4ED8", border: "#BFDBFE" },
+  News:        { bg: "#ECFEFF", color: "#0E7490", border: "#A5F3FC" },
   Blog:        { bg: "#F5F3FF", color: "#6D28D9", border: "#DDD6FE" },
   Review:      { bg: "#FFFBEB", color: "#B45309", border: "#FDE68A" },
   Forum:       { bg: "#F3F4F6", color: "#374151", border: "#E5E7EB" },

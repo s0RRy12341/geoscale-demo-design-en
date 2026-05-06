@@ -1,0 +1,93 @@
+﻿היי 👋
+
+סיימתי גל גדול של שיפורים ל-Geoscale מאז הגיבוי שעשינו לפני השיחה של אלכסיי ונועם. הכל לייב:
+🔗 https://geoscale-demo-design-en.vercel.app
+
+━━━━━━━━━━━━━━━━━━━━
+🏗️ מבנה חדש (לפי בקשת אלכסיי)
+━━━━━━━━━━━━━━━━━━━━
+✅ ScalePublish שולב בתוך SCAN של כל דומיין - לא מוצר נפרד
+✅ נכנסים ל-ScalePublish רק מתוך סקירת דומיין ספציפי
+✅ נגמרו הכפילויות של queries בכמה מקומות
+✅ כל הזמנת מאמר מתווספת אוטומטית להצעת המחיר ללקוח (line item)
+
+━━━━━━━━━━━━━━━━━━━━
+🛒 Multi-Query Basket (חדש לגמרי)
+━━━━━━━━━━━━━━━━━━━━
+✅ ב-/scan אפשר לסמן עד 5 queries ולבנות מאמר אחד מכולם
+✅ בר תחתון צף עם counter (5 נקודות) + צ'יפים של ה-queries שנבחרו
+✅ כפתור "Build article" מעביר עם כל ה-queries ל-ScalePublish
+
+━━━━━━━━━━━━━━━━━━━━
+🪄 Order Flow (אשף 5 שלבים)
+━━━━━━━━━━━━━━━━━━━━
+✅ הפכתי את 5 השלבים לאשף עם כפתור Continue בכל שלב
+✅ סרגל התקדמות לחיץ למעלה - אפשר לחזור לכל שלב
+✅ אם פחות מ-5 queries - אזהרה ברורה + כפתור חזרה לבחור עוד
+✅ אם 0 queries - הודעה ברורה + לינק ל-Queries tab ב-/scan
+✅ Step 4: שני פילטרים - Site (Ynet/Calcalist/Mako/Lady) + Category/תחום (Tech/Finance/Lifestyle...)
+
+━━━━━━━━━━━━━━━━━━━━
+🏢 Publisher View (YNET) - אינטראקטיבי באמת
+━━━━━━━━━━━━━━━━━━━━
+✅ Counter-offer חדש: Yedioth יכולים לערוך מחיר פר section ולשלוח חזרה
+✅ אפשר להוסיף הערה ("section טכנולוגיה בביקוש - תמחור פרימיום ל-30 יום")
+✅ סוכנות רואה: מחיר מקורי מחוק + מחיר חדש בכתום + תג Counter-offer
+✅ דלתא לייב בעת עריכה (+/- עם צבע)
+
+━━━━━━━━━━━━━━━━━━━━
+🎯 Brand Context אוטומטי
+━━━━━━━━━━━━━━━━━━━━
+✅ נכנסים מ-/scan?domain=all4horses - כל ה-Agency view מציג all4horses (לא Bank Hapoalim כמו קודם)
+✅ Title, byline, גוף המאמר, metadata של ההזמנה - הכל מתעדכן לפי הדומיין שנסרק
+✅ ה-queries של ה-demo מסתתרים כשנכנסים ממותג אחר - אין אי-התאמה
+
+━━━━━━━━━━━━━━━━━━━━
+💡 GEO Annotations (חדש)
+━━━━━━━━━━━━━━━━━━━━
+✅ כל אלמנט במאמר מקבל badge ירוק "GEO" עם tooltip שמסביר למה הוא חשוב ל-AI citation
+✅ Title, byline, hero, stats, intro, pull-quote, כל H2/H3, comparison table, takeaways, conclusion - הכל מסביר את עצמו
+✅ Toggle ON/OFF למעלה - להציג preview נקי או עם הסברים
+✅ בעיקר שימושי כדי להראות ל-Yedioth איך הכל מובנה ל-GEO
+
+━━━━━━━━━━━━━━━━━━━━
+📖 קריאות ו-UI
+━━━━━━━━━━━━━━━━━━━━
+✅ פלטת טקסט כהה יותר (היה 2.7:1 contrast - עכשיו 4.5:1, עומד ב-WCAG AA)
+✅ הגדלת פונטים באזורי תוכן (basket bar, KPIs, helper text)
+✅ באנר scanSource מוגדל ויותר ברור
+✅ Order summary בסוף האשף עם total בולט
+
+━━━━━━━━━━━━━━━━━━━━
+🧹 /scan compaction
+━━━━━━━━━━━━━━━━━━━━
+✅ Persona card: 4 שורות במקום קוביות מפורטות
+✅ הסרת כפילות "Competitors" - נשאר רק הטבלה המלאה
+✅ Sentiment + Citation Quality merged לכרטיס אחד
+✅ AI engine comparison: 2 קוביות → 2 שורות קומפקטיות
+
+━━━━━━━━━━━━━━━━━━━━
+📱 Mobile
+━━━━━━━━━━━━━━━━━━━━
+✅ הכל נבדק ועובד על נייד
+✅ GEO badges הוגדלו ויותר ברורים
+✅ Tooltip של ה-GEO מתאים את עצמו לרוחב המסך (לא נחתך בקצוות)
+✅ Tap לפתוח/לסגור tooltip בנייד
+
+━━━━━━━━━━━━━━━━━━━━
+🔗 לינקים מהירים
+━━━━━━━━━━━━━━━━━━━━
+דמו מלא:
+https://geoscale-demo-design-en.vercel.app
+
+SCAN דוגמה (all4horses):
+https://geoscale-demo-design-en.vercel.app/scan?domain=all4horses.co.il
+
+ScalePublish ישיר:
+https://geoscale-demo-design-en.vercel.app/scale-publish
+
+Spec ל-Inna:
+https://geoscale-demo-design-en.vercel.app/scale-publish-roadmap
+
+━━━━━━━━━━━━━━━━━━━━
+מוכנים לפגישה של חמישי 🚀
