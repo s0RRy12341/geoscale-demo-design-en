@@ -20,6 +20,36 @@ const BRAND_AMBER = "#B45309";
 const BRAND_RED = "#DC2626";
 const BRAND_BLUE = "#0891B2";
 
+// Single source of truth for hover behaviour across the SEO Audit + scan
+// surfaces. Anywhere we want a row to feel "alive on hover" we add
+// className="geoscale-row" / "geoscale-card" / "geoscale-link" — the green
+// hover styles below take effect.
+function GeoscaleHoverStyles() {
+  return (
+    <style>{`
+      .geoscale-row { position: relative; }
+      .geoscale-row:hover { background: rgba(16, 163, 127, 0.07) !important; }
+      .geoscale-row:hover .geoscale-row-arrow { opacity: 1; transform: translateX(2px); }
+      .geoscale-row:active { background: rgba(16, 163, 127, 0.13) !important; }
+
+      .geoscale-card { position: relative; }
+      .geoscale-card:hover { border-color: #10A37F !important; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 163, 127, 0.12); }
+      .geoscale-card:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(16, 163, 127, 0.18); }
+
+      .geoscale-link { transition: color 120ms ease; }
+      .geoscale-link:hover { color: #0E7F62 !important; text-decoration: underline; text-underline-offset: 3px; }
+
+      .geoscale-pill { transition: background 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+      .geoscale-pill:hover { background: rgba(16, 163, 127, 0.1) !important; border-color: #10A37F !important; color: #10A37F !important; }
+      .geoscale-pill:active { transform: scale(0.97); }
+
+      .geoscale-cta { transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease; }
+      .geoscale-cta:hover { background: #0E7F62 !important; box-shadow: 0 4px 12px rgba(16, 163, 127, 0.35); transform: translateY(-1px); }
+      .geoscale-cta:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(16, 163, 127, 0.35); }
+    `}</style>
+  );
+}
+
 type Severity = "error" | "warning" | "notice";
 type Category = "crawlability" | "onpage" | "performance" | "links" | "structured";
 
@@ -702,12 +732,20 @@ type Props = { theme: Theme; isMobile: boolean; darkMode: boolean };
 
 type SubTab = "overview" | "issues" | "pages" | "structure";
 
+type IssuesJump = { issueId?: string; category?: Category | "all"; severity?: Severity | "all" } | null;
+
 export default function SeoAuditTab({ theme, isMobile, darkMode }: Props) {
   const [audits, setAudits] = useState<AuditRun[]>([]);
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
   const [subTab, setSubTab] = useState<SubTab>("overview");
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [inProgress, setInProgress] = useState<null | { phase: number; pagesDone: number; pagesTotal: number; log: string[] }>(null);
+  const [issuesJump, setIssuesJump] = useState<IssuesJump>(null);
+
+  const jumpToIssues = (opts?: IssuesJump) => {
+    setIssuesJump(opts || null);
+    setSubTab("issues");
+  };
 
   // Seed audits + restore from localStorage so the demo persists.
   useEffect(() => {
@@ -825,6 +863,7 @@ export default function SeoAuditTab({ theme, isMobile, darkMode }: Props) {
   if (!activeAudit) {
     return (
       <>
+        <GeoscaleHoverStyles />
         <EmptyState onRun={() => setSettingsModalOpen(true)} theme={theme} isMobile={isMobile} />
         {settingsModalOpen && <SettingsModal onClose={() => setSettingsModalOpen(false)} onSubmit={startAudit} theme={theme} isMobile={isMobile} darkMode={darkMode} />}
       </>
@@ -834,6 +873,7 @@ export default function SeoAuditTab({ theme, isMobile, darkMode }: Props) {
   // STATE C: has audit history
   return (
     <>
+      <GeoscaleHoverStyles />
       <Header
         audit={activeAudit}
         previous={previousAudit}
@@ -847,8 +887,8 @@ export default function SeoAuditTab({ theme, isMobile, darkMode }: Props) {
       <SubTabs subTab={subTab} setSubTab={setSubTab} theme={theme} isMobile={isMobile} />
 
       <div style={{ marginTop: 18 }}>
-        {subTab === "overview" && <OverviewView audit={activeAudit} previous={previousAudit} theme={theme} isMobile={isMobile} onJumpIssues={() => setSubTab("issues")} onJumpPages={() => setSubTab("pages")} />}
-        {subTab === "issues" && <IssuesView audit={activeAudit} theme={theme} isMobile={isMobile} darkMode={darkMode} onJumpPages={() => setSubTab("pages")} />}
+        {subTab === "overview" && <OverviewView audit={activeAudit} previous={previousAudit} theme={theme} isMobile={isMobile} onJumpIssues={jumpToIssues} onJumpPages={() => setSubTab("pages")} />}
+        {subTab === "issues" && <IssuesView audit={activeAudit} theme={theme} isMobile={isMobile} darkMode={darkMode} jumpTo={issuesJump} onConsumeJump={() => setIssuesJump(null)} onJumpPages={() => setSubTab("pages")} />}
         {subTab === "pages" && <PagesView theme={theme} isMobile={isMobile} darkMode={darkMode} />}
         {subTab === "structure" && <StructureView theme={theme} isMobile={isMobile} />}
       </div>
@@ -869,7 +909,7 @@ function EmptyState({ onRun, theme, isMobile }: { onRun: () => void; theme: Them
       <h2 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: theme.text, margin: "0 0 10px", letterSpacing: "-0.02em" }}>Run a full technical SEO crawl of {DEMO_DOMAIN}</h2>
       <p style={{ fontSize: 15, color: theme.textSecondary, margin: "0 auto 28px", maxWidth: 560, lineHeight: 1.55 }}>We crawl every internal page, render JavaScript, check 37 technical SEO signals across 5 categories, and return a Health Score with a fix list ranked by severity. Typically takes 2-10 minutes.</p>
 
-      <button onClick={onRun} style={{ padding: "12px 28px", fontSize: 15, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", letterSpacing: "0.01em" }}>Run audit</button>
+      <button className="geoscale-cta" onClick={onRun} style={{ padding: "12px 28px", fontSize: 15, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", letterSpacing: "0.01em" }}>Run audit</button>
 
       <div style={{ marginTop: 36, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", gap: 10 }}>
         {(Object.entries(CATEGORY_LABEL) as [Category, string][]).map(([key, label]) => {
@@ -977,7 +1017,7 @@ function SettingsModal({ onClose, onSubmit, theme, isMobile, darkMode }: { onClo
 
         <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-end", gap: 10 }}>
           <button onClick={onClose} style={{ padding: "10px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Cancel</button>
-          <button onClick={() => onSubmit(s)} style={{ padding: "10px 22px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Start audit</button>
+          <button className="geoscale-cta" onClick={() => onSubmit(s)} style={{ padding: "10px 22px", fontSize: 13, fontWeight: 700, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Start audit</button>
         </div>
       </div>
     </div>
@@ -1122,7 +1162,7 @@ function Header({ audit, previous, audits, onSelectAudit, onRunNew, theme, isMob
         </select>
         {previous && <span style={{ fontSize: 12, color: theme.textSecondary }}>compared against {new Date(previous.startedAt).toLocaleDateString()}</span>}
       </div>
-      <button onClick={onRunNew} style={{ padding: "9px 18px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Run new audit</button>
+      <button className="geoscale-cta" onClick={onRunNew} style={{ padding: "9px 18px", fontSize: 13, fontWeight: 600, background: BRAND_GREEN, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Run new audit</button>
     </div>
   );
 }
@@ -1164,7 +1204,7 @@ function scoreBand(s: number): { label: string; color: string } {
   return { label: "Weak", color: BRAND_RED };
 }
 
-function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPages }: { audit: AuditRun; previous: AuditRun | null; theme: Theme; isMobile: boolean; onJumpIssues: () => void; onJumpPages: () => void }) {
+function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPages }: { audit: AuditRun; previous: AuditRun | null; theme: Theme; isMobile: boolean; onJumpIssues: (opts?: IssuesJump) => void; onJumpPages: () => void }) {
   const band = scoreBand(audit.healthScore);
   const delta = previous ? audit.healthScore - previous.healthScore : null;
 
@@ -1200,12 +1240,12 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
           </div>
         </div>
 
-        {/* Severity bar — single card, three slim inline segments */}
-        <button onClick={onJumpIssues} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 0, cursor: "pointer", textAlign: "left", display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden" }}>
-          <SeveritySegment label="Errors" count={audit.errorsCount} delta={previous ? audit.errorsCount - previous.errorsCount : null} color={BRAND_RED} theme={theme} isMobile={isMobile} isFirst />
-          <SeveritySegment label="Warnings" count={audit.warningsCount} delta={previous ? audit.warningsCount - previous.warningsCount : null} color={BRAND_AMBER} theme={theme} isMobile={isMobile} />
-          <SeveritySegment label="Notices" count={audit.noticesCount} delta={previous ? audit.noticesCount - previous.noticesCount : null} color={BRAND_BLUE} theme={theme} isMobile={isMobile} />
-        </button>
+        {/* Severity bar — single card, three slim inline segments, each clickable */}
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 0, display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden" }}>
+          <SeveritySegment label="Errors" count={audit.errorsCount} delta={previous ? audit.errorsCount - previous.errorsCount : null} color={BRAND_RED} theme={theme} isMobile={isMobile} isFirst onClick={() => onJumpIssues({ severity: "error" })} />
+          <SeveritySegment label="Warnings" count={audit.warningsCount} delta={previous ? audit.warningsCount - previous.warningsCount : null} color={BRAND_AMBER} theme={theme} isMobile={isMobile} onClick={() => onJumpIssues({ severity: "warning" })} />
+          <SeveritySegment label="Notices" count={audit.noticesCount} delta={previous ? audit.noticesCount - previous.noticesCount : null} color={BRAND_BLUE} theme={theme} isMobile={isMobile} onClick={() => onJumpIssues({ severity: "notice" })} />
+        </div>
       </div>
 
       {/* Audit metadata strip */}
@@ -1222,17 +1262,33 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
       <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden" }}>
         <div style={{ padding: "14px 18px", borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: theme.text, margin: 0 }}>Top 10 issues</h3>
-          <button onClick={onJumpIssues} style={{ fontSize: 13, fontWeight: 500, color: BRAND_GREEN, background: "transparent", border: "none", cursor: "pointer" }}>View all →</button>
+          <button className="geoscale-link" onClick={() => onJumpIssues()} style={{ fontSize: 13, fontWeight: 500, color: BRAND_GREEN, background: "transparent", border: "none", cursor: "pointer" }}>View all →</button>
         </div>
         <div>
           {topIssues.map((issue, i) => (
-            <div key={issue.id} style={{ padding: "12px 18px", borderBottom: i < topIssues.length - 1 ? `1px solid ${theme.border}` : "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+            <button
+              key={issue.id}
+              className="geoscale-row"
+              onClick={() => onJumpIssues({ issueId: issue.id })}
+              style={{
+                width: "100%",
+                padding: "12px 18px",
+                borderBottom: i < topIssues.length - 1 ? `1px solid ${theme.border}` : "none",
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+                background: "transparent", border: "none", borderTop: "none", borderLeft: "none", borderRight: "none",
+                cursor: "pointer", textAlign: "left",
+                transition: "background 150ms ease, padding 150ms ease",
+              }}
+            >
               <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", background: `${SEVERITY_COLOR[issue.def.severity]}15`, color: SEVERITY_COLOR[issue.def.severity], borderRadius: 999, letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[issue.def.severity]}</span>
                 <span style={{ fontSize: 14, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{issue.def.name}</span>
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{issue.affected} {issue.affected === 1 ? "page" : "pages"}</span>
-            </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontVariantNumeric: "tabular-nums" }}>{issue.affected} {issue.affected === 1 ? "page" : "pages"}</span>
+                <span className="geoscale-row-arrow" style={{ fontSize: 14, color: BRAND_GREEN, opacity: 0, transition: "opacity 150ms ease, transform 150ms ease", display: "inline-block" }}>→</span>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -1246,7 +1302,7 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
           });
           const total = issuesInCat.reduce((sum, i) => sum + i.affected, 0);
           return (
-            <button key={key} onClick={onJumpIssues} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: "14px 14px", textAlign: "left", cursor: "pointer" }}>
+            <button key={key} className="geoscale-card" onClick={() => onJumpIssues({ category: key })} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: "14px 14px", textAlign: "left", cursor: "pointer", transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, lineHeight: 1.3 }}>{label}</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: theme.text, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{total.toLocaleString()}</div>
               <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 4 }}>{issuesInCat.length} {issuesInCat.length === 1 ? "issue type" : "issue types"}</div>
@@ -1276,15 +1332,18 @@ function ScoreGauge({ score, color, theme }: { score: number; color: string; the
   );
 }
 
-function SeveritySegment({ label, count, delta, color, theme, isMobile, isFirst }: { label: string; count: number; delta: number | null; color: string; theme: Theme; isMobile: boolean; isFirst?: boolean }) {
+function SeveritySegment({ label, count, delta, color, theme, isMobile, isFirst, onClick }: { label: string; count: number; delta: number | null; color: string; theme: Theme; isMobile: boolean; isFirst?: boolean; onClick?: () => void }) {
   const deltaGood = (label === "Errors" || label === "Warnings") ? (delta !== null && delta < 0) : false;
   const deltaBad = (label === "Errors" || label === "Warnings") ? (delta !== null && delta > 0) : false;
   return (
-    <div style={{
+    <button onClick={onClick} className="geoscale-row" style={{
       flex: 1, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14,
       borderLeft: !isFirst && !isMobile ? `1px solid ${theme.border}` : "none",
       borderTop: !isFirst && isMobile ? `1px solid ${theme.border}` : "none",
+      borderRight: "none", borderBottom: "none",
       minWidth: 0,
+      background: "transparent", cursor: onClick ? "pointer" : "default",
+      textAlign: "left", transition: "background 150ms ease",
     }}>
       <span style={{ width: 4, alignSelf: "stretch", background: color, borderRadius: 2, flexShrink: 0 }} />
       <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, flex: 1 }}>
@@ -1298,7 +1357,7 @@ function SeveritySegment({ label, count, delta, color, theme, isMobile, isFirst 
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -1317,11 +1376,36 @@ function MetaPiece({ label, value, theme, clickable, onClick }: { label: string;
 // ISSUES SUB-TAB
 // ════════════════════════════════════════════════════════════
 
-function IssuesView({ audit, theme, isMobile, darkMode, onJumpPages }: { audit: AuditRun; theme: Theme; isMobile: boolean; darkMode: boolean; onJumpPages: () => void }) {
+function IssuesView({ audit, theme, isMobile, darkMode, onJumpPages, jumpTo, onConsumeJump }: { audit: AuditRun; theme: Theme; isMobile: boolean; darkMode: boolean; onJumpPages: () => void; jumpTo: IssuesJump; onConsumeJump: () => void }) {
   const [catFilter, setCatFilter] = useState<Category | "all">("all");
   const [sevFilter, setSevFilter] = useState<Severity | "all">("all");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  // When the user clicks a specific issue / category / severity on the Overview,
+  // jumpTo arrives populated. Apply it once, then clear it.
+  useEffect(() => {
+    if (!jumpTo) return;
+    if (jumpTo.issueId) {
+      const def = ISSUE_DEFS.find((d) => d.id === jumpTo.issueId);
+      // Clear filters that would hide the target, then expand it.
+      setSevFilter("all");
+      setCatFilter("all");
+      setSearch("");
+      setExpanded(jumpTo.issueId);
+      // After paint, scroll the expanded row into view.
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`issue-row-${jumpTo.issueId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      void def;
+    } else {
+      if (jumpTo.category) setCatFilter(jumpTo.category);
+      if (jumpTo.severity) setSevFilter(jumpTo.severity);
+      setExpanded(null);
+    }
+    onConsumeJump();
+  }, [jumpTo, onConsumeJump]);
 
   const rows = audit.issues
     .map((i) => ({ ...i, def: ISSUE_DEFS.find((d) => d.id === i.id)! }))
@@ -1340,7 +1424,7 @@ function IssuesView({ audit, theme, isMobile, darkMode, onJumpPages }: { audit: 
   return (
     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "232px 1fr", gap: 14 }}>
       {/* Sticky filter rail */}
-      <div style={{ position: isMobile ? "static" : "sticky", top: 12, alignSelf: "flex-start", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 14, maxHeight: isMobile ? "auto" : "calc(100vh - 40px)", overflowY: "auto" }}>
+      <div style={{ position: isMobile ? "static" : "sticky", top: 84, alignSelf: "flex-start", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 14, maxHeight: isMobile ? "auto" : "calc(100vh - 100px)", overflowY: "auto" }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Search</div>
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter issues..." style={{ ...inputStyle(theme), fontFamily: "inherit", marginBottom: 14 }} />
 
@@ -1386,8 +1470,8 @@ function IssuesView({ audit, theme, isMobile, darkMode, onJumpPages }: { audit: 
               const isOpen = expanded === row.id;
               const locations = MOCK_ISSUE_LOCATIONS[row.id] || [];
               return (
-                <div key={row.id} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${theme.border}` : "none", background: isOpen ? theme.bg : "transparent", transition: "background 150ms" }}>
-                  <button onClick={() => setExpanded(isOpen ? null : row.id)} style={{ width: "100%", padding: isMobile ? "12px 14px" : "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+                <div id={`issue-row-${row.id}`} key={row.id} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${theme.border}` : "none", background: isOpen ? theme.bg : "transparent", transition: "background 150ms", scrollMarginTop: 84 }}>
+                  <button className="geoscale-row" onClick={() => setExpanded(isOpen ? null : row.id)} style={{ width: "100%", padding: isMobile ? "12px 14px" : "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", transition: "background 150ms ease" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
                       <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", background: SEVERITY_COLOR[row.def.severity], color: "#fff", borderRadius: 4, letterSpacing: 0.6, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[row.def.severity]}</span>
                       <div style={{ minWidth: 0, flex: 1 }}>
@@ -1658,12 +1742,13 @@ function FilterGroup({ label, children, theme }: { label: string; children: Reac
 function FilterPill({ label, active, onClick, color, theme }: { label: string; active: boolean; onClick: () => void; color?: string; theme: Theme }) {
   const c = color || BRAND_GREEN;
   return (
-    <button onClick={onClick} style={{
+    <button className={active ? "" : "geoscale-pill"} onClick={onClick} style={{
       padding: "7px 10px", fontSize: 13, fontWeight: active ? 600 : 500, textAlign: "left",
       background: active ? `${c}15` : "transparent",
       color: active ? c : theme.text,
       border: `1px solid ${active ? c : "transparent"}`,
       borderRadius: 7, cursor: "pointer",
+      transition: "background 120ms ease, color 120ms ease, border-color 120ms ease",
     }}>{label}</button>
   );
 }
@@ -1748,7 +1833,7 @@ function PagesView({ theme, isMobile, darkMode }: { theme: Theme; isMobile: bool
               {filtered.map((p, i) => {
                 const statusColor = p.statusCode >= 500 ? BRAND_RED : p.statusCode >= 400 ? BRAND_RED : p.statusCode >= 300 ? BRAND_AMBER : BRAND_GREEN;
                 return (
-                  <tr key={p.url} onClick={() => setDrawer(p)} style={{ cursor: "pointer", background: i % 2 === 0 ? theme.cardBg : theme.bg, borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : "none" }}>
+                  <tr key={p.url} className="geoscale-row" onClick={() => setDrawer(p)} style={{ cursor: "pointer", background: i % 2 === 0 ? theme.cardBg : theme.bg, borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : "none", transition: "background 120ms ease" }}>
                     <td style={{ padding: "10px 12px", color: theme.text, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "monospace", fontSize: 12 }}>{p.url}</td>
                     <td style={{ padding: "10px 12px", textAlign: "right" }}><span style={{ color: statusColor, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{p.statusCode}</span></td>
                     <td style={{ padding: "10px 12px", color: theme.text, maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title || <span style={{ color: theme.textMuted, fontStyle: "italic" }}>missing</span>}</td>

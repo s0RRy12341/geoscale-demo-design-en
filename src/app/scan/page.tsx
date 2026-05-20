@@ -1122,6 +1122,27 @@ export default function ScanPage() {
   return (
     <div style={{ minHeight: "100vh", background: theme.bg, fontFamily: "'Inter', 'Heebo', sans-serif", display: "flex", flexDirection: "column" }} dir="ltr">
 
+      {/* -- Global hover styles (brand green) -- */}
+      <style>{`
+        .geoscale-row { position: relative; transition: background 150ms ease; }
+        .geoscale-row:hover { background: rgba(16, 163, 127, 0.07) !important; }
+        .geoscale-row:hover .geoscale-row-arrow { opacity: 1; transform: translateX(2px); }
+        .geoscale-row:active { background: rgba(16, 163, 127, 0.13) !important; }
+        .geoscale-card { transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease; }
+        .geoscale-card:hover { border-color: #10A37F !important; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 163, 127, 0.12); }
+        .geoscale-card:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(16, 163, 127, 0.18); }
+        .geoscale-link { transition: color 120ms ease; }
+        .geoscale-link:hover { color: #0E7F62 !important; text-decoration: underline; text-underline-offset: 3px; }
+        .geoscale-pill { transition: background 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+        .geoscale-pill:hover { background: rgba(16, 163, 127, 0.1) !important; border-color: #10A37F !important; color: #10A37F !important; }
+        .geoscale-pill:active { transform: scale(0.97); }
+        .geoscale-cta { transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease, filter 120ms ease; }
+        .geoscale-cta:hover { filter: brightness(0.94); box-shadow: 0 4px 12px rgba(16, 163, 127, 0.35); transform: translateY(-1px); }
+        .geoscale-cta:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(16, 163, 127, 0.35); }
+        .geoscale-tab-strip::-webkit-scrollbar { display: none; height: 0; width: 0; }
+        .geoscale-tab-strip [role="tab"]:hover, .geoscale-tab-strip > button:hover { color: #10A37F !important; }
+      `}</style>
+
       {/* -- Sticky Header -- */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: theme.headerBg, borderBottom: `1px solid ${theme.border}` }}>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: 56, display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr", alignItems: "center", justifyContent: isMobile ? "space-between" : undefined }}>
@@ -1238,7 +1259,6 @@ export default function ScanPage() {
 
       {/* -- Tab Bar -- */}
       <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
-        <style>{`.geoscale-tab-strip::-webkit-scrollbar{display:none;height:0;width:0;}`}</style>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 8px" : "0 24px" }}>
           <div className="geoscale-tab-strip" style={{ display: "flex", gap: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" as any, scrollbarWidth: "none" as any, msOverflowStyle: "none" as any, maxWidth: "100%" }}>
             {([
