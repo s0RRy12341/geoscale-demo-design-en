@@ -1223,25 +1223,24 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* Score + Severity row — compact */}
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(220px, 260px) 1fr", gap: 12, alignItems: "stretch" }}>
-
-        {/* Score card */}
-        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: "16px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Health Score</div>
+      {/* Score gauge + Severity strip — single horizontal row, slim */}
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 0, display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden", alignItems: "stretch" }}>
+        {/* Score block — inline with severity, tight */}
+        <div style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 14, borderRight: !isMobile ? `1px solid ${theme.border}` : "none", borderBottom: isMobile ? `1px solid ${theme.border}` : "none", minWidth: isMobile ? "auto" : 240 }}>
           <ScoreGauge score={audit.healthScore} color={band.color} theme={theme} />
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: band.color }}>{band.label}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase" }}>Health Score</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: band.color }}>{band.label}</div>
             {delta !== null && delta !== 0 && (
-              <span style={{ fontSize: 11, color: delta >= 0 ? BRAND_GREEN : BRAND_RED, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
-                {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}
-              </span>
+              <div style={{ fontSize: 11, color: delta >= 0 ? BRAND_GREEN : BRAND_RED, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)} vs prev
+              </div>
             )}
           </div>
         </div>
 
-        {/* Severity bar — single card, three slim inline segments, each clickable */}
-        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 0, display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden" }}>
+        {/* Severity row — three slim inline segments, each clickable */}
+        <div style={{ flex: 1, display: "flex", flexDirection: isMobile ? "column" : "row" }}>
           <SeveritySegment label="Errors" count={audit.errorsCount} delta={previous ? audit.errorsCount - previous.errorsCount : null} color={BRAND_RED} theme={theme} isMobile={isMobile} isFirst onClick={() => onJumpIssues({ severity: "error" })} />
           <SeveritySegment label="Warnings" count={audit.warningsCount} delta={previous ? audit.warningsCount - previous.warningsCount : null} color={BRAND_AMBER} theme={theme} isMobile={isMobile} onClick={() => onJumpIssues({ severity: "warning" })} />
           <SeveritySegment label="Notices" count={audit.noticesCount} delta={previous ? audit.noticesCount - previous.noticesCount : null} color={BRAND_BLUE} theme={theme} isMobile={isMobile} onClick={() => onJumpIssues({ severity: "notice" })} />
@@ -1315,18 +1314,19 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
 }
 
 function ScoreGauge({ score, color, theme }: { score: number; color: string; theme: Theme }) {
-  const r = 46;
+  const r = 34;
   const c = 2 * Math.PI * r;
   const offset = c - (score / 100) * c;
+  const size = 86;
   return (
-    <div style={{ position: "relative", width: 116, height: 116, margin: "0 auto" }}>
-      <svg width={116} height={116} viewBox="0 0 116 116">
-        <circle cx="58" cy="58" r={r} fill="none" stroke={theme.barTrack} strokeWidth="9" />
-        <circle cx="58" cy="58" r={r} fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 58 58)" style={{ transition: "stroke-dashoffset 600ms ease" }} />
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={theme.barTrack} strokeWidth="7" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: "stroke-dashoffset 600ms ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-        <span style={{ fontSize: 30, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 10, color: theme.textMuted, marginTop: 2 }}>/ 100</span>
+        <span style={{ fontSize: 22, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{score}</span>
+        <span style={{ fontSize: 9, color: theme.textMuted, marginTop: 1 }}>/ 100</span>
       </div>
     </div>
   );
@@ -1337,7 +1337,7 @@ function SeveritySegment({ label, count, delta, color, theme, isMobile, isFirst,
   const deltaBad = (label === "Errors" || label === "Warnings") ? (delta !== null && delta > 0) : false;
   return (
     <button onClick={onClick} className="geoscale-row" style={{
-      flex: 1, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14,
+      flex: 1, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12,
       borderLeft: !isFirst && !isMobile ? `1px solid ${theme.border}` : "none",
       borderTop: !isFirst && isMobile ? `1px solid ${theme.border}` : "none",
       borderRight: "none", borderBottom: "none",

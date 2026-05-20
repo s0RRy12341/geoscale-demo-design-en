@@ -1148,7 +1148,7 @@ export default function ScanPage() {
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 12px" : "0 24px", height: 56, display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? undefined : "1fr auto 1fr", alignItems: "center", justifyContent: isMobile ? "space-between" : undefined }}>
           {isMobile ? (
             <>
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
+              <button className="geoscale-pill" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.text} strokeWidth="2">
                   {mobileMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></>}
                 </svg>
@@ -1157,7 +1157,7 @@ export default function ScanPage() {
                 <circle cx="51" cy="51" r="41" stroke={theme.logoStroke} strokeWidth="10" fill="none" />
                 <circle cx="51" cy="51" r="41" stroke={theme.logoFill} strokeWidth="10" fill="none" strokeLinecap="round" strokeDasharray="180 78" />
               </svg>
-              <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+              <button className="geoscale-pill" onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
                   {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
                 </svg>
@@ -1185,7 +1185,7 @@ export default function ScanPage() {
 
               {/* RIGHT = Actions */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, justifySelf: "end" }}>
-                <button onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                <button className="geoscale-pill" onClick={() => setDarkMode(!darkMode)} style={{ background: "none", border: `1px solid ${theme.border}`, borderRadius: 6, padding: "4px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2">
                     {darkMode ? <><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></> : <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>}
                   </svg>
@@ -1771,7 +1771,7 @@ export default function ScanPage() {
                           const full = scalePublishBasket.length >= MAX_BASKET && !queued;
                           if (queued) {
                             return (
-                              <button onClick={() => removeFromBasket(basketId)} style={{ fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                              <button className="geoscale-pill" onClick={() => removeFromBasket(basketId)} style={{ fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }}>
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                                 Queued
                               </button>
@@ -1781,7 +1781,7 @@ export default function ScanPage() {
                             return <span style={{ fontSize: 13, color: theme.textMuted, whiteSpace: "nowrap" }}>Basket full</span>;
                           }
                           return (
-                            <button onClick={() => addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage })} style={{ fontSize: 13, fontWeight: 500, color: "#B45309", background: "transparent", border: `1px solid #B4530940`, borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }} title="Add this query to the ScalePublish basket — bundle up to 5 into one article">
+                            <button className="geoscale-pill" onClick={() => addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage })} style={{ fontSize: 13, fontWeight: 500, color: "#B45309", background: "transparent", border: `1px solid #B4530940`, borderRadius: 7, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 5 }} title="Add this query to the ScalePublish basket — bundle up to 5 into one article">
                               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
                               Queue
                             </button>
@@ -1923,7 +1923,7 @@ export default function ScanPage() {
                 </div>
                 <div style={{ flex: 1 }} />
                 {/* Add custom query — per Inna call 2026-05-05: agency can add a query AI may have missed */}
-                <button onClick={() => setShowAddQueryModal(true)} style={{ padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "#10A37F", background: "transparent", border: `1px solid #10A37F`, borderRadius: 9, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                <button className="geoscale-pill" onClick={() => setShowAddQueryModal(true)} style={{ padding: "6px 14px", fontSize: 14, fontWeight: 600, color: "#10A37F", background: "transparent", border: `1px solid #10A37F`, borderRadius: 9, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10A37F" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
                   Add custom query
                 </button>
@@ -1932,7 +1932,7 @@ export default function ScanPage() {
             {customQueries.length > 0 && (
               <div style={{ marginBottom: 14, padding: "10px 14px", background: "#10A37F08", border: "1px dashed #10A37F40", borderRadius: 9, fontSize: 13, color: theme.textSecondary, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                 <span><strong style={{ color: "#10A37F" }}>{customQueries.length}</strong> custom {customQueries.length === 1 ? "query" : "queries"} added by you · they appear in the table below alongside the AI-discovered ones</span>
-                <button onClick={() => { setCustomQueries([]); }} style={{ padding: "5px 11px", fontSize: 12, fontWeight: 600, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 6, cursor: "pointer" }}>Clear all custom</button>
+                <button className="geoscale-pill" onClick={() => { setCustomQueries([]); }} style={{ padding: "5px 11px", fontSize: 12, fontWeight: 600, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 6, cursor: "pointer" }}>Clear all custom</button>
               </div>
             )}
             {showAddQueryModal && (
@@ -2061,7 +2061,7 @@ export default function ScanPage() {
                                     const full = scalePublishBasket.length >= MAX_BASKET && !queued;
                                     if (queued) {
                                       return (
-                                        <button onClick={(e) => { e.stopPropagation(); removeFromBasket(basketId); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                        <button className="geoscale-pill" onClick={(e) => { e.stopPropagation(); removeFromBasket(basketId); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#B45309", background: "#B4530912", border: "1px solid #B4530940", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
                                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                                           Queued · Remove
                                         </button>
@@ -2075,7 +2075,7 @@ export default function ScanPage() {
                                       );
                                     }
                                     return (
-                                      <button onClick={(e) => { e.stopPropagation(); addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage }); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#B45309", border: "1px solid #B45309", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                      <button className="geoscale-cta" onClick={(e) => { e.stopPropagation(); addToBasket({ id: basketId, text: q.text, persona: q.persona, stage: q.stage }); }} style={{ padding: "6px 14px", fontSize: 13, fontWeight: 600, color: "#fff", background: "#B45309", border: "1px solid #B45309", borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
                                         Queue for ScalePublish
                                       </button>
@@ -2196,7 +2196,7 @@ export default function ScanPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15, color: theme.textSecondary }}>Persona count:</span>
                   <div style={{ display: "flex", gap: 0, border: `1px solid ${theme.border}`, borderRadius: 8, overflow: "hidden" }}>
-                    {[1, 2, 3, 4, 5].map(n => (<button key={n} style={{ width: 32, height: 30, fontSize: 15, fontWeight: n === PERSONAS.length ? 600 : 500, ...(n === PERSONAS.length ? { background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff" } : { background: theme.cardBg, color: theme.text }), border: "none", cursor: "pointer" }}>{n}</button>))}
+                    {[1, 2, 3, 4, 5].map(n => (<button key={n} className="geoscale-pill" style={{ width: 32, height: 30, fontSize: 15, fontWeight: n === PERSONAS.length ? 600 : 500, ...(n === PERSONAS.length ? { background: darkMode ? "#E6EDF3" : "#000", color: darkMode ? "#0D1117" : "#fff" } : { background: theme.cardBg, color: theme.text }), border: "none", cursor: "pointer" }}>{n}</button>))}
                   </div>
                 </div>
                 <HoverButton filled onClick={() => setShowPersonaForm(!showPersonaForm)} theme={theme} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", ...btnFilled, fontSize: 15, fontWeight: 600, borderRadius: 9, cursor: "pointer" }}>
@@ -2475,7 +2475,7 @@ export default function ScanPage() {
           {!isMobile && (
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {["Feedback", "Report a bug", "Improvement ideas", "API usage"].map((label, i) => (
-                <span key={i} style={{ fontSize: 15, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: theme.textSecondary, background: theme.badgeBg, border: `1px solid ${theme.border}`, cursor: "pointer", transition: "all 150ms" }}>{label}</span>
+                <span key={i} className="geoscale-pill" style={{ fontSize: 15, fontWeight: 500, padding: "4px 12px", borderRadius: 20, color: theme.textSecondary, background: theme.badgeBg, border: `1px solid ${theme.border}`, cursor: "pointer", transition: "all 150ms" }}>{label}</span>
               ))}
             </div>
           )}
@@ -2506,7 +2506,7 @@ export default function ScanPage() {
                 {scalePublishBasket.map((item) => (
                   <span key={item.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: theme.hoverBg, border: `1px solid ${theme.border}`, borderRadius: 14, fontSize: 13, fontWeight: 500, color: theme.text, maxWidth: 280 }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>
-                    <button onClick={() => removeFromBasket(item.id)} aria-label={`Remove ${item.text}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", color: theme.textMuted, padding: 0, flexShrink: 0 }}>
+                    <button className="geoscale-pill" onClick={() => removeFromBasket(item.id)} aria-label={`Remove ${item.text}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "transparent", border: "none", cursor: "pointer", color: theme.textMuted, padding: 0, flexShrink: 0 }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
                   </span>
@@ -2516,7 +2516,7 @@ export default function ScanPage() {
 
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0, marginLeft: isMobile ? 0 : "auto" }}>
-              <button onClick={clearBasket} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 500, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Clear</button>
+              <button className="geoscale-pill" onClick={clearBasket} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 500, color: theme.textSecondary, background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 8, cursor: "pointer" }}>Clear</button>
               <a href={buildScalePublishUrl()} style={{ padding: "10px 18px", fontSize: 14, fontWeight: 600, color: "#fff", background: "#10A37F", border: "1px solid #10A37F", borderRadius: 8, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
                 Build article <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
               </a>
@@ -2558,7 +2558,7 @@ function AddCustomQueryModal({ theme, isMobile, onClose, onAdd }: { theme: any; 
             <div style={{ fontSize: 11, fontWeight: 800, color: "#10A37F", letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>Add custom query</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.3 }}>Track a query AI may have missed</div>
           </div>
-          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", padding: 6, fontSize: 18 }}>×</button>
+          <button className="geoscale-pill" onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", padding: 6, fontSize: 18 }}>×</button>
         </div>
 
         <div style={{ padding: isMobile ? "16px 18px" : "22px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -2594,7 +2594,7 @@ function AddCustomQueryModal({ theme, isMobile, onClose, onAdd }: { theme: any; 
           </div>
 
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap", paddingTop: 4 }}>
-            <button onClick={onClose} style={{ padding: "11px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 9, cursor: "pointer" }}>Cancel</button>
+            <button className="geoscale-pill" onClick={onClose} style={{ padding: "11px 18px", fontSize: 14, fontWeight: 600, background: "transparent", color: theme.textSecondary, border: `1px solid ${theme.border}`, borderRadius: 9, cursor: "pointer" }}>Cancel</button>
             <button onClick={submit} disabled={!canAdd} style={{ padding: "11px 22px", fontSize: 14, fontWeight: 700, background: canAdd ? "#10A37F" : theme.barTrack, color: canAdd ? "#fff" : theme.textMuted, border: "none", borderRadius: 9, cursor: canAdd ? "pointer" : "not-allowed" }}>
               Add query to scan
             </button>
