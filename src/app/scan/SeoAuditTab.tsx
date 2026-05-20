@@ -288,6 +288,383 @@ const MOCK_PAGES: AuditPage[] = [
   { url: "/blog/choosing-saddle", statusCode: 200, title: "איך לבחור אוכף, מדריך מלא", titleLength: 26, metaDescLength: 0, h1: "איך לבחור אוכף", wordCount: 723, depth: 2, inlinks: 13, outlinks: 21, indexable: true, issues: ["missing-meta-desc"] },
 ];
 
+// ── PER-ISSUE LOCATION DATA ────────────────────────────────
+// For every issue id we list the URLs that triggered it, plus the *evidence*:
+// the actual HTML/text snippet, where on the page it lives, and why it fails
+// the check. This is the killer drilldown UX Ahrefs has — "show me the line
+// that's wrong, not just the count."
+type IssueLocation = {
+  url: string;
+  snippet: string;          // monospace code/text to render in a code block
+  snippetLang?: "html" | "text" | "json" | "css" | "http";
+  location: string;         // human-readable location (e.g. "<head>, line 14")
+  detail: string;           // why this row fails (e.g. "14 chars, target 30-60")
+  measurement?: string;     // optional metric (e.g. "LCP 4.2s · target ≤ 2.5s")
+};
+
+const MOCK_ISSUE_LOCATIONS: Record<string, IssueLocation[]> = {
+  "broken-4xx": [
+    { url: "/returns", location: "HTTP response", detail: "Page returns 404 Not Found. 8 internal links still point here.", measurement: "HTTP 404 · 412 ms · 0 bytes", snippetLang: "http", snippet: `GET https://all4horses.co.il/returns
+HTTP/1.1 404 Not Found
+Content-Type: text/html; charset=utf-8
+X-Powered-By: Next.js
+
+<!DOCTYPE html>
+<html><head><title>404, Page Not Found</title>...` },
+    { url: "/blog/old-feeding-guide", location: "HTTP response", detail: "404 Not Found. Last seen working 2026-02-14.", measurement: "HTTP 404 · 380 ms", snippetLang: "http", snippet: `GET https://all4horses.co.il/blog/old-feeding-guide
+HTTP/1.1 404 Not Found
+Content-Length: 1,847` },
+    { url: "/promo/winter-2025", location: "HTTP response", detail: "Expired campaign URL still linked from 3 blog posts.", measurement: "HTTP 404 · 421 ms", snippetLang: "http", snippet: `GET https://all4horses.co.il/promo/winter-2025
+HTTP/1.1 404 Not Found` },
+  ],
+  "server-5xx": [
+    { url: "/sitemap-archive", location: "HTTP response", detail: "Database timeout while building archive sitemap.", measurement: "HTTP 500 · 28,400 ms (timeout)", snippetLang: "http", snippet: `GET https://all4horses.co.il/sitemap-archive
+HTTP/1.1 500 Internal Server Error
+X-Error: Database query timeout (28.4s)
+Content-Length: 0` },
+  ],
+  "redirect-chain": [
+    { url: "/old-saddles", location: "HTTP redirect chain", detail: "3 hops before reaching a 200 page. Each hop costs crawl budget.", measurement: "3 redirects · 1,240 ms total", snippetLang: "http", snippet: `GET /old-saddles
+  → 301 → /saddles-old
+GET /saddles-old
+  → 301 → /products/saddles
+GET /products/saddles
+  → 301 → /category/saddles
+GET /category/saddles
+  → 200 OK ✓` },
+    { url: "/products/horse-feed", location: "HTTP redirect chain", detail: "Trailing-slash mismatch then category rewrite. Update internal links to land on /category/feed.", measurement: "2 redirects · 890 ms total", snippetLang: "http", snippet: `GET /products/horse-feed
+  → 301 → /products/horse-feed/
+  → 301 → /category/feed
+  → 200 OK ✓` },
+  ],
+  "noindex-meta": [
+    { url: "/cart", location: "<head>, line 23", detail: "Page tagged noindex but still appears in sitemap.xml — pick one.", snippetLang: "html", snippet: `<head>
+  <title>סל קניות, All4Horses</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="robots" content="noindex, nofollow">   <!-- ← here -->
+  <link rel="canonical" href="https://all4horses.co.il/cart">
+</head>` },
+    { url: "/checkout", location: "<head>, line 21", detail: "Intentional noindex on checkout — but it's still in sitemap.xml.", snippetLang: "html", snippet: `<meta name="robots" content="noindex, follow">` },
+    { url: "/account/orders", location: "<head>, line 19", detail: "Member-only page indexed via noindex but no auth wall — recommend Basic Auth or removal from sitemap.", snippetLang: "html", snippet: `<meta name="robots" content="noindex">` },
+  ],
+  "robots-blocked": [
+    { url: "/admin", location: "robots.txt rule", detail: "Disallowed by robots.txt yet present in sitemap.xml — Google logs a coverage warning.", snippetLang: "text", snippet: `# robots.txt
+User-agent: *
+Disallow: /admin
+Disallow: /api
+Sitemap: https://all4horses.co.il/sitemap.xml
+
+# sitemap.xml (extract)
+<url><loc>https://all4horses.co.il/admin</loc></url>   ← conflict` },
+  ],
+  "canonical-bad-target": [
+    { url: "/blog/saddle-types", location: "<head>, line 12", detail: "Canonical points at a URL that 404s. Search engines will ignore the tag.", snippetLang: "html", snippet: `<link rel="canonical"
+  href="https://all4horses.co.il/blog/saddle-types-old"> <!-- target = 404 -->` },
+    { url: "/product/saddle-pro-2024", location: "<head>, line 14", detail: "Canonical resolves through a 301 chain (2 hops). Point directly at the final URL.", snippetLang: "html", snippet: `<link rel="canonical"
+  href="https://all4horses.co.il/product/saddle-pro"> <!-- 301 → /products/saddle-pro -->` },
+  ],
+  "missing-canonical": [
+    { url: "/category/feed?sort=price", location: "<head>", detail: "Faceted URL with no canonical pointing back at /category/feed.", snippetLang: "html", snippet: `<head>
+  <title>מזון לסוסים, מיון לפי מחיר</title>
+  <!-- ⚠ no <link rel="canonical"> here -->
+</head>` },
+  ],
+  "page-depth": [
+    { url: "/blog/category/care/sub/winter/blanket-fit", location: "Click path", detail: "5 clicks from homepage. Important blog post buried — surface from /blog hub.", snippetLang: "text", snippet: `/  →  /blog  →  /blog/category/care  →  /blog/category/care/sub  →  /blog/category/care/sub/winter  →  /blog/category/care/sub/winter/blanket-fit` },
+  ],
+  "missing-title": [
+    { url: "/returns", location: "<head>", detail: "No <title> tag at all.", snippetLang: "html", snippet: `<head>
+  <meta charset="utf-8">
+  <!-- ⚠ no <title> tag -->
+  <meta name="description" content="...">
+</head>` },
+    { url: "/sitemap-archive", location: "<head>", detail: "<title> tag present but empty.", snippetLang: "html", snippet: `<head>
+  <title></title>   <!-- ← empty -->
+</head>` },
+  ],
+  "duplicate-title": [
+    { url: "/category/saddles", location: "<head>, line 7", detail: "Identical title used on 3 other URLs (/category/saddles?page=2, /category/saddles?sort=new, /shop/saddles).", snippetLang: "html", snippet: `<title>אוכפים לרכיבה</title>   <!-- duplicated on 3 URLs -->` },
+    { url: "/category/saddles?page=2", location: "<head>, line 7", detail: "Same title as /category/saddles. Add 'עמוד 2' suffix or apply rel=canonical.", snippetLang: "html", snippet: `<title>אוכפים לרכיבה</title>` },
+  ],
+  "title-too-long": [
+    { url: "/blog/everything-you-need-to-know-about-saddle-fit-for-arabian-horses", location: "<head>, line 8", detail: "78 chars — Google will truncate at ~580px (≈60 chars).", measurement: "78 chars · target 30-60", snippetLang: "html", snippet: `<title>כל מה שצריך לדעת על התאמת אוכף לסוסים ערביים, המדריך המלא של All4Horses</title>
+<!--           target ≤ 60 chars ──────────────────────────────────┘ -->
+<!--           actual 78 chars ────────────────────────────────────────────────┘ -->` },
+    { url: "/category/winter-blankets-and-coverings", location: "<head>, line 9", detail: "67 chars — slightly over, last 7 chars will be cut.", measurement: "67 chars · target 30-60", snippetLang: "html", snippet: `<title>שמיכות חורף וכיסויים לסוס - All4Horses חנות ציוד מקצועית</title>` },
+  ],
+  "title-too-short": [
+    { url: "/category/saddles", location: "<head>, line 7", detail: "Only 14 chars. Missing a brand suffix and a value modifier.", measurement: "14 chars · target 30-60", snippetLang: "html", snippet: `<title>אוכפים לרכיבה</title>
+<!--    target ≥ 30 chars ──────────────┘ -->
+<!--    actual 14 chars ───┘ -->` },
+    { url: "/product/saddle-basic", location: "<head>, line 9", detail: "10 chars. Add product family and brand.", measurement: "10 chars · target 30-60", snippetLang: "html", snippet: `<title>אוכף Basic</title>` },
+    { url: "/shipping", location: "<head>, line 6", detail: "16 chars. Add 'All4Horses' suffix and 'משלוח חינם' modifier.", measurement: "16 chars · target 30-60", snippetLang: "html", snippet: `<title>מדיניות משלוחים</title>` },
+  ],
+  "missing-meta-desc": [
+    { url: "/category/saddles", location: "<head>", detail: "No meta description, Google will auto-extract from body text.", snippetLang: "html", snippet: `<head>
+  <title>אוכפים לרכיבה</title>
+  <!-- ⚠ no <meta name="description"> -->
+  <link rel="canonical" href="...">
+</head>` },
+    { url: "/product/saddle-pro", location: "<head>", detail: "No meta description on a product page — losing click-through control.", snippetLang: "html", snippet: `<head>
+  <title>אוכף Pro לרכיבה ספורטיבית</title>
+  <!-- ⚠ no description -->
+</head>` },
+    { url: "/about", location: "<head>", detail: "Brand page with no description.", snippetLang: "html", snippet: `<!-- no <meta name="description"> -->` },
+  ],
+  "duplicate-meta-desc": [
+    { url: "/category/saddles", location: "<head>, line 9", detail: "Same description on /category/saddles, /category/saddles?page=2 and /shop/saddles.", snippetLang: "html", snippet: `<meta name="description"
+  content="חנות All4Horses, ציוד מקצועי לסוסים. משלוח חינם.">
+<!-- exact same on 3 URLs -->` },
+  ],
+  "meta-desc-too-long": [
+    { url: "/blog/winter-care", location: "<head>, line 12", detail: "167 chars — Google truncates ~160. Last 7 chars get cut.", measurement: "167 chars · target 120-160", snippetLang: "html", snippet: `<meta name="description"
+  content="טיפוח הסוס בחורף, מה חשוב לדעת על מזג אוויר קר, איזה ציוד צריך, איך לשמור על מערכת החיסון של הסוס ומה אסור לשכוח. המדריך המלא מצוות All4Horses לרוכבים מנוסים.">
+<!-- 167 chars · target ≤ 160 -->` },
+    { url: "/category/boots", location: "<head>, line 13", detail: "162 chars. Trim 'יבואן רשמי, אחריות לכל החיים' to keep CTA visible.", measurement: "162 chars · target 120-160", snippetLang: "html", snippet: `<meta name="description" content="..." />   <!-- 162 chars -->` },
+  ],
+  "missing-h1": [
+    { url: "/returns", location: "<body>", detail: "Page renders a custom 404 but has no <h1>.", snippetLang: "html", snippet: `<body>
+  <main>
+    <p>הדף שחיפשת לא נמצא.</p>   <!-- ⚠ no <h1> above -->
+    <a href="/">חזרה לדף הבית</a>
+  </main>
+</body>` },
+    { url: "/sitemap-archive", location: "<body>", detail: "500 error page with no semantic heading.", snippetLang: "html", snippet: `<body>
+  <div class="error-page">
+    <p>שגיאת שרת זמנית.</p>
+  </div>
+</body>` },
+  ],
+  "multiple-h1": [
+    { url: "/blog/grooming-routine", location: "<body>", detail: "Hero + article both rendered as <h1>. Demote the hero to a styled <div> or to <h2>.", snippetLang: "html", snippet: `<body>
+  <header class="site-hero">
+    <h1>All4Horses, ציוד וטיפוח לסוסים</h1>   <!-- ← hero #1 -->
+  </header>
+  <article>
+    <h1>שגרת טיפוח יומית לסוס שלכם</h1>   <!-- ← article #2 -->
+  </article>
+</body>` },
+  ],
+  "thin-content": [
+    { url: "/shipping", location: "<body>", detail: "Only 198 words — Google considers this thin for an informational page. Recommended ≥ 400 for category/info, ≥ 1000 for guides.", measurement: "198 words · target ≥ 400", snippetLang: "text", snippet: `[Body text excerpt]
+"משלוח חינם מעל 300₪. משלוח רגיל 35₪, עד 3 ימי עסקים. משלוח אקספרס 49₪, 24 שעות.
+אפשרות איסוף עצמי מהמחסן שלנו בנתניה. החזרות תוך 14 יום, כל פריט במצב חדש."
+
+(... continues for 198 words total)` },
+    { url: "/product/saddle-basic", location: "<body>, product description", detail: "Product description is only 156 words. Add specs, use cases, sizing chart.", measurement: "156 words · target ≥ 300", snippetLang: "text", snippet: `[Product description]
+"אוכף Basic לרוכבים מתחילים. עור איכותי, מותאם לסוסים בגדלים 15-17.
+משקל 6 ק״ג. אחריות שנה."
+
+(... only 156 words on the whole page)` },
+    { url: "/contact", location: "<body>", detail: "142 words on contact page. Expected for utility pages — consider noindex if you don't want it ranked.", measurement: "142 words · noindex recommended", snippetLang: "text", snippet: `"צרו קשר עם All4Horses. טלפון: 09-1234567. דוא״ל: info@all4horses.co.il.
+שעות פעילות: א-ה 9:00-19:00, ו 9:00-13:00."` },
+  ],
+  "duplicate-content": [
+    { url: "/category/saddles", location: "<body>", detail: "94% similarity to /shop/saddles — same product grid, same intro paragraph.", measurement: "94% body similarity", snippetLang: "text", snippet: `Page A: /category/saddles
+Page B: /shop/saddles
+─────────────────────────
+Shared paragraph (rendered identically on both):
+
+"אוכפים לרכיבה ספורטיבית, אימון יומיומי ותחרויות. All4Horses מציעה מגוון אוכפים
+מהמותגים המובילים בעולם — Wintec, Bates, Stubben — עם אחריות יבואן רשמי
+ומשלוח חינם מעל 300₪."` },
+  ],
+  "missing-alt": [
+    { url: "/product/saddle-pro", location: "<img>, line 84", detail: "Hero product image without alt. Accessibility + image search loss.", snippetLang: "html", snippet: `<img
+  src="/media/saddle-pro-hero.jpg"
+  width="1200" height="800"
+  loading="eager">
+<!--    ⚠ no alt attribute -->` },
+    { url: "/blog/grooming-routine", location: "<img>, lines 47, 62, 79", detail: "3 inline images in the article without alt text.", snippetLang: "html", snippet: `<img src="/media/brush-1.jpg">           <!-- line 47, no alt -->
+<img src="/media/brush-2.jpg">           <!-- line 62, no alt -->
+<img src="/media/hoof-pick.jpg">         <!-- line 79, no alt -->` },
+  ],
+  "lcp-slow": [
+    { url: "/", location: "LCP element", detail: "Hero <img> takes 4.2s to paint. Preload it and serve in AVIF.", measurement: "LCP 4.2s · target ≤ 2.5s", snippetLang: "html", snippet: `<!-- LCP element identified by Lighthouse -->
+<img class="hero-banner"
+  src="/media/homepage-hero.jpg"   <!-- 1.8 MB JPEG, no preload -->
+  width="1920" height="900">
+
+<!-- Fix: add to <head> -->
+<link rel="preload" as="image"
+  href="/media/homepage-hero.avif"
+  fetchpriority="high">` },
+    { url: "/category/saddles", location: "LCP element", detail: "Largest paint is a slider initialised by JS. Move it out of the critical path.", measurement: "LCP 3.4s · target ≤ 2.5s", snippetLang: "html", snippet: `<div id="hero-carousel"></div>
+<script src="/vendor/swiper.min.js"></script>
+<script>
+  new Swiper('#hero-carousel', {...});   /* renders LCP image */
+</script>` },
+  ],
+  "inp-slow": [
+    { url: "/", location: "Interaction", detail: "Add-to-cart click takes 380ms to respond. Long task in cart.js.", measurement: "INP 380ms · target ≤ 200ms", snippetLang: "css", snippet: `Click on .add-to-cart button
+  ↳ event handler (cart.js:84)
+  ↳ recompute basket totals (140ms blocking)
+  ↳ re-render mini-cart (210ms blocking)
+  ↳ analytics flush (30ms)
+  = 380ms before next paint` },
+  ],
+  "cls-high": [
+    { url: "/", location: "Above the fold", detail: "Sticky nav inserts after 1.1s and pushes hero 60px down.", measurement: "CLS 0.22 · target ≤ 0.1", snippetLang: "html", snippet: `<header class="sticky-nav"
+  style="position: sticky; top: 0;">
+  <!-- height: auto, no reserved space -->
+</header>
+
+<!-- Fix -->
+<header class="sticky-nav"
+  style="position: sticky; top: 0;
+         height: 60px; min-height: 60px;">` },
+    { url: "/category/saddles", location: "Product grid", detail: "Product images load without dimensions — every row shifts as images arrive.", measurement: "CLS 0.18 · target ≤ 0.1", snippetLang: "html", snippet: `<img src="/media/p1.jpg">   <!-- ⚠ no width/height -->
+
+<!-- Fix -->
+<img src="/media/p1.jpg" width="400" height="400">` },
+  ],
+  "page-weight": [
+    { url: "/", location: "Total transferred bytes", detail: "5.8 MB on first load. 2.4 MB is the hero JPEG, 1.1 MB is unused JS.", measurement: "5.8 MB · target ≤ 5 MB", snippetLang: "text", snippet: `Transferred:
+  • homepage-hero.jpg .................. 2.4 MB  (re-encode AVIF: ~280 KB)
+  • bundle.js .......................... 1.1 MB  (40% unused, code-split)
+  • slider.js .......................... 380 KB  (defer)
+  • Google Fonts (5 weights) ........... 240 KB  (subset to 2)
+  • Other ............................. 1.7 MB
+                                        ------
+Total .................................. 5.8 MB` },
+  ],
+  "large-images": [
+    { url: "/", location: "Image asset", detail: "Hero JPEG is 2.4 MB. Convert to AVIF, serve responsive sizes.", measurement: "2,418 KB · target ≤ 500 KB", snippetLang: "text", snippet: `/media/homepage-hero.jpg
+  Format ............ JPEG, quality 95
+  Dimensions ........ 3840 × 1800
+  File size ......... 2,418 KB
+  Recommendation .... AVIF @ 80% quality, srcset for 1920/1280/960 → ~280 KB` },
+    { url: "/category/saddles", location: "Image asset · 12 files", detail: "12 product images > 500 KB each. Serve compressed thumbnails on grid.", measurement: "8.6 MB total · target ≤ 500 KB each", snippetLang: "text", snippet: `/media/p-saddle-pro-full.jpg  ..... 1,120 KB
+/media/p-saddle-deluxe-full.jpg .. 980 KB
+/media/p-saddle-basic-full.jpg ... 740 KB
+(... 9 more)` },
+  ],
+  "broken-internal": [
+    { url: "/blog/feeding-tips", location: "<a>, line 137", detail: "Link to /promo/winter-2025 which returns 404.", snippetLang: "html", snippet: `<a href="/promo/winter-2025">
+  הצעת חורף — לא לפספס
+</a>
+<!-- target HTTP 404 Not Found -->` },
+    { url: "/category/feed", location: "<a>, line 92", detail: "Link to /returns which returns 404.", snippetLang: "html", snippet: `<a href="/returns" class="footer-link">
+  מדיניות החזרות
+</a>
+<!-- target HTTP 404 Not Found -->` },
+  ],
+  "broken-external": [
+    { url: "/blog/saddle-types", location: "<a>, line 211", detail: "External link to wintec-international.com returns DNS failure.", snippetLang: "html", snippet: `<a href="https://wintec-international.com/saddle-care"
+  rel="noopener" target="_blank">
+  מדריך טיפוח אוכף מ-Wintec
+</a>
+<!-- DNS_PROBE_FINISHED_NXDOMAIN since 2026-03-12 -->` },
+  ],
+  "orphan": [
+    { url: "/blog/leg-protection-guide", location: "Internal link graph", detail: "Indexed page with 0 inbound internal links. Add to /blog index or category nav.", snippetLang: "text", snippet: `Inbound internal links to /blog/leg-protection-guide:
+  • (none)
+
+Page exists in:
+  • sitemap.xml ✓
+  • Indexed by Google ✓ (organic traffic: 240 visits / month)
+
+→ Orphaned. Add a link from /blog and from /category/boots.` },
+  ],
+  "link-to-redirect": [
+    { url: "Multiple pages", location: "Anchor tags pointing at /products/* (legacy URL pattern)", detail: "29 internal links resolve through a 301 to /category/*. Update the hrefs to save crawl budget.", snippetLang: "html", snippet: `Found on:
+  /                          (4 links)
+  /blog/grooming-routine     (3 links)
+  /about                     (2 links)
+  ...
+
+Pattern:
+  <a href="/products/saddles">
+        ↑
+  ── update to /category/saddles ──
+        ↓
+  <a href="/category/saddles">` },
+  ],
+  "excessive-outbound": [
+    { url: "/blog/saddle-types", location: "<body>", detail: "Article has 142 outbound links — most are repeated breadcrumb/footer/related-posts.", measurement: "142 outbound · threshold > 100", snippetLang: "text", snippet: `Outbound link distribution:
+  • Breadcrumbs ............ 8
+  • Main nav ............... 24
+  • Article body ........... 14
+  • "Related posts" grid ... 60   ← bloated
+  • Footer ................. 36
+                              ───
+  Total .................... 142` },
+  ],
+  "missing-schema": [
+    { url: "/product/saddle-pro", location: "<head>", detail: "Product page without Product JSON-LD. Missing rich snippets (price, rating, availability).", snippetLang: "html", snippet: `<head>
+  <title>אוכף Pro לרכיבה ספורטיבית</title>
+  <!-- ⚠ no <script type="application/ld+json"> -->
+</head>
+
+<!-- Recommended addition -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "אוכף Pro",
+  "offers": { "@type": "Offer", "price": "2890", "priceCurrency": "ILS",
+              "availability": "https://schema.org/InStock" },
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.7",
+                       "reviewCount": "23" }
+}
+</script>` },
+    { url: "/blog/grooming-routine", location: "<head>", detail: "Blog post without Article JSON-LD.", snippetLang: "html", snippet: `<!-- no Article schema -->` },
+  ],
+  "invalid-schema": [
+    { url: "/product/saddle-deluxe", location: "<script type=\"application/ld+json\">, line 218", detail: "JSON-LD has a trailing comma which breaks parsing. Google ignores the whole block.", snippetLang: "json", snippet: `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "אוכף Deluxe",
+  "offers": {
+    "@type": "Offer",
+    "price": "4290",
+    "priceCurrency": "ILS",
+  }            ← trailing comma, invalid JSON
+}
+</script>` },
+    { url: "/blog/winter-care", location: "<script type=\"application/ld+json\">, line 184", detail: "Article schema is missing the required 'author' field.", snippetLang: "json", snippet: `{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "טיפוח הסוס בחורף",
+  "datePublished": "2025-12-08"
+  /* ⚠ missing required: author, image, publisher */
+}` },
+  ],
+  "missing-og": [
+    { url: "/category/saddles", location: "<head>", detail: "No og:title / og:description / og:image. Link previews on WhatsApp, FB, LinkedIn will be broken.", snippetLang: "html", snippet: `<head>
+  <title>אוכפים לרכיבה</title>
+  <!-- ⚠ no Open Graph tags -->
+</head>
+
+<!-- Recommended -->
+<meta property="og:title"       content="אוכפים לרכיבה - All4Horses">
+<meta property="og:description" content="...">
+<meta property="og:image"       content="https://all4horses.co.il/og/saddles.jpg">
+<meta property="og:url"         content="https://all4horses.co.il/category/saddles">
+<meta property="og:type"        content="website">` },
+  ],
+  "missing-twitter": [
+    { url: "/category/saddles", location: "<head>", detail: "No twitter:card. X.com link previews fall back to plain text.", snippetLang: "html", snippet: `<!-- no twitter:* tags -->
+
+<!-- Recommended -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="אוכפים לרכיבה - All4Horses">
+<meta name="twitter:description" content="...">
+<meta name="twitter:image"       content="https://all4horses.co.il/og/saddles.jpg">` },
+  ],
+  "hreflang-error": [
+    { url: "/category/saddles", location: "<head>, hreflang block", detail: "English alternate points at /en/saddles which doesn't have a return tag back to /category/saddles.", snippetLang: "html", snippet: `<!-- on /category/saddles -->
+<link rel="alternate" hreflang="he" href="https://all4horses.co.il/category/saddles">
+<link rel="alternate" hreflang="en" href="https://all4horses.co.il/en/saddles">
+
+<!-- on /en/saddles -->
+<link rel="alternate" hreflang="en" href="https://all4horses.co.il/en/saddles">
+<!-- ⚠ missing return tag to /category/saddles -->` },
+  ],
+};
+
 // Folder structure derived from MOCK_PAGES
 type FolderNode = {
   name: string;
@@ -471,7 +848,7 @@ export default function SeoAuditTab({ theme, isMobile, darkMode }: Props) {
 
       <div style={{ marginTop: 18 }}>
         {subTab === "overview" && <OverviewView audit={activeAudit} previous={previousAudit} theme={theme} isMobile={isMobile} onJumpIssues={() => setSubTab("issues")} onJumpPages={() => setSubTab("pages")} />}
-        {subTab === "issues" && <IssuesView audit={activeAudit} theme={theme} isMobile={isMobile} onJumpPages={() => setSubTab("pages")} />}
+        {subTab === "issues" && <IssuesView audit={activeAudit} theme={theme} isMobile={isMobile} darkMode={darkMode} onJumpPages={() => setSubTab("pages")} />}
         {subTab === "pages" && <PagesView theme={theme} isMobile={isMobile} darkMode={darkMode} />}
         {subTab === "structure" && <StructureView theme={theme} isMobile={isMobile} />}
       </div>
@@ -929,9 +1306,10 @@ function MetaPiece({ label, value, theme, clickable, onClick }: { label: string;
 // ISSUES SUB-TAB
 // ════════════════════════════════════════════════════════════
 
-function IssuesView({ audit, theme, isMobile, onJumpPages }: { audit: AuditRun; theme: Theme; isMobile: boolean; onJumpPages: () => void }) {
+function IssuesView({ audit, theme, isMobile, darkMode, onJumpPages }: { audit: AuditRun; theme: Theme; isMobile: boolean; darkMode: boolean; onJumpPages: () => void }) {
   const [catFilter, setCatFilter] = useState<Category | "all">("all");
   const [sevFilter, setSevFilter] = useState<Severity | "all">("all");
+  const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const rows = audit.issues
@@ -939,6 +1317,7 @@ function IssuesView({ audit, theme, isMobile, onJumpPages }: { audit: AuditRun; 
     .filter((i) => i.def)
     .filter((i) => catFilter === "all" || i.def.category === catFilter)
     .filter((i) => sevFilter === "all" || i.def.severity === sevFilter)
+    .filter((i) => !search || i.def.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       const sevOrder: Record<Severity, number> = { error: 0, warning: 1, notice: 2 };
       const sa = sevOrder[a.def.severity];
@@ -948,59 +1327,311 @@ function IssuesView({ audit, theme, isMobile, onJumpPages }: { audit: AuditRun; 
     });
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "220px 1fr", gap: 14 }}>
-      {/* Filter rail */}
-      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 14, height: "fit-content" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "232px 1fr", gap: 14 }}>
+      {/* Sticky filter rail */}
+      <div style={{ position: isMobile ? "static" : "sticky", top: 12, alignSelf: "flex-start", background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 14, maxHeight: isMobile ? "auto" : "calc(100vh - 40px)", overflowY: "auto" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Search</div>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter issues..." style={{ ...inputStyle(theme), fontFamily: "inherit", marginBottom: 14 }} />
+
         <FilterGroup label="Severity" theme={theme}>
-          <FilterPill label="All" active={sevFilter === "all"} onClick={() => setSevFilter("all")} theme={theme} />
+          <FilterPill label={`All (${audit.errorsCount + audit.warningsCount + audit.noticesCount})`} active={sevFilter === "all"} onClick={() => setSevFilter("all")} theme={theme} />
           <FilterPill label={`Errors (${audit.errorsCount})`} active={sevFilter === "error"} onClick={() => setSevFilter("error")} color={BRAND_RED} theme={theme} />
           <FilterPill label={`Warnings (${audit.warningsCount})`} active={sevFilter === "warning"} onClick={() => setSevFilter("warning")} color={BRAND_AMBER} theme={theme} />
           <FilterPill label={`Notices (${audit.noticesCount})`} active={sevFilter === "notice"} onClick={() => setSevFilter("notice")} color={BRAND_BLUE} theme={theme} />
         </FilterGroup>
         <FilterGroup label="Category" theme={theme}>
-          <FilterPill label="All" active={catFilter === "all"} onClick={() => setCatFilter("all")} theme={theme} />
-          {(Object.entries(CATEGORY_LABEL) as [Category, string][]).map(([key, label]) => (
-            <FilterPill key={key} label={label} active={catFilter === key} onClick={() => setCatFilter(key)} theme={theme} />
-          ))}
+          <FilterPill label="All categories" active={catFilter === "all"} onClick={() => setCatFilter("all")} theme={theme} />
+          {(Object.entries(CATEGORY_LABEL) as [Category, string][]).map(([key, label]) => {
+            const count = audit.issues
+              .map((i) => ISSUE_DEFS.find((d) => d.id === i.id))
+              .filter((d) => d && d.category === key).length;
+            return <FilterPill key={key} label={`${label} (${count})`} active={catFilter === key} onClick={() => setCatFilter(key)} theme={theme} />;
+          })}
         </FilterGroup>
+
+        <div style={{ marginTop: 10, paddingTop: 12, borderTop: `1px solid ${theme.border}`, fontSize: 11, color: theme.textMuted, lineHeight: 1.55 }}>
+          Expand any issue to see the exact URLs, the offending HTML / text snippet, and the location on the page.
+        </div>
       </div>
 
       {/* Issues list */}
-      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
-        {rows.length === 0 ? (
-          <div style={{ padding: 48, textAlign: "center", color: theme.textSecondary }}>No issues match the current filters.</div>
-        ) : (
-          rows.map((row, i) => {
-            const isOpen = expanded === row.id;
-            return (
-              <div key={row.id} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${theme.border}` : "none" }}>
-                <button onClick={() => setExpanded(isOpen ? null : row.id)} style={{ width: "100%", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", background: `${SEVERITY_COLOR[row.def.severity]}15`, color: SEVERITY_COLOR[row.def.severity], borderRadius: 999, letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[row.def.severity]}</span>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.def.name}</span>
-                    <span style={{ fontSize: 11, color: theme.textMuted, whiteSpace: "nowrap" }}>· {CATEGORY_LABEL[row.def.category]}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, whiteSpace: "nowrap" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontVariantNumeric: "tabular-nums" }}>{row.affected} {row.affected === 1 ? "page" : "pages"}</span>
-                    <span style={{ fontSize: 14, color: theme.textMuted, transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 150ms" }}>▸</span>
-                  </div>
-                </button>
-                {isOpen && (
-                  <div style={{ padding: "0 18px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.55 }}>{row.def.description}</div>
-                    <div style={{ background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>How to fix</div>
-                      <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.55 }}>{row.def.fix}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div style={{ fontSize: 13, color: theme.textSecondary }}>
+            Showing <strong style={{ color: theme.text, fontVariantNumeric: "tabular-nums" }}>{rows.length}</strong> issue {rows.length === 1 ? "type" : "types"}
+            <span style={{ color: theme.textMuted }}> · across {rows.reduce((s, r) => s + r.affected, 0).toLocaleString()} affected pages</span>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={() => setExpanded(null)} style={{ fontSize: 12, fontWeight: 500, color: theme.textSecondary, background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>Collapse all</button>
+            <button onClick={onJumpPages} style={{ fontSize: 12, fontWeight: 500, color: theme.textSecondary, background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>Open Page Explorer →</button>
+          </div>
+        </div>
+
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
+          {rows.length === 0 ? (
+            <div style={{ padding: 48, textAlign: "center", color: theme.textSecondary }}>No issues match the current filters.</div>
+          ) : (
+            rows.map((row, i) => {
+              const isOpen = expanded === row.id;
+              const locations = MOCK_ISSUE_LOCATIONS[row.id] || [];
+              return (
+                <div key={row.id} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${theme.border}` : "none", background: isOpen ? theme.bg : "transparent", transition: "background 150ms" }}>
+                  <button onClick={() => setExpanded(isOpen ? null : row.id)} style={{ width: "100%", padding: isMobile ? "12px 14px" : "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", background: SEVERITY_COLOR[row.def.severity], color: "#fff", borderRadius: 4, letterSpacing: 0.6, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[row.def.severity]}</span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.def.name}</div>
+                        {!isMobile && <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{CATEGORY_LABEL[row.def.category]}</div>}
+                      </div>
                     </div>
-                    <button onClick={onJumpPages} style={{ alignSelf: "flex-start", fontSize: 13, fontWeight: 600, color: BRAND_GREEN, background: "transparent", border: `1px solid ${BRAND_GREEN}50`, borderRadius: 7, padding: "7px 14px", cursor: "pointer" }}>View {row.affected} affected pages →</button>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, whiteSpace: "nowrap" }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{row.affected}</div>
+                        <div style={{ fontSize: 10, color: theme.textMuted, marginTop: 2, letterSpacing: 0.4, textTransform: "uppercase" }}>{row.affected === 1 ? "page" : "pages"}</div>
+                      </div>
+                      <span style={{ fontSize: 16, color: BRAND_GREEN, transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 200ms", display: "inline-block", width: 16, textAlign: "center" }}>▸</span>
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div style={{ padding: isMobile ? "0 14px 16px" : "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 10 }}>
+                        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Why it matters</div>
+                          <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.55 }}>{row.def.description}</div>
+                        </div>
+                        <div style={{ background: `${BRAND_GREEN}10`, border: `1px solid ${BRAND_GREEN}50`, borderRadius: 8, padding: 12 }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: BRAND_GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>How to fix</div>
+                          <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.55 }}>{row.def.fix}</div>
+                        </div>
+                      </div>
+
+                      <IssueLocations
+                        issueId={row.id}
+                        issueName={row.def.name}
+                        severity={row.def.severity}
+                        affected={row.affected}
+                        locations={locations}
+                        theme={theme}
+                        isMobile={isMobile}
+                        darkMode={darkMode}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+// ── PER-ISSUE LOCATIONS DRILLDOWN ─────────────────────────
+function IssueLocations({ issueId, issueName, severity, affected, locations, theme, isMobile, darkMode }: {
+  issueId: string; issueName: string; severity: Severity; affected: number; locations: IssueLocation[]; theme: Theme; isMobile: boolean; darkMode: boolean;
+}) {
+  const [urlSearch, setUrlSearch] = useState("");
+  const [expandedUrl, setExpandedUrl] = useState<string | null>(locations.length > 0 ? locations[0].url + "::0" : null);
+
+  const filtered = locations.filter((l) => !urlSearch || l.url.toLowerCase().includes(urlSearch.toLowerCase()));
+  const isSampled = locations.length < affected;
+
+  if (locations.length === 0) {
+    return (
+      <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 18, textAlign: "center", color: theme.textSecondary, fontSize: 13 }}>
+        Per-URL evidence for this check will appear here once the live crawler runs. The demo seeds evidence for the most common issue types.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden" }}>
+      <div style={{ padding: "10px 14px", background: theme.tableHeaderBg, borderBottom: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: theme.textSecondary, flexWrap: "wrap" }}>
+          <span style={{ fontWeight: 700, color: theme.text, letterSpacing: 0.4, textTransform: "uppercase", fontSize: 11 }}>Affected URLs</span>
+          <span style={{ color: theme.textMuted }}>·</span>
+          <span style={{ fontVariantNumeric: "tabular-nums" }}>{isSampled ? `Showing ${filtered.length} of ${affected} (sample)` : `${filtered.length} of ${affected}`}</span>
+        </div>
+        <input value={urlSearch} onChange={(e) => setUrlSearch(e.target.value)} placeholder="Filter URLs..." style={{
+          padding: "6px 10px", fontSize: 12, background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, outline: "none", maxWidth: 240, width: "100%", fontFamily: "inherit",
+        }} />
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ padding: 24, textAlign: "center", color: theme.textSecondary, fontSize: 13 }}>No URLs match the filter.</div>
+      ) : (
+        filtered.map((loc, idx) => {
+          const key = loc.url + "::" + idx;
+          const open = expandedUrl === key;
+          return (
+            <div key={key} style={{ borderTop: idx === 0 ? "none" : `1px solid ${theme.border}` }}>
+              <button onClick={() => setExpandedUrl(open ? null : key)} style={{ width: "100%", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+                  <span style={{ width: 14, color: SEVERITY_COLOR[severity], fontSize: 11, flexShrink: 0, display: "inline-block", textAlign: "center", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 150ms" }}>▸</span>
+                  <span style={{ fontFamily: "monospace", fontSize: 12.5, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{loc.url}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, color: theme.textMuted, fontFamily: "monospace", whiteSpace: "nowrap", display: isMobile ? "none" : "inline" }}>{loc.location}</span>
+                </div>
+              </button>
+
+              {open && (
+                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", background: `${SEVERITY_COLOR[severity]}15`, color: SEVERITY_COLOR[severity], borderRadius: 4, letterSpacing: 0.4, textTransform: "uppercase" }}>{SEVERITY_LABEL[severity]}</span>
+                    <span style={{ fontSize: 12, color: theme.textMuted, fontFamily: "monospace" }}>📍 {loc.location}</span>
+                    {loc.measurement && (
+                      <span style={{ fontSize: 12, fontWeight: 600, color: SEVERITY_COLOR[severity], fontFamily: "monospace", fontVariantNumeric: "tabular-nums" }}>{loc.measurement}</span>
+                    )}
+                  </div>
+
+                  <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.55 }}>{loc.detail}</div>
+
+                  <CodeBlock snippet={loc.snippet} lang={loc.snippetLang || "html"} theme={theme} darkMode={darkMode} />
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <a href={`https://${DEMO_DOMAIN}${loc.url.startsWith("/") ? loc.url : "/" + loc.url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 600, color: BRAND_GREEN, background: "transparent", border: `1px solid ${BRAND_GREEN}50`, borderRadius: 6, padding: "5px 10px", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      Open live page ↗
+                    </a>
+                    <CopyButton text={loc.snippet} label="Copy snippet" theme={theme} />
+                    {issueId.startsWith("missing-") || issueId === "duplicate-title" || issueId === "duplicate-meta-desc" ? (
+                      <button onClick={() => alert(`(Demo) Would send a fix-it ticket for "${issueName}" on ${loc.url} to the editor.`)} style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary, background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 6, padding: "5px 10px", cursor: "pointer" }}>Send to editor →</button>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+
+      {isSampled && (
+        <div style={{ padding: "10px 14px", background: theme.tableHeaderBg, borderTop: `1px solid ${theme.border}`, fontSize: 12, color: theme.textMuted, textAlign: "center" }}>
+          Showing a representative sample. The full list of {affected} URLs is available via CSV export once the live crawler runs.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CODE BLOCK with simple HTML/JSON tokenisation ──────────
+function CodeBlock({ snippet, lang, theme, darkMode }: { snippet: string; lang: "html" | "text" | "json" | "css" | "http"; theme: Theme; darkMode: boolean }) {
+  const lines = snippet.split("\n");
+  const bg = darkMode ? "#0B1015" : "#0F172A";
+  const baseColor = darkMode ? "#D6DEE8" : "#E2E8F0";
+  return (
+    <div style={{ background: bg, borderRadius: 8, overflow: "hidden", border: `1px solid ${darkMode ? "#1A2330" : "#1E293B"}` }}>
+      <div style={{ padding: "6px 12px", background: darkMode ? "#0F1722" : "#1E293B", borderBottom: `1px solid ${darkMode ? "#1A2330" : "#0F172A"}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#7BA9C9", letterSpacing: 1.2, textTransform: "uppercase", fontFamily: "monospace" }}>{lang}</span>
+        <span style={{ fontSize: 10, color: "#5C7896", fontFamily: "monospace" }}>{lines.length} {lines.length === 1 ? "line" : "lines"}</span>
+      </div>
+      <pre style={{ margin: 0, padding: "10px 0", fontFamily: "'JetBrains Mono', 'SF Mono', Consolas, monospace", fontSize: 12, lineHeight: 1.65, color: baseColor, overflowX: "auto", whiteSpace: "pre", direction: "ltr" }}>
+        {lines.map((line, i) => (
+          <div key={i} style={{ padding: "0 14px 0 12px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <span style={{ width: 24, flexShrink: 0, textAlign: "right", color: "#475569", userSelect: "none", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>{tokenize(line, lang)}</span>
+          </div>
+        ))}
+      </pre>
+    </div>
+  );
+}
+
+function tokenize(line: string, lang: "html" | "text" | "json" | "css" | "http"): React.ReactNode {
+  if (!line.trim()) return " ";
+  const commentColor = "#64748B";
+  const commentStyle = { color: commentColor, fontStyle: "italic" as const };
+
+  if (lang === "html") {
+    const commentMatch = line.match(/^(\s*)(<!--.*?-->)(.*)$/);
+    if (commentMatch) {
+      return <><span>{commentMatch[1]}</span><span style={commentStyle}>{commentMatch[2]}</span><span>{commentMatch[3]}</span></>;
+    }
+    const tagMatches = Array.from(line.matchAll(/(<\/?[\w-]+)([^>]*?)(>|$)/g));
+    if (tagMatches.length === 0) return line;
+    const parts: React.ReactNode[] = [];
+    let cursor = 0;
+    tagMatches.forEach((m, mi) => {
+      const start = m.index ?? 0;
+      if (start > cursor) parts.push(<span key={`pre${mi}`}>{line.slice(cursor, start)}</span>);
+      parts.push(<span key={`open${mi}`} style={{ color: "#7DD3FC" }}>{m[1]}</span>);
+      const attrs = m[2];
+      const attrMatches = Array.from(attrs.matchAll(/([\w-]+)(=)("[^"]*"|'[^']*')/g));
+      if (attrMatches.length === 0) {
+        parts.push(<span key={`attrs${mi}`}>{attrs}</span>);
+      } else {
+        let acursor = 0;
+        attrMatches.forEach((am, ami) => {
+          const astart = am.index ?? 0;
+          if (astart > acursor) parts.push(<span key={`ap${mi}-${ami}`}>{attrs.slice(acursor, astart)}</span>);
+          parts.push(<span key={`an${mi}-${ami}`} style={{ color: "#FCD34D" }}>{am[1]}</span>);
+          parts.push(<span key={`ae${mi}-${ami}`}>{am[2]}</span>);
+          parts.push(<span key={`av${mi}-${ami}`} style={{ color: "#86EFAC" }}>{am[3]}</span>);
+          acursor = astart + am[0].length;
+        });
+        if (acursor < attrs.length) parts.push(<span key={`ar${mi}`}>{attrs.slice(acursor)}</span>);
+      }
+      parts.push(<span key={`close${mi}`} style={{ color: "#7DD3FC" }}>{m[3]}</span>);
+      cursor = start + m[0].length;
+    });
+    if (cursor < line.length) parts.push(<span key="tail">{line.slice(cursor)}</span>);
+    return <>{parts}</>;
+  }
+
+  if (lang === "json") {
+    const commentMatch = line.match(/^(\s*)(\/\*.*?\*\/|\/\/.*)$/);
+    if (commentMatch) return <><span>{commentMatch[1]}</span><span style={commentStyle}>{commentMatch[2]}</span></>;
+    const keyMatch = line.match(/^(\s*)("[^"]+")(\s*:\s*)(.*)$/);
+    if (keyMatch) {
+      const valuePart = keyMatch[4];
+      const stringValue = valuePart.match(/^(".*?")(.*)$/);
+      const numericValue = valuePart.match(/^(-?\d+\.?\d*)(.*)$/);
+      return (
+        <>
+          <span>{keyMatch[1]}</span>
+          <span style={{ color: "#7DD3FC" }}>{keyMatch[2]}</span>
+          <span>{keyMatch[3]}</span>
+          {stringValue ? <><span style={{ color: "#86EFAC" }}>{stringValue[1]}</span><span>{stringValue[2]}</span></>
+            : numericValue ? <><span style={{ color: "#FCA5A5" }}>{numericValue[1]}</span><span>{numericValue[2]}</span></>
+            : <span>{valuePart}</span>}
+        </>
+      );
+    }
+    return line;
+  }
+
+  if (lang === "http") {
+    const statusMatch = line.match(/^(HTTP\/[\d.]+)\s+(\d{3})\s+(.+)$/);
+    if (statusMatch) {
+      const code = parseInt(statusMatch[2], 10);
+      const codeColor = code >= 500 ? "#FCA5A5" : code >= 400 ? "#FCA5A5" : code >= 300 ? "#FCD34D" : "#86EFAC";
+      return <><span style={{ color: "#7DD3FC" }}>{statusMatch[1]}</span> <span style={{ color: codeColor, fontWeight: 700 }}>{statusMatch[2]}</span> <span style={{ color: codeColor }}>{statusMatch[3]}</span></>;
+    }
+    const methodMatch = line.match(/^(GET|POST|HEAD|PUT|DELETE)\s+(.+)$/);
+    if (methodMatch) return <><span style={{ color: "#FCD34D", fontWeight: 700 }}>{methodMatch[1]}</span> <span>{methodMatch[2]}</span></>;
+    const headerMatch = line.match(/^([\w-]+):(.*)$/);
+    if (headerMatch) return <><span style={{ color: "#7DD3FC" }}>{headerMatch[1]}</span><span>:</span><span style={{ color: "#86EFAC" }}>{headerMatch[2]}</span></>;
+    if (line.includes("→")) return <span style={{ color: "#FCD34D" }}>{line}</span>;
+    return line;
+  }
+
+  return line;
+}
+
+function CopyButton({ text, label, theme }: { text: string; label: string; theme: Theme }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button onClick={() => {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1400);
+      }
+    }} style={{ fontSize: 12, fontWeight: 600, color: copied ? BRAND_GREEN : theme.textSecondary, background: theme.tableHeaderBg, border: `1px solid ${copied ? BRAND_GREEN : theme.border}`, borderRadius: 6, padding: "5px 10px", cursor: "pointer", transition: "all 150ms" }}>
+      {copied ? "Copied ✓" : label}
+    </button>
   );
 }
 
@@ -1128,19 +1759,20 @@ function PagesView({ theme, isMobile, darkMode }: { theme: Theme; isMobile: bool
       </div>
 
       {/* Drawer */}
-      {drawer && <PageDrawer page={drawer} onClose={() => setDrawer(null)} theme={theme} isMobile={isMobile} />}
+      {drawer && <PageDrawer page={drawer} onClose={() => setDrawer(null)} theme={theme} isMobile={isMobile} darkMode={darkMode} />}
     </>
   );
 }
 
-function PageDrawer({ page, onClose, theme, isMobile }: { page: AuditPage; onClose: () => void; theme: Theme; isMobile: boolean }) {
+function PageDrawer({ page, onClose, theme, isMobile, darkMode }: { page: AuditPage; onClose: () => void; theme: Theme; isMobile: boolean; darkMode: boolean }) {
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: theme.cardBg, width: isMobile ? "100%" : 560, height: "100vh", overflowY: "auto", padding: 22, boxShadow: "-8px 0 30px rgba(0,0,0,0.3)" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: theme.cardBg, width: isMobile ? "100%" : 640, height: "100vh", overflowY: "auto", padding: 22, boxShadow: "-8px 0 30px rgba(0,0,0,0.3)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 10 }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSecondary, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Page details</div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: theme.text, margin: 0, wordBreak: "break-all", lineHeight: 1.3, fontFamily: "monospace" }}>{page.url}</h3>
+            <a href={`https://${DEMO_DOMAIN}${page.url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: BRAND_GREEN, textDecoration: "none", marginTop: 6, display: "inline-block" }}>Open live page ↗</a>
           </div>
           <button onClick={onClose} style={{ background: theme.tableHeaderBg, border: `1px solid ${theme.border}`, borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: theme.textSecondary, flexShrink: 0 }}>×</button>
         </div>
@@ -1158,15 +1790,35 @@ function PageDrawer({ page, onClose, theme, isMobile }: { page: AuditPage; onClo
 
         {page.issues.length > 0 && (
           <div style={{ marginTop: 22 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, marginBottom: 10 }}>Issues found ({page.issues.length})</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, marginBottom: 10 }}>Issues found on this page ({page.issues.length})</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {page.issues.map((id) => {
                 const def = ISSUE_DEFS.find((d) => d.id === id);
                 if (!def) return null;
+                const loc = (MOCK_ISSUE_LOCATIONS[id] || []).find((l) => l.url === page.url) || (MOCK_ISSUE_LOCATIONS[id] || [])[0];
                 return (
-                  <div key={id} style={{ padding: "10px 12px", background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", background: `${SEVERITY_COLOR[def.severity]}15`, color: SEVERITY_COLOR[def.severity], borderRadius: 999, letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[def.severity]}</span>
-                    <span style={{ fontSize: 13, color: theme.text }}>{def.name}</span>
+                  <div key={id} style={{ background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 10, overflow: "hidden" }}>
+                    <div style={{ padding: "10px 12px", display: "flex", alignItems: "center", gap: 10, borderBottom: loc ? `1px solid ${theme.border}` : "none" }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", background: SEVERITY_COLOR[def.severity], color: "#fff", borderRadius: 4, letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>{SEVERITY_LABEL[def.severity]}</span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{def.name}</div>
+                        <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{CATEGORY_LABEL[def.category]}</div>
+                      </div>
+                    </div>
+                    {loc && (
+                      <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: theme.textMuted, fontFamily: "monospace" }}>📍 {loc.location}</span>
+                          {loc.measurement && <span style={{ fontSize: 11, fontWeight: 600, color: SEVERITY_COLOR[def.severity], fontFamily: "monospace" }}>{loc.measurement}</span>}
+                        </div>
+                        <div style={{ fontSize: 12.5, color: theme.text, lineHeight: 1.5 }}>{loc.detail}</div>
+                        <CodeBlock snippet={loc.snippet} lang={loc.snippetLang || "html"} theme={theme} darkMode={darkMode} />
+                        <div style={{ fontSize: 12, color: theme.textSecondary, padding: "8px 10px", background: `${BRAND_GREEN}10`, border: `1px solid ${BRAND_GREEN}30`, borderRadius: 6, lineHeight: 1.5 }}>
+                          <strong style={{ color: BRAND_GREEN, fontSize: 10, letterSpacing: 0.8, textTransform: "uppercase", display: "block", marginBottom: 4 }}>Fix</strong>
+                          {def.fix}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
