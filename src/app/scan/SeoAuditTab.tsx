@@ -1183,27 +1183,29 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* Score + Severity row */}
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "320px 1fr", gap: 14 }}>
+      {/* Score + Severity row — compact */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(220px, 260px) 1fr", gap: 12, alignItems: "stretch" }}>
 
         {/* Score card */}
-        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 14, padding: 22, textAlign: "center" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSecondary, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>Health Score</div>
+        <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: "16px 18px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Health Score</div>
           <ScoreGauge score={audit.healthScore} color={band.color} theme={theme} />
-          <div style={{ fontSize: 14, fontWeight: 600, color: band.color, marginTop: 10 }}>{band.label}</div>
-          {delta !== null && (
-            <div style={{ fontSize: 13, color: delta >= 0 ? BRAND_GREEN : BRAND_RED, marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
-              {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)} vs previous
-            </div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: band.color }}>{band.label}</span>
+            {delta !== null && delta !== 0 && (
+              <span style={{ fontSize: 11, color: delta >= 0 ? BRAND_GREEN : BRAND_RED, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>
+                {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Severity counters */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 10 }}>
-          <SeverityCard label="Errors" count={audit.errorsCount} delta={previous ? audit.errorsCount - previous.errorsCount : null} color={BRAND_RED} hint="Must fix, lower Health Score" theme={theme} onClick={onJumpIssues} />
-          <SeverityCard label="Warnings" count={audit.warningsCount} delta={previous ? audit.warningsCount - previous.warningsCount : null} color={BRAND_AMBER} hint="Fix after errors" theme={theme} onClick={onJumpIssues} />
-          <SeverityCard label="Notices" count={audit.noticesCount} delta={previous ? audit.noticesCount - previous.noticesCount : null} color={BRAND_BLUE} hint="Nudges, cosmetic" theme={theme} onClick={onJumpIssues} />
-        </div>
+        {/* Severity bar — single card, three slim inline segments */}
+        <button onClick={onJumpIssues} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 0, cursor: "pointer", textAlign: "left", display: "flex", flexDirection: isMobile ? "column" : "row", overflow: "hidden" }}>
+          <SeveritySegment label="Errors" count={audit.errorsCount} delta={previous ? audit.errorsCount - previous.errorsCount : null} color={BRAND_RED} theme={theme} isMobile={isMobile} isFirst />
+          <SeveritySegment label="Warnings" count={audit.warningsCount} delta={previous ? audit.warningsCount - previous.warningsCount : null} color={BRAND_AMBER} theme={theme} isMobile={isMobile} />
+          <SeveritySegment label="Notices" count={audit.noticesCount} delta={previous ? audit.noticesCount - previous.noticesCount : null} color={BRAND_BLUE} theme={theme} isMobile={isMobile} />
+        </button>
       </div>
 
       {/* Audit metadata strip */}
@@ -1257,37 +1259,46 @@ function OverviewView({ audit, previous, theme, isMobile, onJumpIssues, onJumpPa
 }
 
 function ScoreGauge({ score, color, theme }: { score: number; color: string; theme: Theme }) {
-  const r = 56;
+  const r = 46;
   const c = 2 * Math.PI * r;
   const offset = c - (score / 100) * c;
   return (
-    <div style={{ position: "relative", width: 140, height: 140, margin: "0 auto" }}>
-      <svg width={140} height={140} viewBox="0 0 140 140">
-        <circle cx="70" cy="70" r={r} fill="none" stroke={theme.barTrack} strokeWidth="10" />
-        <circle cx="70" cy="70" r={r} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 70 70)" style={{ transition: "stroke-dashoffset 600ms ease" }} />
+    <div style={{ position: "relative", width: 116, height: 116, margin: "0 auto" }}>
+      <svg width={116} height={116} viewBox="0 0 116 116">
+        <circle cx="58" cy="58" r={r} fill="none" stroke={theme.barTrack} strokeWidth="9" />
+        <circle cx="58" cy="58" r={r} fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} transform="rotate(-90 58 58)" style={{ transition: "stroke-dashoffset 600ms ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-        <span style={{ fontSize: 36, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>/ 100</span>
+        <span style={{ fontSize: 30, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{score}</span>
+        <span style={{ fontSize: 10, color: theme.textMuted, marginTop: 2 }}>/ 100</span>
       </div>
     </div>
   );
 }
 
-function SeverityCard({ label, count, delta, color, hint, theme, onClick }: { label: string; count: number; delta: number | null; color: string; hint: string; theme: Theme; onClick: () => void }) {
+function SeveritySegment({ label, count, delta, color, theme, isMobile, isFirst }: { label: string; count: number; delta: number | null; color: string; theme: Theme; isMobile: boolean; isFirst?: boolean }) {
+  const deltaGood = (label === "Errors" || label === "Warnings") ? (delta !== null && delta < 0) : false;
+  const deltaBad = (label === "Errors" || label === "Warnings") ? (delta !== null && delta > 0) : false;
   return (
-    <button onClick={onClick} style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderLeft: `4px solid ${color}`, borderRadius: 10, padding: "16px 18px", textAlign: "left", cursor: "pointer" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <span style={{ fontSize: 30, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{count}</span>
-        {delta !== null && delta !== 0 && (
-          <span style={{ fontSize: 13, fontWeight: 600, color: (label === "Errors" || label === "Warnings") ? (delta < 0 ? BRAND_GREEN : BRAND_RED) : theme.textSecondary, fontVariantNumeric: "tabular-nums" }}>
-            {delta > 0 ? "+" : ""}{delta}
-          </span>
-        )}
+    <div style={{
+      flex: 1, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14,
+      borderLeft: !isFirst && !isMobile ? `1px solid ${theme.border}` : "none",
+      borderTop: !isFirst && isMobile ? `1px solid ${theme.border}` : "none",
+      minWidth: 0,
+    }}>
+      <span style={{ width: 4, alignSelf: "stretch", background: color, borderRadius: 2, flexShrink: 0 }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: 1.2, textTransform: "uppercase" }}>{label}</div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span style={{ fontSize: 22, fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{count}</span>
+          {delta !== null && delta !== 0 && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: deltaGood ? BRAND_GREEN : deltaBad ? BRAND_RED : theme.textSecondary, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+              {delta > 0 ? "+" : ""}{delta} vs prev
+            </span>
+          )}
+        </div>
       </div>
-      <div style={{ fontSize: 12, color: theme.textSecondary, marginTop: 6 }}>{hint}</div>
-    </button>
+    </div>
   );
 }
 

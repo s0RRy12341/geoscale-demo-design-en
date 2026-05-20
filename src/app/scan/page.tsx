@@ -1238,8 +1238,9 @@ export default function ScanPage() {
 
       {/* -- Tab Bar -- */}
       <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
+        <style>{`.geoscale-tab-strip::-webkit-scrollbar{display:none;height:0;width:0;}`}</style>
         <div style={{ maxWidth: 1300, margin: "0 auto", padding: isMobile ? "0 8px" : "0 24px" }}>
-          <div style={{ display: "flex", gap: 0, overflowX: isMobile ? "auto" : "visible", WebkitOverflowScrolling: "touch" as any, scrollbarWidth: "none" as any, msOverflowStyle: "none" as any }}>
+          <div className="geoscale-tab-strip" style={{ display: "flex", gap: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" as any, scrollbarWidth: "none" as any, msOverflowStyle: "none" as any, maxWidth: "100%" }}>
             {([
               { key: "overview" as const, label: "Overview", tooltip: "Overall brand presence overview", iconPath: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /> },
               { key: "queries" as const, label: "Queries", tooltip: "All queries tested against AI engines", iconPath: <><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></>, count: totalQueries },
@@ -1253,7 +1254,7 @@ export default function ScanPage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "10px 12px" : "12px 20px", fontSize: isMobile ? 13 : 15, whiteSpace: "nowrap" as const,
+                  display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "10px 12px" : "11px 14px", fontSize: isMobile ? 13 : 14, whiteSpace: "nowrap" as const, flexShrink: 0,
                   fontWeight: activeTab === tab.key ? 600 : 500,
                   color: activeTab === tab.key ? theme.text : theme.textSecondary,
                   background: "transparent", border: "none",
