@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import SeoAuditTab from "./SeoAuditTab";
 
 // ============================================================
 // GEOSCALE SCAN ANALYSIS — Full Brand Scan Results Page
@@ -994,7 +995,7 @@ function HoverButton({ children, style, filled, onClick, href, theme }: { childr
 // ════════════════════════════════════════════════════════════
 
 export default function ScanPage() {
-  const [activeTab, setActiveTab] = useState<"overview" | "queries" | "keywords" | "audiences" | "products" | "content">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "queries" | "keywords" | "audiences" | "products" | "content" | "seoaudit">("overview");
   const [expandedQuery, setExpandedQuery] = useState<number | null>(null);
   const [fullAnswerView, setFullAnswerView] = useState<{ queryId: number; engine: "gpt" | "gemini" } | null>(null);
   const [queryFilter, setQueryFilter] = useState<"all" | "mentioned" | "missing" | "negative">("all");
@@ -1052,7 +1053,7 @@ export default function ScanPage() {
     if (d) setScanDomain(d);
     // Deep-link tab from external pages (e.g. scalepublish "Back to scan to add more queries")
     const t = params.get("tab");
-    if (t === "queries" || t === "keywords" || t === "audiences" || t === "products" || t === "content" || t === "overview") {
+    if (t === "queries" || t === "keywords" || t === "audiences" || t === "products" || t === "content" || t === "overview" || t === "seoaudit") {
       setActiveTab(t);
     }
   }, []);
@@ -1246,6 +1247,7 @@ export default function ScanPage() {
               { key: "audiences" as const, label: "Audiences", tooltip: "Target audience personas identified from the scan", iconPath: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></>, count: PERSONAS.length },
               { key: "products" as const, label: "Products / Services", tooltip: "Products and services identified on the site", iconPath: <><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" /></> },
               { key: "content" as const, label: "Content Creation", tooltip: "GEO-Optimized content creation queue", iconPath: <><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></> },
+              { key: "seoaudit" as const, label: "SEO Audit", tooltip: "Technical SEO site crawl — 37 checks across 5 categories", iconPath: <><circle cx="12" cy="12" r="10" /><path d="M9 12l2 2 4-4" /></> },
             ]).map((tab) => (
               <button
                 key={tab.key}
@@ -2431,6 +2433,11 @@ export default function ScanPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB 7: SEO AUDIT */}
+        {activeTab === "seoaudit" && (
+          <SeoAuditTab theme={theme} isMobile={isMobile} darkMode={darkMode} />
         )}
       </div>
 
